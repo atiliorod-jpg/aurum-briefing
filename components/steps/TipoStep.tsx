@@ -5,11 +5,12 @@ import { FormState } from "@/lib/types";
 const OPTIONS = [
   { value: "Aniversário", label: "Aniversário" },
   { value: "Casamento", label: "Casamento" },
-  { value: "Confraternização / Corporativo", label: "Confraternização ou evento corporativo" },
-  { value: "Jantar privado", label: "Jantar privado" },
+  { value: "Confraternização / Corporativo", label: "Confraternização ou Evento Corporativo" },
+  { value: "Jantar Privado", label: "Jantar Privado" },
+  { value: "Jantar Harmonizado", label: "Jantar Harmonizado", desc: "Menu degustação com harmonização de vinhos e bebidas" },
+  { value: "Jantar Temático", label: "Jantar Temático", desc: "Cardápio e ambientação criados em torno de um tema" },
   { value: "Coffee-break", label: "Coffee-break" },
-  { value: "Evento de Feijoada", label: "Evento de Feijoada", desc: "Cardápio dedicado — fluxo alternativo." },
-  { value: "Outro", label: "Outro tipo" },
+  { value: "Outro", label: "Outro" },
 ];
 
 interface Props {
@@ -22,7 +23,7 @@ export default function TipoStep({ state, onChange }: Props) {
     <div>
       <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">1 / 10</div>
       <h1 className="text-xl font-bold text-[#1B2A41] mb-1">Qual o tipo do seu evento?</h1>
-      <p className="text-gray-500 text-sm mb-5">Selecione a opção que mais se aproxima.</p>
+      <p className="text-gray-500 text-sm mb-5">Selecione a opção que melhor descreve a ocasião.</p>
       <div className="flex flex-col gap-2.5">
         {OPTIONS.map((o) => (
           <OptionCard
@@ -38,7 +39,7 @@ export default function TipoStep({ state, onChange }: Props) {
         <div className="mt-4">
           <input
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]"
-            placeholder="Conte sobre o evento."
+            placeholder="Descreva o evento."
             value={state.tipoOutro}
             onChange={(e) => onChange({ tipoOutro: e.target.value })}
           />

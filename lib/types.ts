@@ -4,6 +4,7 @@ export interface FormState {
   data: string;
   horaInicio: string;
   horaFim: string;
+  obsHorario: string;
   endereco: string;
   adultos: string;
   criancas: string;
@@ -30,6 +31,7 @@ export const initialState: FormState = {
   data: "",
   horaInicio: "",
   horaFim: "",
+  obsHorario: "",
   endereco: "",
   adultos: "",
   criancas: "",
@@ -75,7 +77,14 @@ export const FLUXO_PADRAO: StepName[] = [
   "estrutura","mesas","bebidas","faixa","contato","final",
 ];
 
+export const FLUXO_SEM_PRINCIPAIS: StepName[] = [
+  "welcome","tipo","quando","local","convidados",
+  "estilo","entradas","tacho","sobremesas",
+  "estrutura","mesas","bebidas","faixa","contato","final",
+];
+
 export const FLUXO_FEIJOADA: StepName[] = [
   "welcome","tipo","quando","local","convidados",
-  "feijoada","estrutura","mesas","bebidas","faixa","contato","final",
+  "estilo","feijoada","entradas","sobremesas",
+  "estrutura","mesas","bebidas","faixa","contato","final",
 ];

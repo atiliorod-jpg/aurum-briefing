@@ -21,23 +21,31 @@ export function buildWhatsAppMessage(state: FormState): string {
     state.horaFim ? `às ${state.horaFim}` : "",
   ].filter(Boolean).join(" ");
   lines.push(`• Data: ${formatDate(state.data)}${horario ? `  •  ${horario}` : ""}`);
+  if (state.obsHorario?.trim()) lines.push(`• Observação de horário: ${state.obsHorario}`);
   lines.push(`• Local: ${state.endereco}`);
   const criancas = state.criancas && state.criancas !== "0" ? ` + ${state.criancas} crianças` : "";
   lines.push(`• Convidados: ${state.adultos} adultos${criancas}`);
-  if (state.restricoes.trim()) lines.push(`• Restrições: ${state.restricoes}`);
+  if (state.restricoes.trim()) lines.push(`• Restrições alimentares: ${state.restricoes}`);
 
-  if (state.tipo === "Evento de Feijoada") {
+  const isFeijoada = state.estilo.includes("Feijoada Completa");
+
+  lines.push(``);
+  lines.push(`*ESTILO DE SERVIÇO*`);
+  lines.push(`• ${state.estilo.join(", ")}`);
+
+  if (isFeijoada) {
     lines.push(``);
     lines.push(`*FEIJOADA*`);
-    lines.push(`• Estilo: ${state.feijoada}`);
+    lines.push(`• Formato: ${state.feijoada}`);
+    if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
+    if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
   } else {
     lines.push(``);
     lines.push(`*CARDÁPIO*`);
-    lines.push(`• Estilo: ${state.estilo.join(", ")}`);
-    lines.push(`• Entradas: ${state.entradas.join(", ")}`);
-    lines.push(`• Principais: ${state.principais.join(", ")}`);
-    if (state.tacho.length > 0) lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
-    lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
+    if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
+    if (state.principais.length) lines.push(`• Pratos principais: ${state.principais.join(", ")}`);
+    if (state.tacho.length) lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
+    if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
   }
 
   lines.push(``);

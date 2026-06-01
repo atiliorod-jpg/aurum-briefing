@@ -13,16 +13,19 @@ export default function OptionCard({ label, description, selected, onClick, vari
     return (
       <button
         onClick={onClick}
-        className={`relative rounded-xl border-2 p-4 text-sm font-medium text-center min-h-[64px] flex items-center justify-center leading-snug transition-all active:scale-[0.97] ${
+        className={`relative rounded-xl border-2 px-3 py-3 text-sm text-left min-h-[64px] flex flex-col justify-center transition-all active:scale-[0.97] ${
           selected
-            ? "border-[#C9A24B] bg-[#FBF7EE] text-[#1B2A41] font-semibold shadow-md"
-            : "border-gray-200 bg-white text-[#1B2A41]"
+            ? "border-[#C9A24B] bg-[#FBF7EE] font-semibold shadow-sm"
+            : "border-gray-200 bg-white"
         }`}
       >
         {selected && (
-          <span className="absolute top-1.5 right-2 text-[#C9A24B] text-sm font-bold">✓</span>
+          <span className="absolute top-2 right-2.5 text-[#C9A24B] text-xs font-bold">✓</span>
         )}
-        <span dangerouslySetInnerHTML={{ __html: label }} />
+        <span className="block font-medium text-[#1B2A41] leading-snug pr-4">{label}</span>
+        {description && (
+          <span className="block text-xs text-gray-400 mt-1 leading-snug font-normal">{description}</span>
+        )}
       </button>
     );
   }
@@ -30,20 +33,20 @@ export default function OptionCard({ label, description, selected, onClick, vari
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-4 text-left transition-all active:scale-[0.98] min-h-[56px] ${
+      className={`w-full flex items-start gap-3 rounded-xl border-2 px-4 py-4 text-left transition-all active:scale-[0.98] min-h-[56px] ${
         selected
-          ? "border-[#C9A24B] bg-[#FBF7EE] shadow-md"
+          ? "border-[#C9A24B] bg-[#FBF7EE] shadow-sm"
           : "border-gray-200 bg-white"
       }`}
     >
-      <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+      <span className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
         selected ? "border-[#C9A24B] bg-[#C9A24B]" : "border-gray-300"
       }`}>
-        {selected && <span className="w-2.5 h-2.5 rounded-full bg-white block" />}
+        {selected && <span className="w-2 h-2 rounded-full bg-white block" />}
       </span>
       <span className="flex-1">
-        <span className="block text-[#1B2A41] font-medium text-base">{label}</span>
-        {description && <span className="block text-gray-500 text-sm mt-0.5">{description}</span>}
+        <span className="block text-[#1B2A41] font-medium text-base leading-snug">{label}</span>
+        {description && <span className="block text-gray-500 text-sm mt-0.5 leading-snug">{description}</span>}
       </span>
     </button>
   );
