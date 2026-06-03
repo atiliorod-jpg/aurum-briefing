@@ -1,12 +1,15 @@
 import jsPDF from "jspdf";
 import { FormState } from "./types";
-import { resolveInvitation } from "./invitation";
+import { resolveInvitation, InvitationContent } from "./invitation";
 
 const NAVY: [number, number, number] = [27, 42, 65];
 const GOLD: [number, number, number] = [184, 146, 60];
 
 const CENTER = 148.5; // metade de 297mm (A4 paisagem)
-const MAX_W = 210;    // largura máxima do texto (dentro da moldura)
+const MAX_W = 210;    // largura do texto (dentro da moldura)
+const PAGE_H = 210;   // altura A4 paisagem
+const TOP = 44;       // início do conteúdo (abaixo do topo da moldura)
+const BOTTOM = 196;   // limite inferior (acima da base da moldura)
 
 async function fetchBase64(url: string): Promise<string> {
   const res = await fetch(url);
@@ -31,11 +34,116 @@ async function fetchDataUrl(url: string): Promise<string> {
   });
 }
 
+// Escala dos tamanhos de fonte: 1.0 normal; reduz para caber quando o texto é longo.
+interface Layout {
+  scale: number;
+  titulo: number; ornamento: number; saudacao: number;
+  corpo: number; detalhe: number; assinaturaTexto: number; assinatura: number;
+  gapCorpo: number; gapBloco: number;
+}
+
+function makeLayout(scale: number): Layout {
+  return {
+    scale,
+    titulo: 30 * scale,
+    ornamento: 11 * scale,
+    saudacao: 34 * scale,
+    corpo: 12.5 * scale,
+    detalhe: 13 * scale,
+    assinaturaTexto: 26 * scale,
+    assinatura: 14 * scale,
+    gapCorpo: 1.35,
+    gapBloco: 4 * scale,
+  };
+}
+
+// Desenha (ou só mede) o convite a partir de yStart. Retorna o y final.
+function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, yStart: number): number {
+  let y = yStart;
+
+  const centered = (
+    text: string, font: string, style: string, size: number,
+    color: [number, number, number], lineGap = 1.35, charSpace = 0,
+  ) => {
+    doc.setFont(font, style);
+    doc.setFontSize(size);
+    if (charSpace) doc.setCharSpace(charSpace);
+    const lines = doc.splitTextToSize(text, MAX_W);
+    const lh = size * 0.3528 * lineGap;
+    for (const line of lines) {
+      if (draw) {
+        doc.setTextColor(...color);
+        doc.text(line, CENTER, y, { align: "center" });
+      }
+      y += lh;
+    }
+    if (charSpace) doc.setCharSpace(0);
+  };
+
+  const detail = (label: string, value: string) => {
+    doc.setFontSize(L.detalhe);
+    doc.setFont("Cardo", "bold");
+    doc.setCharSpace(0.4);
+    const labelW = doc.getTextWidth(label);
+    doc.setCharSpace(0);
+    doc.setFont("Cardo", "normal");
+    const valueW = doc.getTextWidth(value);
+    const gap = 3;
+    let x = CENTER - (labelW + gap + valueW) / 2;
+    if (draw) {
+      doc.setFont("Cardo", "bold");
+      doc.setTextColor(...GOLD);
+      doc.setCharSpace(0.4);
+      doc.text(label, x, y);
+      doc.setCharSpace(0);
+      x += labelW + gap;
+      doc.setFont("Cardo", "normal");
+      doc.setTextColor(...NAVY);
+      doc.text(value, x, y);
+    }
+    y += L.detalhe * 0.5;
+  };
+
+  centered("Convite Especial", "Cardo", "bold", L.titulo, GOLD, 1.2, 0.8);
+  y += 1 * L.scale;
+  centered("◆", "Cardo", "normal", L.ornamento, GOLD, 1);
+  y += 3 * L.scale;
+
+  centered("Queridos convidados,", "GreatVibes", "normal", L.saudacao, NAVY, 1);
+  y += 3 * L.scale;
+
+  const convite =
+    `Com grande alegria, convidamos vocês para celebrar conosco ${c.tipoFrase}${c.conector}${c.nome}. ` +
+    `Será um encontro preparado com carinho para reunir as pessoas que amamos e tornar esta data ainda mais especial.`;
+  centered(convite, "Cardo", "normal", L.corpo, NAVY, L.gapCorpo);
+  y += L.gapBloco;
+
+  detail("DATA", c.data);
+  detail("HORÁRIO", `a partir das ${c.horario}`);
+  detail("LOCAL", c.local);
+  y += L.gapBloco;
+
+  const cardapioFrase =
+    `Para este momento, preparamos uma seleção especial — ${c.cardapio} — assinada pela ` +
+    `Aurum Serviços Gastronômicos, pensada para oferecer uma experiência elegante, acolhedora e especial.`;
+  centered(cardapioFrase, "Cardo", "normal", L.corpo, NAVY, L.gapCorpo);
+  y += 3 * L.scale;
+
+  const rsvp = `Pedimos, com carinho, a confirmação de presença até ${c.dataLimite}, pelo contato ${c.contato}.`;
+  centered(rsvp, "Cardo", "normal", L.corpo, NAVY, L.gapCorpo);
+  y += L.gapBloco;
+
+  centered("Com carinho,", "GreatVibes", "normal", L.assinaturaTexto, NAVY, 1);
+  y += 1 * L.scale;
+  centered(c.assinatura, "Cardo", "bold", L.assinatura, NAVY, 1.1, 0.3);
+
+  return y;
+}
+
 export async function generateInvitationPDF(state: FormState): Promise<Blob> {
   const c = resolveInvitation(state);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-  // Fontes
   const [cardo, cardoBold, vibes, bg] = await Promise.all([
     fetchBase64("/fonts/Cardo-Regular.ttf"),
     fetchBase64("/fonts/Cardo-Bold.ttf"),
@@ -49,91 +157,19 @@ export async function generateInvitationPDF(state: FormState): Promise<Blob> {
   doc.addFileToVFS("GreatVibes-Regular.ttf", vibes);
   doc.addFont("GreatVibes-Regular.ttf", "GreatVibes", "normal");
 
-  // Fundo (papel timbrado paisagem)
+  // 1) Mede com escala cheia e reduz até caber no espaço disponível (sem estourar)
+  const disponivel = BOTTOM - TOP;
+  let scale = 1;
+  let usado = render(doc, c, makeLayout(scale), false, TOP) - TOP;
+  for (let i = 0; i < 6 && usado > disponivel; i++) {
+    scale = Math.max(0.7, scale * (disponivel / usado) * 0.98);
+    usado = render(doc, c, makeLayout(scale), false, TOP) - TOP;
+  }
+
+  // 2) Centraliza verticalmente o bloco e desenha de fato
+  const yStart = Math.max(TOP, (PAGE_H - usado) / 2);
   doc.addImage(bg, "PNG", 0, 0, 297, 210, undefined, "FAST");
-
-  let y = 46;
-
-  const centered = (
-    text: string, font: string, style: string, size: number,
-    color: [number, number, number], lineGap = 1.35, charSpace = 0,
-  ) => {
-    doc.setFont(font, style);
-    doc.setFontSize(size);
-    doc.setTextColor(...color);
-    if (charSpace) doc.setCharSpace(charSpace);
-    const lines = doc.splitTextToSize(text, MAX_W);
-    const lh = size * 0.3528 * lineGap;
-    for (const line of lines) {
-      doc.text(line, CENTER, y, { align: "center" });
-      y += lh;
-    }
-    if (charSpace) doc.setCharSpace(0);
-  };
-
-  // Linha com rótulo dourado (maiúsculo) + valor navy, centralizada
-  const detail = (label: string, value: string) => {
-    doc.setFontSize(13);
-    doc.setFont("Cardo", "bold");
-    doc.setCharSpace(0.4);
-    const labelW = doc.getTextWidth(label);
-    doc.setCharSpace(0);
-    doc.setFont("Cardo", "normal");
-    const valueW = doc.getTextWidth(value);
-    const gap = 3;
-    const total = labelW + gap + valueW;
-    let x = CENTER - total / 2;
-    doc.setFont("Cardo", "bold");
-    doc.setTextColor(...GOLD);
-    doc.setCharSpace(0.4);
-    doc.text(label, x, y);
-    doc.setCharSpace(0);
-    x += labelW + gap;
-    doc.setFont("Cardo", "normal");
-    doc.setTextColor(...NAVY);
-    doc.text(value, x, y);
-    y += 6.5;
-  };
-
-  // ── Título ────────────────────────────────────────────────────────────────
-  centered("Convite Especial", "Cardo", "bold", 30, GOLD, 1.2, 0.8);
-  y += 1;
-  centered("◆", "Cardo", "normal", 11, GOLD, 1);
-  y += 3;
-
-  // ── Saudação (manuscrita) ───────────────────────────────────────────────
-  centered("Queridos convidados,", "GreatVibes", "normal", 34, NAVY, 1);
-  y += 3;
-
-  // ── Convite ─────────────────────────────────────────────────────────────
-  const convite =
-    `Com grande alegria, convidamos vocês para celebrar conosco ${c.tipoFrase}${c.conector}${c.nome}. ` +
-    `Será um encontro preparado com carinho para reunir as pessoas que amamos e tornar esta data ainda mais especial.`;
-  centered(convite, "Cardo", "normal", 12.5, NAVY, 1.35);
-  y += 4;
-
-  // ── Data / Horário / Local ──────────────────────────────────────────────
-  detail("DATA", c.data);
-  detail("HORÁRIO", `a partir das ${c.horario}`);
-  detail("LOCAL", c.local);
-  y += 4;
-
-  // ── Cardápio ────────────────────────────────────────────────────────────
-  const cardapioFrase =
-    `Para este momento, preparamos uma seleção especial — ${c.cardapio} — assinada pela ` +
-    `Aurum Serviços Gastronômicos, pensada para oferecer uma experiência elegante, acolhedora e especial.`;
-  centered(cardapioFrase, "Cardo", "normal", 12.5, NAVY, 1.35);
-  y += 3;
-
-  // ── RSVP ────────────────────────────────────────────────────────────────
-  const rsvp = `Pedimos, com carinho, a confirmação de presença até ${c.dataLimite}, pelo contato ${c.contato}.`;
-  centered(rsvp, "Cardo", "normal", 12.5, NAVY, 1.35);
-  y += 4;
-
-  // ── Assinatura ──────────────────────────────────────────────────────────
-  centered("Com carinho,", "GreatVibes", "normal", 26, NAVY, 1);
-  y += 1;
-  centered(c.assinatura, "Cardo", "bold", 14, NAVY, 1.1, 0.3);
+  render(doc, c, makeLayout(scale), true, yStart);
 
   return doc.output("blob");
 }
