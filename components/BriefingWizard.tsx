@@ -292,7 +292,7 @@ export default function BriefingWizard() {
         <SingleSelectStep
           stepNumber=""
           title="Faixa de investimento."
-          hint="Opcional. Ajuda a calibrar a proposta."
+          hint="Totalmente opcional — se preferir, toque em “Pular este passo”. Ajuda a calibrar a proposta ao seu orçamento."
           options={[
             { value: "Até R$ 5 mil", label: "Até R$ 5 mil" },
             { value: "R$ 5 mil a R$ 10 mil", label: "R$ 5 mil a R$ 10 mil" },

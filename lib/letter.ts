@@ -90,6 +90,16 @@ export async function generateLetterDOCX(state: FormState): Promise<Blob> {
     );
   }
 
+  // Evita a repetição "cardápio ... Cardápio Aurum" — reescreve a frase do cardápio
+  xml = xml.replace(
+    "Para este momento, será servido o cardápio ",
+    "Para este momento, preparamos uma seleção especial — ",
+  );
+  xml = xml.replace(
+    ", preparado pela Aurum Serviços Gastronômicos, com uma seleção pensada para oferecer uma experiência elegante, acolhedora e especial.",
+    " — assinada pela Aurum Serviços Gastronômicos, pensada para oferecer uma experiência elegante, acolhedora e especial.",
+  );
+
   // Horário do convite = 1 hora antes do início do serviço (tempo de chegada dos convidados)
   const horarioConvite = state.horaInicio ? shiftHour(state.horaInicio, -1) : null;
 

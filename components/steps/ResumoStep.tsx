@@ -98,7 +98,10 @@ export default function ResumoStep({ state, onRestart }: Props) {
         <span className="text-[#1B2A41] text-4xl font-bold">✓</span>
       </div>
       <h2 className="text-2xl font-bold text-[#1B2A41] mb-2">Briefing pronto!</h2>
-      <p className="text-gray-500 text-sm mb-6">Confira o resumo e escolha como deseja seguir.</p>
+      <p className="text-gray-500 text-sm mb-4">
+        Confira o resumo abaixo e <strong className="text-[#1B2A41]">envie para a nossa equipe</strong> pelo
+        WhatsApp (ou copie e nos mande). Assim retornamos com a sua proposta.
+      </p>
 
       <div className="bg-white rounded-2xl p-5 text-left shadow-sm mb-4 max-h-72 overflow-y-auto">
         <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-3">Resumo do evento</h3>
