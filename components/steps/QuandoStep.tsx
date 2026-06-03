@@ -12,10 +12,24 @@ function addHours(time: string, hours: number): string {
   return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }
 
+// Ajusta os minutos para apenas :00 ou :30 (facilita a organização do horário)
+function snap30(time: string): string {
+  if (!time) return "";
+  const [h, m] = time.split(":").map(Number);
+  if (isNaN(h)) return "";
+  let hour = h;
+  let min = 0;
+  if (m >= 45) { hour = (h + 1) % 24; min = 0; }
+  else if (m >= 15) { min = 30; }
+  else { min = 0; }
+  return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
 export default function QuandoStep({ state, onChange }: Props) {
   const handleInicio = (v: string) => {
+    const inicio = snap30(v);
     // Sempre recalcula o término para manter os 4 h padrão ao alterar o início.
-    onChange({ horaInicio: v, horaFim: addHours(v, 4) });
+    onChange({ horaInicio: inicio, horaFim: addHours(inicio, 4) });
   };
 
   return (
@@ -31,16 +45,16 @@ export default function QuandoStep({ state, onChange }: Props) {
       <div className="grid grid-cols-2 gap-3 mb-2">
         <div>
           <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Início do serviço</label>
-          <input type="time" value={state.horaInicio} onChange={e => handleInicio(e.target.value)}
+          <input type="time" step={1800} value={state.horaInicio} onChange={e => handleInicio(e.target.value)}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Término do serviço</label>
-          <input type="time" value={state.horaFim} onChange={e => onChange({ horaFim: e.target.value })}
+          <input type="time" step={1800} value={state.horaFim} onChange={e => onChange({ horaFim: snap30(e.target.value) })}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
         </div>
       </div>
-      <p className="text-xs text-gray-400 italic mb-5">Duração padrão: 4 horas de serviço. O término é ajustado automaticamente ao informar o início.</p>
+      <p className="text-xs text-gray-400 italic mb-5">Duração padrão: 4 horas de serviço. Horários em intervalos de 30 minutos (ex: 19:00 ou 19:30). O término é ajustado automaticamente ao informar o início.</p>
       <div>
         <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações sobre o horário <span className="font-normal text-gray-400">(opcional)</span></label>
         <input type="text" placeholder="Ex: evento pode se estender até meia-noite"

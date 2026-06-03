@@ -7,6 +7,7 @@ interface Props { state: FormState; onChange: (patch: Partial<FormState>) => voi
 export default function ContatoStep({ state, onChange }: Props) {
   const whatsErro = state.whatsapp.trim() !== "" && !isPhoneComplete(state.whatsapp);
   const emailErro = state.email.trim() !== "" && !isEmailValid(state.email);
+  const hoje = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD no fuso local
   return (
     <div>
       <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">CONTATO</div>
@@ -38,18 +39,20 @@ export default function ContatoStep({ state, onChange }: Props) {
           Para quando você precisa da proposta? <span className="font-normal text-gray-400">(opcional)</span>
         </label>
         <p className="text-xs text-gray-400 mb-1.5">
-          Data limite para você receber nosso orçamento{state.data ? " — não pode passar da data do evento" : ""}.
+          Data limite para você receber nosso orçamento — não pode ser no passado{state.data ? " nem após a data do evento" : ""}.
         </p>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 whitespace-nowrap">Até dia</span>
           <input
             type="date"
             value={state.prazo}
+            min={hoje}
             max={state.data || undefined}
             onChange={e => {
-              const v = e.target.value;
-              // Não permite prazo superior à data do evento
-              onChange({ prazo: state.data && v > state.data ? state.data : v });
+              let v = e.target.value;
+              if (v && v < hoje) v = hoje;                       // não permite passado
+              if (v && state.data && v > state.data) v = state.data; // não permite após o evento
+              onChange({ prazo: v });
             }}
             className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]"
           />

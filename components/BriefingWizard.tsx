@@ -314,18 +314,24 @@ export default function BriefingWizard() {
         />
       );
 
-      case "tacho": return (
-        <MultiSelectStep
-          stepNumber="TACHO / PAELLERA"
-          title="Tacho / Paellera."
-          hint="Pratos servidos diretamente do tacho, ao centro da mesa. Opcional — selecione até 2."
-          options={TACHO_OPTIONS}
-          selected={state.tacho}
-          max={2}
-          onChange={v => patch({ tacho: v })}
-          exclusiveValues={["Sem tacho"]}
-        />
-      );
+      case "tacho": {
+        const totalConvidados = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
+        const podeDois = totalConvidados > 40;
+        return (
+          <MultiSelectStep
+            stepNumber="TACHO / PAELLERA"
+            title="Tacho / Paellera."
+            hint={podeDois
+              ? "Pratos servidos diretamente do tacho, ao centro da mesa. Opcional — selecione até 2."
+              : "Pratos servidos diretamente do tacho, ao centro da mesa. Opcional — 1 opção (a 2ª fica disponível para eventos com mais de 40 convidados)."}
+            options={TACHO_OPTIONS}
+            selected={state.tacho}
+            max={podeDois ? 2 : 1}
+            onChange={v => patch({ tacho: v })}
+            exclusiveValues={["Sem tacho"]}
+          />
+        );
+      }
 
       case "sobremesas": return (
         <MultiSelectStep
