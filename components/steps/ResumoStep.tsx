@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { track } from "@vercel/analytics";
 import { FormState } from "@/lib/types";
 import { buildWhatsAppMessage, formatDate } from "@/lib/utils";
 import { downloadBlob } from "@/lib/download";
@@ -18,6 +19,9 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
+  // Conversão: o cliente chegou ao resumo final
+  useEffect(() => { track("briefing_concluido"); }, []);
+
   const fileBase = () => {
     const safe = (state.nome || "cliente").trim().replace(/\s+/g, "_").replace(/[^\w-]/g, "");
     const date = state.data ? state.data.replace(/-/g, "") : new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -25,6 +29,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   };
 
   const handleWhatsApp = () => {
+    track("enviar_whatsapp");
     const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5581998184489";
     const text = encodeURIComponent(buildWhatsAppMessage(state));
     window.open(`https://wa.me/${number}?text=${text}`, "_blank");
@@ -40,6 +45,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const handleDownloadPDF = async () => {
     try {
       setBusy("pdf");
+      track("baixar_briefing_pdf");
       const generateBriefingPDF = await loadBriefingPDF();
       const blob = await generateBriefingPDF(state);
       downloadBlob(blob, `Briefing_Aurum_${fileBase()}.pdf`);
@@ -52,6 +58,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const handleDownloadLetter = async () => {
     try {
       setBusy("docx");
+      track("baixar_carta_word");
       const generateLetterDOCX = await loadLetterDOCX();
       const blob = await generateLetterDOCX(state);
       downloadBlob(blob, `Carta_Aurum_${fileBase()}.docx`);
@@ -64,6 +71,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const handleInvitationPDF = async () => {
     try {
       setBusy("convitepdf");
+      track("baixar_convite_pdf");
       const generateInvitationPDF = await loadInvitationPDF();
       const blob = await generateInvitationPDF(state);
       downloadBlob(blob, `Convite_Aurum_${fileBase()}.pdf`);
