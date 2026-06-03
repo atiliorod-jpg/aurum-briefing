@@ -7,22 +7,6 @@ import { generateLetterDOCX } from "@/lib/letter";
 
 interface Props { state: FormState; onRestart: () => void; }
 
-const AURUM_EMAIL = "aurumbuffet.eventos@gmail.com";
-
-async function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      // remove o prefixo data:.../base64,
-      const comma = result.indexOf(",");
-      resolve(comma >= 0 ? result.slice(comma + 1) : result);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 export default function ResumoStep({ state, onRestart }: Props) {
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -66,64 +50,6 @@ export default function ResumoStep({ state, onRestart }: Props) {
     } catch (e) {
       console.error(e);
       setFeedback({ kind: "err", msg: "Não foi possível gerar a carta em Word." });
-    } finally { setBusy(null); }
-  };
-
-  const handleEmail = async () => {
-    try {
-      setBusy("email");
-      setFeedback(null);
-
-      // Gera ambos os documentos
-      const pdfBlob = await generateBriefingPDF(state);
-      const docxBlob = await generateLetterDOCX(state);
-      const [pdfBase64, docxBase64] = await Promise.all([
-        blobToBase64(pdfBlob),
-        blobToBase64(docxBlob),
-      ]);
-
-      const subject = `Briefing de evento — ${state.nome || "Novo cliente"}`;
-      const bodyText = buildWhatsAppMessage(state).replace(/\*/g, "");
-
-      const res = await fetch("/api/send-briefing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: AURUM_EMAIL,
-          cc: state.email?.trim() || undefined,
-          clientName: state.nome || "Novo cliente",
-          subject,
-          bodyText,
-          pdfBase64,
-          pdfFileName: `Briefing_Aurum_${fileBase()}.pdf`,
-          docxBase64,
-          docxFileName: `Carta_Aurum_${fileBase()}.docx`,
-        }),
-      });
-
-      if (res.ok) {
-        setFeedback({ kind: "ok", msg: state.email?.trim()
-          ? `Enviado! A Aurum recebeu o briefing e você foi copiado em ${state.email}.`
-          : "Enviado! A Aurum recebeu o briefing por e-mail." });
-        return;
-      }
-
-      // Fallback: abre o app de e-mail
-      const data = await res.json().catch(() => ({}));
-      if (data?.error === "EMAIL_NOT_CONFIGURED") {
-        // baixa o PDF e abre mailto
-        downloadBlob(pdfBlob, `Briefing_Aurum_${fileBase()}.pdf`);
-        const body = encodeURIComponent(
-          `Olá Aurum,\n\nSegue meu briefing. O PDF foi baixado — basta anexar antes de enviar.\n\n${bodyText}\n\n${state.nome || ""}`,
-        );
-        window.location.href = `mailto:${AURUM_EMAIL}?subject=${encodeURIComponent(subject)}&body=${body}`;
-        setFeedback({ kind: "ok", msg: "O envio automático ainda não está configurado. Abrimos seu app de e-mail e baixamos o PDF para anexar." });
-      } else {
-        setFeedback({ kind: "err", msg: "Não foi possível enviar agora. Tente o WhatsApp ou baixe o PDF." });
-      }
-    } catch (e) {
-      console.error(e);
-      setFeedback({ kind: "err", msg: "Não foi possível enviar o e-mail." });
     } finally { setBusy(null); }
   };
 
@@ -195,11 +121,6 @@ export default function ResumoStep({ state, onRestart }: Props) {
       )}
 
       <div className="flex flex-col gap-3">
-        <button onClick={handleEmail} disabled={!!busy}
-          className="flex items-center justify-center gap-2.5 bg-[#1B2A41] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all disabled:opacity-50">
-          {busy === "email" ? "Enviando…" : "✉️  Enviar para a Aurum por e-mail"}
-        </button>
-
         <button onClick={handleWhatsApp} disabled={!!busy}
           className="flex items-center justify-center gap-2.5 bg-[#25D366] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all disabled:opacity-50">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
@@ -228,8 +149,8 @@ export default function ResumoStep({ state, onRestart }: Props) {
       </div>
 
       <p className="text-xs text-gray-400 italic mt-4 leading-relaxed">
-        O <strong>PDF</strong> é o briefing pronto para o cliente — papel timbrado e tipografia premium. <br />
-        A <strong>Carta (Word)</strong> é editável, formato convite, para você personalizar antes de enviar.
+        O <strong>PDF</strong> é o briefing oficial em papel timbrado da Aurum. <br />
+        A <strong>Carta (Word)</strong> é um convite paisagem editável para o anfitrião enviar aos convidados.
       </p>
     </div>
   );
