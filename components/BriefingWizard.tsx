@@ -175,6 +175,7 @@ function requiredHint(step: StepName, state: FormState): string | null {
 export default function BriefingWizard() {
   const [state, setState] = useState<FormState>(initialState);
   const [idx, setIdx] = useState(0);
+  const [reviewMode, setReviewMode] = useState(false); // entrou para editar a partir do resumo
 
   const patch = useCallback((p: Partial<FormState>) => setState(s => ({ ...s, ...p })), []);
 
@@ -186,7 +187,19 @@ export default function BriefingWizard() {
 
   const goNext = () => { if (idx < fluxo.length - 1) setIdx(i => i + 1); };
   const goBack = () => { if (idx > 0) setIdx(i => i - 1); };
-  const restart = () => { setState(initialState); setIdx(0); };
+  const restart = () => { setState(initialState); setIdx(0); setReviewMode(false); };
+
+  // Pula direto para uma etapa (usado pelos botões "editar" no resumo)
+  const goToStep = (step: StepName) => {
+    const i = fluxo.indexOf(step);
+    if (i >= 0) { setIdx(i); setReviewMode(true); }
+  };
+  // Volta ao resumo final após editar
+  const goToResumo = () => {
+    const i = fluxo.indexOf("final");
+    if (i >= 0) setIdx(i);
+    setReviewMode(false);
+  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -357,7 +370,7 @@ export default function BriefingWizard() {
 
       case "contato": return <ContatoStep state={state} onChange={patch} />;
       case "carta": return <CartaStep state={state} onChange={patch} />;
-      case "final": return <ResumoStep state={state} onRestart={restart} />;
+      case "final": return <ResumoStep state={state} onRestart={restart} onEdit={goToStep} />;
     }
   };
 
@@ -379,6 +392,7 @@ export default function BriefingWizard() {
           isSkippable={isSkippable}
           onSkip={goNext}
           requiredHint={requiredHint(currentStep, state)}
+          onReview={reviewMode ? goToResumo : undefined}
         />
       )}
     </div>

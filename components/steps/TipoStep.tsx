@@ -36,7 +36,7 @@ export default function TipoStep({ state, onChange }: Props) {
         <div className="mt-4">
           <input
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]"
-            placeholder="Descreva o evento."
+            placeholder="Ex: Jantar de Noivado, Chá de Bebê, Bodas de Prata..."
             value={state.tipoOutro}
             onChange={(e) => onChange({ tipoOutro: e.target.value })}
           />

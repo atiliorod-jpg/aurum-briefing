@@ -9,11 +9,19 @@ interface BottomNavProps {
   isSkippable?: boolean;
   onSkip?: () => void;
   requiredHint?: string | null;
+  onReview?: () => void;
 }
 
-export default function BottomNav({ onBack, onNext, canGoBack, canAdvance, isLast, isSkippable, onSkip, requiredHint }: BottomNavProps) {
+export default function BottomNav({ onBack, onNext, canGoBack, canAdvance, isLast, isSkippable, onSkip, requiredHint, onReview }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      {onReview && (
+        <div className="text-center pt-2 px-5">
+          <button onClick={onReview} className="text-[#1B2A41] text-sm font-semibold underline">
+            ↩ Voltar ao resumo
+          </button>
+        </div>
+      )}
       {!canAdvance && requiredHint && (
         <div className="text-center pt-2 px-5">
           <p className="text-xs text-[#C9A24B] font-medium">{requiredHint}</p>

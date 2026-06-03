@@ -1,13 +1,28 @@
 import { FormState } from "./types";
 import { formatDate, formatPhone, shiftHour } from "./utils";
 
+// Artigo (o/a) para um texto de evento livre, pela primeira palavra
+function artigoEvento(text: string): "o" | "a" {
+  const first = text.trim().toLowerCase().split(/\s+/)[0].replace(/[.,;:]/g, "");
+  const fem = new Set([
+    "festa", "celebração", "celebracao", "comemoração", "comemoracao", "cerimônia", "cerimonia",
+    "recepção", "recepcao", "confraternização", "confraternizacao", "formatura", "festividade",
+    "reunião", "reuniao", "noite", "tarde", "missa", "bodas", "ceia", "feira", "gala",
+  ]);
+  return fem.has(first) ? "a" : "o";
+}
+
 // Frase do tipo de evento — encaixa em "celebrar conosco ___ <conector> ___"
-export function getTipoFrase(tipo: string | null): string {
+export function getTipoFrase(tipo: string | null, tipoOutro = ""): string {
   switch (tipo) {
     case "Aniversário": return "a celebração do aniversário";
     case "Casamento": return "a celebração do casamento";
     case "Confraternização / Corporativo": return "a confraternização especial";
     case "Almoço ou Jantar Privado": return "a ocasião especial";
+    case "Outro": {
+      const t = tipoOutro.trim();
+      return t ? `${artigoEvento(t)} ${t}` : "[TIPO DO EVENTO]";
+    }
     default: return "[TIPO DO EVENTO]";
   }
 }
@@ -109,14 +124,15 @@ export function resolveInvitation(state: FormState): InvitationContent {
   const contato = state.whatsapp?.trim() ? formatPhone(state.whatsapp) : "[CONTATO PARA RSVP]";
   const assinatura = state.cartaAssinatura?.trim() || getAssinaturaPlaceholder(state.tipo);
 
+  const tipoFrase = getTipoFrase(state.tipo, state.tipoOutro);
+
   const completa =
-    !nome.includes("[") && !data.includes("[") && !horario.includes("[") &&
-    !local.includes("[") && !cardapio.includes("[") && !dataLimite.includes("[") &&
-    !contato.includes("[") && !assinatura.includes("[") &&
-    !!state.tipo && state.tipo !== "Outro";
+    !tipoFrase.includes("[") && !nome.includes("[") && !data.includes("[") &&
+    !horario.includes("[") && !local.includes("[") && !cardapio.includes("[") &&
+    !dataLimite.includes("[") && !contato.includes("[") && !assinatura.includes("[");
 
   return {
-    tipoFrase: getTipoFrase(state.tipo),
+    tipoFrase,
     conector: getConector(state.tipo, nome),
     nome, data, horario, local, cardapio, dataLimite, contato, assinatura, completa,
   };

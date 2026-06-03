@@ -6,10 +6,11 @@ import { generateBriefingPDF, downloadBlob } from "@/lib/pdf";
 import { generateLetterDOCX } from "@/lib/letter";
 import { generateInvitationPDF } from "@/lib/invitation-pdf";
 import { resolveInvitation } from "@/lib/invitation";
+import { StepName } from "@/lib/types";
 
-interface Props { state: FormState; onRestart: () => void; }
+interface Props { state: FormState; onRestart: () => void; onEdit?: (step: StepName) => void; }
 
-export default function ResumoStep({ state, onRestart }: Props) {
+export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
@@ -107,7 +108,7 @@ export default function ResumoStep({ state, onRestart }: Props) {
         WhatsApp (ou copie e nos mande). Assim retornamos com a sua proposta.
       </p>
 
-      <div className="bg-white rounded-2xl p-5 text-left shadow-sm mb-4 max-h-72 overflow-y-auto">
+      <div className="bg-white rounded-2xl p-5 text-left shadow-sm mb-3 max-h-72 overflow-y-auto">
         <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-3">Resumo do evento</h3>
         <div className="space-y-2">
           {rows.map(({ label, value }) => value ? (
@@ -118,6 +119,31 @@ export default function ResumoStep({ state, onRestart }: Props) {
           ) : null)}
         </div>
       </div>
+
+      {onEdit && (
+        <div className="mb-4">
+          <p className="text-xs text-gray-400 mb-2">Precisa corrigir algo? Toque para editar sem recomeçar:</p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {([
+              ["Evento", "tipo"],
+              ["Data e local", "quando"],
+              ["Convidados", "convidados"],
+              ["Cardápio", "estilo"],
+              ["Estrutura", "estrutura"],
+              ["Contato", "contato"],
+              ["Carta-convite", "carta"],
+            ] as [string, StepName][]).map(([label, step]) => (
+              <button
+                key={step}
+                onClick={() => onEdit(step)}
+                className="text-xs font-medium text-[#1B2A41] border border-gray-200 rounded-full px-3 py-1.5 active:scale-[0.97] transition-all hover:border-[#C9A24B]"
+              >
+                ✏️ {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {feedback && (
         <div className={`text-sm rounded-xl px-4 py-3 mb-3 text-left ${
