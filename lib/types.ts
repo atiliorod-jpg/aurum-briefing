@@ -17,6 +17,10 @@ export interface FormState {
   tacho: string[];
   sobremesas: string[];
   sugestaoSobremesas: string;
+  // Direcionamento para cardápio sob medida (estilo "Sugestão da Aurum")
+  cardapioPerfil: string[];
+  cardapioNaoPodeFaltar: string;
+  cardapioEvitar: string;
   feijoada: string | null;
   coffeeBreak: string | null;
   coffeeBreakObs: string;
@@ -54,6 +58,9 @@ export const initialState: FormState = {
   tacho: [],
   sobremesas: [],
   sugestaoSobremesas: "",
+  cardapioPerfil: [],
+  cardapioNaoPodeFaltar: "",
+  cardapioEvitar: "",
   feijoada: null,
   coffeeBreak: null,
   coffeeBreakObs: "",
@@ -82,6 +89,7 @@ export type StepName =
   | "principais"
   | "tacho"
   | "sobremesas"
+  | "sugestao"
   | "feijoada"
   | "coffeeBreak"
   | "estrutura"

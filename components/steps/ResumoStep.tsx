@@ -68,32 +68,21 @@ export default function ResumoStep({ state, onRestart }: Props) {
 
   const cartaCompleta = resolveInvitation(state).completa;
 
-  const isCoffee = state.estilo.includes("Coffee Break");
-  const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
+  const isCoffeeOnly = state.estilo.length > 0 && state.estilo.every((x) => x === "Coffee Break");
 
-  const cardapioRows: Array<{ label: string; value: string }> = isCoffee
-    ? [
-        { label: "Estilo", value: state.estilo.join(", ") },
-        { label: "Cardápio", value: state.coffeeBreak || "" },
-        ...(state.coffeeBreakObs ? [{ label: "Alterações", value: state.coffeeBreakObs }] : []),
-      ]
-    : isFeijoada
-    ? [
-        { label: "Estilo", value: state.estilo.join(", ") },
-        { label: "Feijoada", value: state.feijoada || "" },
-        ...(state.sobremesas.length ? [{ label: "Sobremesas", value: state.sobremesas.join(", ") }] : []),
-        ...(state.sugestaoSobremesas ? [{ label: "Sugestão sobremesa", value: state.sugestaoSobremesas }] : []),
-      ]
-    : [
-        { label: "Estilo", value: state.estilo.join(", ") },
-        ...(state.entradas.length ? [{ label: "Entradas", value: state.entradas.join(", ") }] : []),
-        ...(state.sugestaoEntradas ? [{ label: "Sugestão entrada", value: state.sugestaoEntradas }] : []),
-        ...(state.principais.length ? [{ label: "Principais", value: state.principais.join(", ") }] : []),
-        ...(state.sugestaoPrincipais ? [{ label: "Sugestão principal", value: state.sugestaoPrincipais }] : []),
-        ...(state.tacho.length ? [{ label: "Tacho", value: state.tacho.join(", ") }] : []),
-        ...(state.sobremesas.length ? [{ label: "Sobremesas", value: state.sobremesas.join(", ") }] : []),
-        ...(state.sugestaoSobremesas ? [{ label: "Sugestão sobremesa", value: state.sugestaoSobremesas }] : []),
-      ];
+  const cardapioRows: Array<{ label: string; value: string }> = [
+    { label: "Estilo", value: state.estilo.join(", ") },
+    ...(state.entradas.length ? [{ label: "Entradas", value: state.entradas.join(", ") }] : []),
+    ...(state.sugestaoEntradas ? [{ label: "Sugestão entrada", value: state.sugestaoEntradas }] : []),
+    ...(state.principais.length ? [{ label: "Principais", value: state.principais.join(", ") }] : []),
+    ...(state.sugestaoPrincipais ? [{ label: "Sugestão principal", value: state.sugestaoPrincipais }] : []),
+    ...(state.tacho.length ? [{ label: "Tacho", value: state.tacho.join(", ") }] : []),
+    ...(state.feijoada ? [{ label: "Feijoada", value: state.feijoada }] : []),
+    ...(state.coffeeBreak ? [{ label: "Coffee Break", value: state.coffeeBreak }] : []),
+    ...(state.sobremesas.length ? [{ label: "Sobremesas", value: state.sobremesas.join(", ") }] : []),
+    ...(state.sugestaoSobremesas ? [{ label: "Sugestão sobremesa", value: state.sugestaoSobremesas }] : []),
+    ...(state.cardapioPerfil.length ? [{ label: "Cardápio sob medida", value: state.cardapioPerfil.join(", ") }] : []),
+  ];
 
   const rows: Array<{ label: string; value: string }> = [
     { label: "Tipo", value: state.tipo === "Outro" ? state.tipoOutro : state.tipo || "" },
@@ -102,7 +91,7 @@ export default function ResumoStep({ state, onRestart }: Props) {
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
     ...cardapioRows,
     { label: "Cozinha", value: state.cozinha || "" },
-    ...(isCoffee ? [] : [{ label: "Bebidas", value: state.bebidas || "" }]),
+    ...(isCoffeeOnly ? [] : [{ label: "Bebidas", value: state.bebidas || "" }]),
     ...(state.faixa ? [{ label: "Faixa", value: state.faixa }] : []),
     { label: "Contato", value: `${state.nome} • ${state.whatsapp}${state.email ? " • " + state.email : ""}` },
   ];

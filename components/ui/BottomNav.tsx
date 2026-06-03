@@ -8,11 +8,17 @@ interface BottomNavProps {
   isLast: boolean;
   isSkippable?: boolean;
   onSkip?: () => void;
+  requiredHint?: string | null;
 }
 
-export default function BottomNav({ onBack, onNext, canGoBack, canAdvance, isLast, isSkippable, onSkip }: BottomNavProps) {
+export default function BottomNav({ onBack, onNext, canGoBack, canAdvance, isLast, isSkippable, onSkip, requiredHint }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      {!canAdvance && requiredHint && (
+        <div className="text-center pt-2 px-5">
+          <p className="text-xs text-[#C9A24B] font-medium">{requiredHint}</p>
+        </div>
+      )}
       {isSkippable && (
         <div className="text-center pt-2">
           <button onClick={onSkip} className="text-gray-400 text-sm underline">Pular este passo</button>

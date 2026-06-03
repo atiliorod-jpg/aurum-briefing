@@ -141,7 +141,7 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   // ── Estrutura ─────────────────────────────────────────────────────────────
   addSection("Estrutura");
   if (state.cozinha) addRow("Cozinha", state.cozinha);
-  if (state.mesas) addRow("Mesas e louças", state.mesas);
+  if (state.mesas) addRow("Louças e talheres", state.mesas);
   if (!isCoffee && state.bebidas) addRow("Bebidas", state.bebidas);
 
   // ── Contato ───────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   addRow("Nome", state.nome);
   addRow("WhatsApp", state.whatsapp);
   if (state.email?.trim()) addRow("E-mail", state.email);
-  if (state.prazo?.trim()) addRow("Prazo desejado", state.prazo);
+  if (state.prazo?.trim()) addRow("Prazo desejado", `até ${formatDate(state.prazo)}`);
   if (state.faixa) addRow("Faixa de investimento", state.faixa);
   if (state.obs?.trim()) addRow("Observações", state.obs);
 

@@ -14,6 +14,7 @@ import ContatoStep from "@/components/steps/ContatoStep";
 import ResumoStep from "@/components/steps/ResumoStep";
 import CoffeeBreakStep from "@/components/steps/CoffeeBreakStep";
 import CartaStep from "@/components/steps/CartaStep";
+import SugestaoStep from "@/components/steps/SugestaoStep";
 
 // ── Estilos de serviço ──────────────────────────────────────────────────────
 const ESTILO_OPTIONS = [
@@ -30,6 +31,7 @@ const ESTILO_OPTIONS = [
 
 // ── Entradas ────────────────────────────────────────────────────────────────
 const ENTRADAS_OPTIONS = [
+  { value: "Sugestão do chef", label: "✨ Deixar a sugestão com o chef", desc: "Não precisa escolher: o chef seleciona as entradas ideais conforme o perfil e o estilo do seu evento." },
   { value: "Carpaccio de Vitelo / Filé Mignon", label: "Carpaccio de Vitelo / Filé Mignon", desc: "Finas lâminas com brotos, parmesão, alcaparras e molho djon. Acompanha torradas." },
   { value: "Carpaccio de Polvo", label: "Carpaccio de Polvo", desc: "Lâminas de polvo com azeite, ervas frescas, aioli e molho djon. Acompanha torradas." },
   { value: "Caponata de Polvo", label: "Caponata de Polvo", desc: "Releitura italiana com polvo, berinjela, tomate e ervas agridoces. Acompanha torradas." },
@@ -41,11 +43,11 @@ const ENTRADAS_OPTIONS = [
   { value: "Croqueta de Cupim", label: "Croqueta de Cupim", desc: "Com vinagrete de melão fresco, redução de açaí e aioli de limão siciliano." },
   { value: "Ceviche de Peixe Branco", label: "Ceviche de Peixe Branco", desc: "Peixe marinado em limão, cebola roxa, coentro e leite de coco. Fusão nordestina com técnica peruana." },
   { value: "Sem entradas", label: "Sem entradas", desc: "" },
-  { value: "Sugestão do chef", label: "Sugestão do chef", desc: "Deixamos a seleção de entradas a cargo do chef." },
 ];
 
 // ── Pratos principais ───────────────────────────────────────────────────────
 const PRINCIPAIS_OPTIONS = [
+  { value: "Sugestão do chef", label: "✨ Deixar a sugestão com o chef", desc: "Não precisa escolher: o chef define o prato principal ideal conforme o perfil e o estilo do seu evento." },
   { value: "Filé Mignon ao Molho de Redução de Vinho Tinto", label: "Filé Mignon ao Molho de Redução de Vinho Tinto", desc: "Filé mignon grelhado com redução de vinho tinto encorpada. Acompanha linguine na manteiga clarificada e ervas, com parmesão ralado na hora (opcional)." },
   { value: "Filé au Poivre com Fettuccine", label: "Filé au Poivre com Fettuccine", desc: "Filé mignon em molho au poivre cremoso, com fettuccine na manteiga clarificada e sálvia fresca." },
   { value: "Paillard ao Molho Rôti com Linguini", label: "Paillard ao Molho Rôti com Linguini", desc: "Filé aberto e grelhado com molho rôti intenso, acompanhado de linguini ao azeite trufado." },
@@ -57,7 +59,6 @@ const PRINCIPAIS_OPTIONS = [
   { value: "Pappardelle com Ragù de Ossobuco", label: "Pappardelle com Ragù de Ossobuco", desc: "Massa grano duro com ragù de ossobuco cozido lentamente, parmesão e ervas frescas." },
   { value: "Polpetone com Polenta", label: "Polpetone com Polenta", desc: "Polpetone recheado com funghi e queijo meia cura, sobre polenta cremosa e molho de tomate rústico." },
   { value: "Lasanha com Fonduta de Queijo", label: "Lasanha com Fonduta de Queijo", desc: "Lasanha bolonhesa em camadas, selada na chapa para crosta dourada e finalizada com fonduta cremosa." },
-  { value: "Sugestão do chef", label: "Sugestão do chef", desc: "Deixamos a escolha a cargo do chef, conforme o perfil do evento." },
 ];
 
 // ── Tacho / Paellera ────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ const TACHO_OPTIONS = [
 
 // ── Sobremesas ──────────────────────────────────────────────────────────────
 const SOBREMESAS_OPTIONS = [
+  { value: "Sugestão do chef", label: "✨ Deixar a sugestão com o chef", desc: "Não precisa escolher: o chef define as sobremesas ideais conforme o perfil e o estilo do seu evento." },
   { value: "Crème Brûlée", label: "Crème Brûlée", desc: "Creme de baunilha com crosta fina de açúcar caramelizado na hora." },
   { value: "Tiramisù", label: "Tiramisù", desc: "Biscoito embebido em café com creme de mascarpone e toque de cacau." },
   { value: "Petit Gâteau com Sorvete", label: "Petit Gâteau com Sorvete", desc: "Bolinho de chocolate com interior derretido, assado na hora, com sorvete de creme." },
@@ -86,32 +88,34 @@ const SOBREMESAS_OPTIONS = [
   { value: "Crêpe Suzette", label: "Crêpe Suzette", desc: "Crêpes flambados em calda de laranja com licor, servidos com sorvete de creme." },
   { value: "Mousse", label: "Mousse", desc: "Mousse leve (chocolate, maracujá ou outro sabor) com chantilly." },
   { value: "Sem sobremesa", label: "Sem sobremesa", desc: "" },
-  { value: "Sugestão do chef", label: "Sugestão do chef", desc: "" },
 ];
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
-const ESTILOS_STANDARD = [
+// Estilos cujo cardápio é escolhido item a item (entradas/principais/sobremesas)
+const ESTILOS_PICKER = [
   "Serviço à americana (buffet)", "Volante", "Serviço franco-americano (empratado)",
-  "Jantar Harmonizado", "Jantar Temático", "Sugestão da Aurum",
+  "Jantar Harmonizado", "Jantar Temático",
 ];
 
 function resolveFluxo(state: FormState): StepName[] {
   const e = state.estilo;
-  const hasStandard = e.some((x) => ESTILOS_STANDARD.includes(x));
+  const hasPicker = e.some((x) => ESTILOS_PICKER.includes(x));
   const hasTacho = e.includes("Tacho / Paellera");
   const hasFeijoada = e.includes("Feijoada Completa");
   const hasCoffee = e.includes("Coffee Break");
+  const hasSugestao = e.includes("Sugestão da Aurum");
 
   const inicio: StepName[] = ["welcome", "tipo", "quando", "local", "convidados", "faixa", "estilo"];
 
   // Cada estilo adiciona suas etapas de cardápio (compatível com combinações)
   const menu: StepName[] = [];
-  if (hasStandard || hasTacho) menu.push("entradas");
-  if (hasStandard) menu.push("principais");
+  if (hasPicker || hasTacho) menu.push("entradas");
+  if (hasPicker) menu.push("principais");
   if (hasTacho) menu.push("tacho");                 // tacho aparece sempre que for escolhido
   if (hasFeijoada) menu.push("feijoada");
   if (hasCoffee) menu.push("coffeeBreak");
-  if (hasStandard || hasTacho || hasFeijoada) menu.push("sobremesas");
+  if (hasPicker || hasTacho || hasFeijoada) menu.push("sobremesas");
+  if (hasSugestao) menu.push("sugestao");           // direcionamento de cardápio sob medida
 
   // Bebidas só é dispensado quando o ÚNICO estilo é Coffee Break (já inclui bebidas)
   const includeBebidas = e.length === 0 || e.some((x) => x !== "Coffee Break");
@@ -134,6 +138,7 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "principais": return state.principais.length > 0;
     case "tacho": return true;
     case "sobremesas": return state.sobremesas.length > 0;
+    case "sugestao": return true; // direcionamento opcional
     case "feijoada": return !!state.feijoada;
     case "coffeeBreak": return !!state.coffeeBreak;
     case "estrutura": return !!state.cozinha;
@@ -143,6 +148,27 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "contato": return state.nome.trim().length > 0 && state.whatsapp.trim().length > 0;
     case "carta": return true; // opcional
     default: return true;
+  }
+}
+
+// Mensagem do que falta preencher (mostrada quando "Próximo" está bloqueado)
+function requiredHint(step: StepName, state: FormState): string | null {
+  if (canAdvance(step, state)) return null;
+  switch (step) {
+    case "tipo": return "Escolha o tipo de evento para continuar.";
+    case "quando": return "Selecione a data do evento para continuar.";
+    case "local": return "Informe o endereço do evento para continuar.";
+    case "convidados": return "Informe o número de adultos para continuar.";
+    case "estilo": return "Escolha ao menos um estilo de serviço.";
+    case "entradas": return "Selecione uma opção (ou “Sem entradas”) para continuar.";
+    case "principais": return "Selecione ao menos um prato principal.";
+    case "sobremesas": return "Selecione uma opção (ou “Sem sobremesa”) para continuar.";
+    case "feijoada": return "Escolha o formato da feijoada.";
+    case "estrutura": return "Selecione uma opção para continuar.";
+    case "mesas": return "Selecione uma opção para continuar.";
+    case "bebidas": return "Selecione uma opção para continuar.";
+    case "contato": return "Preencha o nome e o WhatsApp para continuar.";
+    default: return "Preencha os campos obrigatórios para continuar.";
   }
 }
 
@@ -263,6 +289,8 @@ export default function BriefingWizard() {
 
       case "coffeeBreak": return <CoffeeBreakStep state={state} onChange={patch} />;
 
+      case "sugestao": return <SugestaoStep state={state} onChange={patch} />;
+
       case "estrutura": return (
         <SingleSelectStep
           stepNumber="ESTRUTURA"
@@ -282,7 +310,7 @@ export default function BriefingWizard() {
       case "mesas": return (
         <SingleSelectStep
           stepNumber=""
-          title="Mesas, cadeiras, louças e talheres."
+          title="Louças e talheres."
           hint="Como prefere conduzir este item?"
           options={[
             { value: "Local fornece", label: "O local fornece tudo" },
@@ -350,6 +378,7 @@ export default function BriefingWizard() {
           isLast={isLast}
           isSkippable={isSkippable}
           onSkip={goNext}
+          requiredHint={requiredHint(currentStep, state)}
         />
       )}
     </div>

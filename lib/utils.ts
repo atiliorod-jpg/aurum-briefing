@@ -53,51 +53,44 @@ export function buildWhatsAppMessage(state: FormState): string {
   lines.push(`• Convidados: ${state.adultos} adultos${criancas}`);
   if (state.restricoes.trim()) lines.push(`• Restrições alimentares: ${state.restricoes}`);
 
-  const isCoffee = state.estilo.includes("Coffee Break");
-  const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
+  const isCoffeeOnly = state.estilo.length > 0 && state.estilo.every((x) => x === "Coffee Break");
 
-  if (isCoffee) {
+  lines.push(``);
+  lines.push(`*ESTILO DE SERVIÇO*`);
+  lines.push(`• ${state.estilo.join(", ")}`);
+
+  lines.push(``);
+  lines.push(`*CARDÁPIO*`);
+  if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
+  if (state.sugestaoEntradas?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradas}`);
+  if (state.principais.length) lines.push(`• Pratos principais: ${state.principais.join(", ")}`);
+  if (state.sugestaoPrincipais?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipais}`);
+  if (state.tacho.length) lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
+  if (state.feijoada) lines.push(`• Feijoada: ${state.feijoada}`);
+  if (state.coffeeBreak) lines.push(`• Coffee Break: ${state.coffeeBreak}`);
+  if (state.coffeeBreakObs?.trim()) lines.push(`• Alterações no coffee: ${state.coffeeBreakObs}`);
+  if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
+  if (state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
+
+  // Direcionamento de cardápio sob medida (Sugestão da Aurum)
+  if (state.estilo.includes("Sugestão da Aurum")) {
     lines.push(``);
-    lines.push(`*ESTILO DE SERVIÇO*`);
-    lines.push(`• ${state.estilo.join(", ")}`);
-    lines.push(``);
-    lines.push(`*COFFEE BREAK*`);
-    if (state.coffeeBreak) lines.push(`• Cardápio: ${state.coffeeBreak}`);
-    if (state.coffeeBreakObs?.trim()) lines.push(`• Alterações pedidas: ${state.coffeeBreakObs}`);
-  } else if (isFeijoada) {
-    lines.push(``);
-    lines.push(`*ESTILO DE SERVIÇO*`);
-    lines.push(`• ${state.estilo.join(", ")}`);
-    lines.push(``);
-    lines.push(`*FEIJOADA*`);
-    if (state.feijoada) lines.push(`• Formato: ${state.feijoada}`);
-    if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
-    if (state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
-  } else {
-    lines.push(``);
-    lines.push(`*ESTILO DE SERVIÇO*`);
-    lines.push(`• ${state.estilo.join(", ")}`);
-    lines.push(``);
-    lines.push(`*CARDÁPIO*`);
-    if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
-    if (state.sugestaoEntradas?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradas}`);
-    if (state.principais.length) lines.push(`• Pratos principais: ${state.principais.join(", ")}`);
-    if (state.sugestaoPrincipais?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipais}`);
-    if (state.tacho.length) lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
-    if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
-    if (state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
+    lines.push(`*CARDÁPIO SOB MEDIDA*`);
+    if (state.cardapioPerfil.length) lines.push(`• Perfil: ${state.cardapioPerfil.join(", ")}`);
+    if (state.cardapioNaoPodeFaltar?.trim()) lines.push(`• Não pode faltar: ${state.cardapioNaoPodeFaltar}`);
+    if (state.cardapioEvitar?.trim()) lines.push(`• Evitar: ${state.cardapioEvitar}`);
   }
 
   lines.push(``);
   lines.push(`*ESTRUTURA*`);
   lines.push(`• Cozinha: ${state.cozinha}`);
-  lines.push(`• Mesas e louças: ${state.mesas}`);
-  if (!isCoffee) lines.push(`• Bebidas: ${state.bebidas}`);
+  lines.push(`• Louças e talheres: ${state.mesas}`);
+  if (!isCoffeeOnly) lines.push(`• Bebidas: ${state.bebidas}`);
 
   lines.push(``);
   lines.push(`*PRÓXIMOS PASSOS*`);
   if (state.faixa) lines.push(`• Faixa de investimento: ${state.faixa}`);
-  if (state.prazo) lines.push(`• Prazo para proposta: ${state.prazo}`);
+  if (state.prazo) lines.push(`• Prazo para proposta: até ${formatDate(state.prazo)}`);
   if (state.obs.trim()) lines.push(`• Observações: ${state.obs}`);
 
   return lines.join("\n");

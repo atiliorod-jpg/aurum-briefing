@@ -18,7 +18,7 @@ interface Props {
 export default function TipoStep({ state, onChange }: Props) {
   return (
     <div>
-      <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">1 / 10</div>
+      <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">EVENTO</div>
       <h1 className="text-xl font-bold text-[#1B2A41] mb-1">Qual o tipo do seu evento?</h1>
       <p className="text-gray-500 text-sm mb-5">Selecione a opção que melhor descreve a ocasião.</p>
       <div className="flex flex-col gap-2.5">
