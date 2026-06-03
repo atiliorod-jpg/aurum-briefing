@@ -2,11 +2,14 @@
 import { useState } from "react";
 import { FormState } from "@/lib/types";
 import { buildWhatsAppMessage, formatDate } from "@/lib/utils";
-import { generateBriefingPDF, downloadBlob } from "@/lib/pdf";
-import { generateLetterDOCX } from "@/lib/letter";
-import { generateInvitationPDF } from "@/lib/invitation-pdf";
+import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
 import { StepName } from "@/lib/types";
+
+// Geradores pesados (jspdf/jszip/docx) carregados sob demanda, só ao clicar em baixar.
+const loadBriefingPDF = () => import("@/lib/pdf").then(m => m.generateBriefingPDF);
+const loadLetterDOCX = () => import("@/lib/letter").then(m => m.generateLetterDOCX);
+const loadInvitationPDF = () => import("@/lib/invitation-pdf").then(m => m.generateInvitationPDF);
 
 interface Props { state: FormState; onRestart: () => void; onEdit?: (step: StepName) => void; }
 
@@ -37,6 +40,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const handleDownloadPDF = async () => {
     try {
       setBusy("pdf");
+      const generateBriefingPDF = await loadBriefingPDF();
       const blob = await generateBriefingPDF(state);
       downloadBlob(blob, `Briefing_Aurum_${fileBase()}.pdf`);
     } catch (e) {
@@ -48,6 +52,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const handleDownloadLetter = async () => {
     try {
       setBusy("docx");
+      const generateLetterDOCX = await loadLetterDOCX();
       const blob = await generateLetterDOCX(state);
       downloadBlob(blob, `Carta_Aurum_${fileBase()}.docx`);
     } catch (e) {
@@ -59,6 +64,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const handleInvitationPDF = async () => {
     try {
       setBusy("convitepdf");
+      const generateInvitationPDF = await loadInvitationPDF();
       const blob = await generateInvitationPDF(state);
       downloadBlob(blob, `Convite_Aurum_${fileBase()}.pdf`);
     } catch (e) {

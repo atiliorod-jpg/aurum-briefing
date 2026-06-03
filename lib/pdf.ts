@@ -163,16 +163,5 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   return doc.output("blob");
 }
 
-export function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-// Alias para compatibilidade
-export const downloadPDF = downloadBlob;
+// Reexporta o utilitário de download (definido em módulo leve separado)
+export { downloadBlob, downloadBlob as downloadPDF } from "./download";
