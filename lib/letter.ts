@@ -27,13 +27,12 @@ export async function generateLetterDOCX(state: FormState): Promise<Blob> {
   const docPath = "word/document.xml";
   let xml = await zip.file(docPath)!.async("string");
 
-  // Conector entre tipo e nome: troca o run isolado " de " quando necessário
-  if (c.conector !== " de ") {
-    xml = xml.replace(
-      '<w:t xml:space="preserve"> de </w:t>',
-      `<w:t xml:space="preserve">${xmlEscape(c.conector)}</w:t>`,
-    );
-  }
+  // Conector entre tipo e nome: troca o run isolado " de " pelo conector calculado
+  // (contração automática: de/da/do/dos, ou "promovida por/pela/pelo" para almoço/jantar)
+  xml = xml.replace(
+    '<w:t xml:space="preserve"> de </w:t>',
+    `<w:t xml:space="preserve">${xmlEscape(c.conector)}</w:t>`,
+  );
 
   // Evita a repetição "cardápio ... Cardápio Aurum" — reescreve a frase do cardápio
   xml = xml.replace(

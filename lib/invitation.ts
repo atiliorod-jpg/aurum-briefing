@@ -12,9 +12,42 @@ export function getTipoFrase(tipo: string | null): string {
   }
 }
 
-// Conector entre tipo e nome (template traz " de "; Almoço/Jantar usa " promovida por ")
-export function getConector(tipo: string | null): string {
-  return tipo === "Almoço ou Jantar Privado" ? " promovida por " : " de ";
+// Detecta o artigo do nome a partir da primeira palavra (heurística)
+// Retorna "a" | "o" | "as" | "os" | null (nome próprio, sem artigo)
+function getArtigo(name: string): "a" | "o" | "as" | "os" | null {
+  if (!name || name.includes("[")) return null;
+  const first = name.trim().toLowerCase().split(/\s+/)[0].replace(/[.,;:]/g, "");
+  const femSing = new Set([
+    "família", "familia", "construtora", "empresa", "organização", "organizacao",
+    "associação", "associacao", "igreja", "loja", "confeitaria", "padaria", "escola",
+    "turma", "equipe", "diretoria", "comissão", "comissao", "fábrica", "fabrica",
+    "clínica", "clinica", "ong", "produtora", "incorporadora", "imobiliária", "imobiliaria",
+    "prefeitura", "secretaria", "fundação", "fundacao", "cooperativa", "rede",
+  ]);
+  const mascSing = new Set([
+    "grupo", "time", "condomínio", "condominio", "restaurante", "bar", "buffet",
+    "instituto", "clube", "escritório", "escritorio", "conselho", "sindicato",
+    "comitê", "comite", "colégio", "colegio", "hospital", "hotel", "salão", "salao",
+  ]);
+  const femPl = new Set(["famílias", "familias", "empresas", "lojas"]);
+  const mascPl = new Set(["noivos", "amigos", "organizadores", "sócios", "socios", "aniversariantes"]);
+  if (femSing.has(first)) return "a";
+  if (mascSing.has(first)) return "o";
+  if (femPl.has(first)) return "as";
+  if (mascPl.has(first)) return "os";
+  return null;
+}
+
+// Conector entre tipo e nome, com contração automática de preposição.
+// Padrão: "de/da/do/das/dos". Almoço/Jantar: "promovida por/pela/pelo/...".
+export function getConector(tipo: string | null, name: string): string {
+  const art = getArtigo(name);
+  if (tipo === "Almoço ou Jantar Privado") {
+    const por = art === "a" ? "pela" : art === "o" ? "pelo" : art === "as" ? "pelas" : art === "os" ? "pelos" : "por";
+    return ` promovida ${por} `;
+  }
+  const de = art === "a" ? "da" : art === "o" ? "do" : art === "as" ? "das" : art === "os" ? "dos" : "de";
+  return ` ${de} `;
 }
 
 export function getNomePlaceholder(tipo: string | null): string {
@@ -84,7 +117,7 @@ export function resolveInvitation(state: FormState): InvitationContent {
 
   return {
     tipoFrase: getTipoFrase(state.tipo),
-    conector: getConector(state.tipo),
+    conector: getConector(state.tipo, nome),
     nome, data, horario, local, cardapio, dataLimite, contato, assinatura, completa,
   };
 }

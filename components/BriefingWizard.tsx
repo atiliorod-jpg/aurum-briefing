@@ -90,32 +90,37 @@ const SOBREMESAS_OPTIONS = [
 ];
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
+const ESTILOS_STANDARD = [
+  "Serviço à americana (buffet)", "Volante", "Serviço franco-americano (empratado)",
+  "Jantar Harmonizado", "Jantar Temático", "Sugestão da Aurum",
+];
+
 function resolveFluxo(state: FormState): StepName[] {
   const e = state.estilo;
+  const hasStandard = e.some((x) => ESTILOS_STANDARD.includes(x));
+  const hasTacho = e.includes("Tacho / Paellera");
+  const hasFeijoada = e.includes("Feijoada Completa");
+  const hasCoffee = e.includes("Coffee Break");
+
   const inicio: StepName[] = ["welcome", "tipo", "quando", "local", "convidados", "faixa", "estilo"];
 
-  // Coffee Break: cardápio único, sem bebidas (já incluído)
-  if (e.includes("Coffee Break")) {
-    return [...inicio, "coffeeBreak", "estrutura", "mesas", "contato", "carta", "final"];
-  }
+  // Cada estilo adiciona suas etapas de cardápio (compatível com combinações)
+  const menu: StepName[] = [];
+  if (hasStandard || hasTacho) menu.push("entradas");
+  if (hasStandard) menu.push("principais");
+  if (hasTacho) menu.push("tacho");                 // tacho aparece sempre que for escolhido
+  if (hasFeijoada) menu.push("feijoada");
+  if (hasCoffee) menu.push("coffeeBreak");
+  if (hasStandard || hasTacho || hasFeijoada) menu.push("sobremesas");
 
-  const fimComBebidas: StepName[] = ["estrutura", "mesas", "bebidas", "contato", "carta", "final"];
+  // Bebidas só é dispensado quando o ÚNICO estilo é Coffee Break (já inclui bebidas)
+  const includeBebidas = e.length === 0 || e.some((x) => x !== "Coffee Break");
+  const fim: StepName[] = [
+    "estrutura", "mesas", ...(includeBebidas ? ["bebidas" as StepName] : []),
+    "contato", "carta", "final",
+  ];
 
-  // Feijoada: completa, sem entradas/principais/tacho
-  if (e.includes("Feijoada Completa")) {
-    return [...inicio, "feijoada", "sobremesas", ...fimComBebidas];
-  }
-
-  // Demais: monta o cardápio conforme os estilos escolhidos
-  const hasTacho = e.includes("Tacho / Paellera");
-  const onlyTacho = e.length > 0 && e.every((x) => x === "Tacho / Paellera");
-
-  const cardapio: StepName[] = ["entradas"];
-  if (!onlyTacho) cardapio.push("principais");   // tacho sozinho dispensa prato principal
-  if (hasTacho) cardapio.push("tacho");          // tacho só aparece se foi escolhido no estilo
-  cardapio.push("sobremesas");
-
-  return [...inicio, ...cardapio, ...fimComBebidas];
+  return [...inicio, ...menu, ...fim];
 }
 
 function canAdvance(step: StepName, state: FormState): boolean {
@@ -331,7 +336,7 @@ export default function BriefingWizard() {
   return (
     <div className="min-h-screen min-h-dvh bg-[#F3EFE6]">
       <ProgressBar current={idx} total={total} />
-      <main className="max-w-2xl mx-auto px-5 pt-6 pb-36">
+      <main className={`${currentStep === "carta" ? "max-w-4xl" : "max-w-2xl"} mx-auto px-5 pt-6 pb-36`}>
         <div key={currentStep} className="animate-fade-in">
           {renderStep()}
         </div>
