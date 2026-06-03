@@ -123,16 +123,25 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     ...(state.cardapioPerfil.length ? [{ label: "Cardápio sob medida", value: state.cardapioPerfil.join(", ") }] : []),
   ];
 
-  const rows: Array<{ label: string; value: string }> = [
+  type Row = { label: string; value: string };
+  const eventoRows: Row[] = [
     { label: "Tipo", value: state.tipo === "Outro" ? state.tipoOutro : state.tipo || "" },
     { label: "Data", value: `${formatDate(state.data)}${state.horaInicio ? " • " + state.horaInicio : ""}` },
     { label: "Local", value: state.endereco },
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
-    ...cardapioRows,
+  ];
+  const estruturaRows: Row[] = [
     { label: "Cozinha", value: state.cozinha || "" },
     ...(isCoffeeOnly ? [] : [{ label: "Bebidas", value: state.bebidas || "" }]),
+    { label: "Louças e talheres", value: state.mesas || "" },
     ...(state.faixa ? [{ label: "Faixa", value: state.faixa }] : []),
     { label: "Contato", value: `${state.nome} • ${state.whatsapp}${state.email ? " • " + state.email : ""}` },
+  ];
+
+  const secoes: Array<{ icon: string; titulo: string; rows: Row[] }> = [
+    { icon: "📋", titulo: "Evento", rows: eventoRows },
+    { icon: "🍽️", titulo: "Cardápio", rows: cardapioRows },
+    { icon: "🤝", titulo: "Estrutura e contato", rows: estruturaRows },
   ];
 
   return (
@@ -146,16 +155,26 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
         WhatsApp (ou copie e nos mande). Assim retornamos com a sua proposta.
       </p>
 
-      <div className="bg-white rounded-2xl p-5 text-left shadow-sm mb-3 max-h-72 overflow-y-auto">
-        <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-3">Resumo do evento</h3>
-        <div className="space-y-2">
-          {rows.map(({ label, value }) => value ? (
-            <div key={label} className="text-sm leading-snug">
-              <strong className="text-[#1B2A41]">{label}:</strong>{" "}
-              <span className="text-gray-500">{value}</span>
+      <div className="bg-white rounded-2xl p-5 text-left shadow-sm mb-3 space-y-4">
+        {secoes.map((sec) => {
+          const visiveis = sec.rows.filter((r) => r.value);
+          if (visiveis.length === 0) return null;
+          return (
+            <div key={sec.titulo}>
+              <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2 flex items-center gap-1.5">
+                <span aria-hidden>{sec.icon}</span> {sec.titulo}
+              </h3>
+              <div className="space-y-1.5 border-l-2 border-[#C9A24B]/25 pl-3">
+                {visiveis.map(({ label, value }) => (
+                  <div key={label} className="text-sm leading-snug">
+                    <strong className="text-[#1B2A41]">{label}:</strong>{" "}
+                    <span className="text-gray-500">{value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : null)}
-        </div>
+          );
+        })}
       </div>
 
       {onEdit && (

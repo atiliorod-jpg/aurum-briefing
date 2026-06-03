@@ -185,6 +185,7 @@ export default function BriefingWizard() {
   const [idx, setIdx] = useState(0);
   const [reviewMode, setReviewMode] = useState(false); // entrou para editar a partir do resumo
   const [hydrated, setHydrated] = useState(false);
+  const [direcao, setDirecao] = useState<"fwd" | "back">("fwd"); // direção da transição
 
   // Restaura o briefing salvo (continuar de onde parou) — só no cliente, após montar
   useEffect(() => {
@@ -253,8 +254,8 @@ export default function BriefingWizard() {
   const isSkippable = currentStep === "tacho" || currentStep === "faixa" || currentStep === "carta";
   const isLast = fluxo[idx + 1] === "final";
 
-  const goNext = () => { if (idx < fluxo.length - 1) setIdx(i => i + 1); };
-  const goBack = () => { if (idx > 0) setIdx(i => i - 1); };
+  const goNext = () => { if (idx < fluxo.length - 1) { setDirecao("fwd"); setIdx(i => i + 1); } };
+  const goBack = () => { if (idx > 0) { setDirecao("back"); setIdx(i => i - 1); } };
   const restart = () => {
     if (!window.confirm("Tem certeza que deseja apagar tudo e preencher um novo briefing?")) return;
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
@@ -264,12 +265,12 @@ export default function BriefingWizard() {
   // Pula direto para uma etapa (usado pelos botões "editar" no resumo)
   const goToStep = (step: StepName) => {
     const i = fluxo.indexOf(step);
-    if (i >= 0) { setIdx(i); setReviewMode(true); }
+    if (i >= 0) { setDirecao("back"); setIdx(i); setReviewMode(true); }
   };
   // Volta ao resumo final após editar
   const goToResumo = () => {
     const i = fluxo.indexOf("final");
-    if (i >= 0) setIdx(i);
+    if (i >= 0) { setDirecao("fwd"); setIdx(i); }
     setReviewMode(false);
   };
 
@@ -460,7 +461,7 @@ export default function BriefingWizard() {
     <div className="min-h-screen min-h-dvh bg-[#F3EFE6]">
       <ProgressBar current={idx} total={total} />
       <main className={`${currentStep === "carta" ? "max-w-4xl" : "max-w-2xl"} mx-auto px-5 pt-6 pb-36`}>
-        <div key={currentStep} className="animate-fade-in">
+        <div key={currentStep} className={direcao === "back" ? "animate-slide-left" : "animate-slide-right"}>
           {renderStep()}
         </div>
       </main>
