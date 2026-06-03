@@ -218,6 +218,17 @@ export default function BriefingWizard() {
 
   const patch = useCallback((p: Partial<FormState>) => setState(s => ({ ...s, ...p })), []);
 
+  // Ao alterar convidados, se cair para 40 ou menos, reduz o tacho para no máximo 1
+  // (a 2ª opção de tacho só vale para eventos com mais de 40 convidados).
+  const patchConvidados = useCallback((p: Partial<FormState>) => {
+    setState((s) => {
+      const next = { ...s, ...p };
+      const total = (Number(next.adultos) || 0) + (Number(next.criancas) || 0);
+      if (total <= 40 && next.tacho.length > 1) next.tacho = next.tacho.slice(0, 1);
+      return next;
+    });
+  }, []);
+
   // Ao mudar o estilo de serviço, limpa os dados de cardápio de estilos que deixaram
   // de estar selecionados (evita "fantasmas" no resumo, ex: cardápio sob medida antigo).
   const setEstilo = useCallback((estilo: string[]) => {
@@ -268,7 +279,7 @@ export default function BriefingWizard() {
       case "tipo": return <TipoStep state={state} onChange={patch} />;
       case "quando": return <QuandoStep state={state} onChange={patch} />;
       case "local": return <LocalStep state={state} onChange={patch} />;
-      case "convidados": return <ConvidadosStep state={state} onChange={patch} />;
+      case "convidados": return <ConvidadosStep state={state} onChange={patchConvidados} />;
 
       case "estilo": return (
         <MultiSelectStep
