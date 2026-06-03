@@ -11,7 +11,8 @@ const MESES = [
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
 ];
 
-// Sugere a data de confirmação de presença (RSVP): metade do tempo entre hoje e o evento.
+// Sugere a data de confirmação de presença (RSVP): 40% do tempo entre hoje e o evento.
+// Se cair em fração de dia, arredonda sempre para baixo (dia anterior).
 // Retorna no formato "5 de maio" (ou "" se não houver data válida no futuro).
 export function sugestaoRSVP(eventoISO: string): string {
   if (!eventoISO) return "";
@@ -19,8 +20,11 @@ export function sugestaoRSVP(eventoISO: string): string {
   hoje.setHours(0, 0, 0, 0);
   const evento = new Date(`${eventoISO}T00:00:00`);
   if (isNaN(evento.getTime()) || evento <= hoje) return "";
-  const meio = new Date((hoje.getTime() + evento.getTime()) / 2);
-  return `${meio.getDate()} de ${MESES[meio.getMonth()]}`;
+  const DIA = 86400000;
+  const dias = Math.round((evento.getTime() - hoje.getTime()) / DIA);
+  const offset = Math.floor(dias * 0.4); // arredonda para baixo
+  const alvo = new Date(hoje.getTime() + offset * DIA);
+  return `${alvo.getDate()} de ${MESES[alvo.getMonth()]}`;
 }
 
 // Formata telefone no padrão (DD)NNNNN-NNNN — ex: (81)99818-4489

@@ -1,15 +1,38 @@
+"use client";
+import { useState } from "react";
+
 export default function WelcomeStep() {
+  const [logoOk, setLogoOk] = useState(true);
+
   return (
     <div className="text-center py-8">
-      <div className="text-5xl font-bold tracking-[8px] text-[#1B2A41]">A</div>
-      <div className="w-14 h-0.5 bg-[#C9A24B] mx-auto my-4" />
+      <div className="mb-5">
+        {logoOk ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src="/logo-aurum.png"
+            alt="Aurum Serviços Gastronômicos"
+            onError={() => setLogoOk(false)}
+            className="mx-auto w-40 h-auto rounded-2xl shadow-lg"
+          />
+        ) : (
+          <div className="py-2">
+            <div style={{ fontFamily: "Cardo, Georgia, serif" }} className="text-5xl font-bold text-[#C9A24B] leading-none">
+              Aurum
+            </div>
+            <div className="w-16 h-px bg-[#C9A24B] mx-auto my-2.5" />
+            <div className="text-[10px] tracking-[3px] text-[#C9A24B] font-medium">SERVIÇOS GASTRONÔMICOS</div>
+          </div>
+        )}
+      </div>
+
       <h2 className="text-2xl font-bold text-[#1B2A41] mb-3">Briefing do seu evento</h2>
       <p className="text-gray-500 text-base leading-relaxed mb-6">
         Em alguns minutos coletamos as informações para prepararmos uma proposta personalizada para você.
       </p>
 
       <div className="bg-white rounded-xl p-5 text-left shadow-sm text-sm text-gray-500 leading-relaxed space-y-1.5 mb-4">
-        <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 3 minutos.</strong></p>
+        <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 5 minutos.</strong></p>
         <p>📱 Otimizado para o celular — basta tocar nas opções.</p>
         <p>💬 Ao final, você copia o resumo e envia para a nossa equipe.</p>
       </div>
