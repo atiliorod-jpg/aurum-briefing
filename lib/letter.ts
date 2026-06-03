@@ -23,7 +23,7 @@ const COFFEE_DETAILS: Record<string, { bebidas: string; salgados: string; doces:
   },
   "Coffee Break Tradicional": {
     bebidas: "Café filtrado, leite quente, chá, água mineral, sucos naturais e achocolatado.",
-    salgados: "Mini croissant recheado, croque monsieur, pão de queijo, quiche, torta salgada, pães com ovos mexidos à francesa e cuscuz recheado.",
+    salgados: "Mini croissant, croque monsieur, pão de queijo, quiche, torta salgada, pães com ovos mexidos à francesa e cuscuz recheado.",
     doces: "Bolos caseiros, petit four, mungunzá, waffles e frutas frescas.",
   },
   "Coffee Break Premium": {
