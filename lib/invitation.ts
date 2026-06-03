@@ -96,6 +96,7 @@ export function getCardapioName(state: FormState): string {
     const pratos = state.tacho.filter((t) => t !== "Sem tacho");
     return pratos.length ? `Tacho/Paella de ${pratos.join(", ")}` : "Tacho/Paella";
   }
+  if (e.includes("Sugestão da Aurum")) return "Cardápio Autoral Aurum";
   return "[NOME DO CARDÁPIO]";
 }
 

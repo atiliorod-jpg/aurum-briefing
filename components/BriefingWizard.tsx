@@ -179,6 +179,24 @@ export default function BriefingWizard() {
 
   const patch = useCallback((p: Partial<FormState>) => setState(s => ({ ...s, ...p })), []);
 
+  // Ao mudar o estilo de serviço, limpa os dados de cardápio de estilos que deixaram
+  // de estar selecionados (evita "fantasmas" no resumo, ex: cardápio sob medida antigo).
+  const setEstilo = useCallback((estilo: string[]) => {
+    setState((s) => {
+      const next: FormState = { ...s, estilo };
+      const has = (v: string) => estilo.includes(v);
+      const hasPicker = estilo.some((x) => ESTILOS_PICKER.includes(x));
+      if (!has("Sugestão da Aurum")) { next.cardapioPerfil = []; next.cardapioNaoPodeFaltar = ""; next.cardapioEvitar = ""; }
+      if (!has("Tacho / Paellera")) next.tacho = [];
+      if (!has("Feijoada Completa")) next.feijoada = null;
+      if (!has("Coffee Break")) { next.coffeeBreak = null; next.coffeeBreakObs = ""; }
+      if (!hasPicker) { next.principais = []; next.sugestaoPrincipais = ""; }
+      if (!hasPicker && !has("Tacho / Paellera")) { next.entradas = []; next.sugestaoEntradas = ""; }
+      if (!hasPicker && !has("Tacho / Paellera") && !has("Feijoada Completa")) { next.sobremesas = []; next.sugestaoSobremesas = ""; }
+      return next;
+    });
+  }, []);
+
   const fluxo = resolveFluxo(state);
   const currentStep = fluxo[idx];
   const total = fluxo.length - 1;
@@ -217,7 +235,7 @@ export default function BriefingWizard() {
           options={ESTILO_OPTIONS}
           selected={state.estilo}
           max={3}
-          onChange={v => patch({ estilo: v })}
+          onChange={setEstilo}
         />
       );
 

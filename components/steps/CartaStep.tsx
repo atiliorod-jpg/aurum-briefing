@@ -1,5 +1,6 @@
 "use client";
 import { FormState } from "@/lib/types";
+import { sugestaoRSVP } from "@/lib/utils";
 import CartaPreview from "./CartaPreview";
 
 interface Props { state: FormState; onChange: (patch: Partial<FormState>) => void; }
@@ -21,6 +22,7 @@ function dadosHomenageado(tipo: string | null): { label: string; desc: string; p
 
 export default function CartaStep({ state, onChange }: Props) {
   const h = dadosHomenageado(state.tipo);
+  const sugestao = sugestaoRSVP(state.data);
 
   const field = (
     label: string, desc: string, key: keyof FormState, placeholder: string,
@@ -52,12 +54,29 @@ export default function CartaStep({ state, onChange }: Props) {
       <div className="flex flex-col lg:flex-row lg:gap-6">
         <div className="lg:flex-1">
           {field(h.label, h.desc, "cartaHomenageado", h.placeholder)}
-          {field(
-            "Até quando confirmar presença?",
-            "Prazo para os convidados avisarem se vão. Aparece no final do convite.",
-            "cartaDataLimite",
-            "Ex: 10 de junho",
-          )}
+
+          {/* Data limite (RSVP) com sugestão automática (50% do tempo até o evento) */}
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#1B2A41] mb-0.5">Até quando confirmar presença?</label>
+            <p className="text-xs text-gray-400 mb-1.5">Prazo para os convidados avisarem se vão. Aparece no final do convite.</p>
+            <input
+              type="text"
+              placeholder={sugestao ? `Ex: ${sugestao}` : "Ex: 10 de junho"}
+              value={state.cartaDataLimite}
+              onChange={(e) => onChange({ cartaDataLimite: e.target.value })}
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]"
+            />
+            {sugestao && state.cartaDataLimite.trim() !== sugestao && (
+              <button
+                type="button"
+                onClick={() => onChange({ cartaDataLimite: sugestao })}
+                className="mt-2 text-xs font-medium text-[#1B2A41] border border-[#C9A24B]/50 rounded-full px-3 py-1.5 active:scale-[0.97] transition-all"
+              >
+                💡 Usar sugestão: até {sugestao}
+              </button>
+            )}
+          </div>
+
           {field(
             "Como o convite será assinado?",
             "Nome de quem está convidando, no fecho do convite (“Com carinho, …”).",

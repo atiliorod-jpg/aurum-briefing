@@ -6,6 +6,23 @@ export function formatDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+const MESES = [
+  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+];
+
+// Sugere a data de confirmação de presença (RSVP): metade do tempo entre hoje e o evento.
+// Retorna no formato "5 de maio" (ou "" se não houver data válida no futuro).
+export function sugestaoRSVP(eventoISO: string): string {
+  if (!eventoISO) return "";
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const evento = new Date(`${eventoISO}T00:00:00`);
+  if (isNaN(evento.getTime()) || evento <= hoje) return "";
+  const meio = new Date((hoje.getTime() + evento.getTime()) / 2);
+  return `${meio.getDate()} de ${MESES[meio.getMonth()]}`;
+}
+
 // Formata telefone no padrão (DD)NNNNN-NNNN — ex: (81)99818-4489
 export function formatPhone(raw: string): string {
   const d = raw.replace(/\D/g, "").slice(0, 11);
