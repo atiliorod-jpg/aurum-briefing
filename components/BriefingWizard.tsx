@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { FormState, initialState, StepName } from "@/lib/types";
 import ProgressBar from "@/components/ui/ProgressBar";
 import BottomNav from "@/components/ui/BottomNav";
@@ -172,10 +172,43 @@ function requiredHint(step: StepName, state: FormState): string | null {
   }
 }
 
+const STORAGE_KEY = "aurum-briefing-v1";
+
 export default function BriefingWizard() {
   const [state, setState] = useState<FormState>(initialState);
   const [idx, setIdx] = useState(0);
   const [reviewMode, setReviewMode] = useState(false); // entrou para editar a partir do resumo
+  const [hydrated, setHydrated] = useState(false);
+
+  // Restaura o briefing salvo (continuar de onde parou) — só no cliente, após montar
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as { state?: Partial<FormState>; idx?: number };
+        if (saved.state) {
+          const restored = { ...initialState, ...saved.state };
+          setState(restored);
+          const flow = resolveFluxo(restored);
+          const safeIdx = Math.min(Math.max(saved.idx ?? 0, 0), flow.length - 1);
+          setIdx(safeIdx);
+        }
+      }
+    } catch {
+      // ignora dados corrompidos
+    }
+    setHydrated(true);
+  }, []);
+
+  // Salva automaticamente a cada mudança (depois de hidratar, para não sobrescrever com vazio)
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ state, idx }));
+    } catch {
+      // ignora (modo privado / cota cheia)
+    }
+  }, [state, idx, hydrated]);
 
   const patch = useCallback((p: Partial<FormState>) => setState(s => ({ ...s, ...p })), []);
 
@@ -205,7 +238,10 @@ export default function BriefingWizard() {
 
   const goNext = () => { if (idx < fluxo.length - 1) setIdx(i => i + 1); };
   const goBack = () => { if (idx > 0) setIdx(i => i - 1); };
-  const restart = () => { setState(initialState); setIdx(0); setReviewMode(false); };
+  const restart = () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setState(initialState); setIdx(0); setReviewMode(false);
+  };
 
   // Pula direto para uma etapa (usado pelos botões "editar" no resumo)
   const goToStep = (step: StepName) => {
