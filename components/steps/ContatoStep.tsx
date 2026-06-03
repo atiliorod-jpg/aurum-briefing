@@ -30,12 +30,26 @@ export default function ContatoStep({ state, onChange }: Props) {
         <label className="block text-sm font-semibold text-[#1B2A41] mb-0.5">
           Para quando você precisa da proposta? <span className="font-normal text-gray-400">(opcional)</span>
         </label>
-        <p className="text-xs text-gray-400 mb-1.5">Data limite para você receber nosso orçamento.</p>
+        <p className="text-xs text-gray-400 mb-1.5">
+          Data limite para você receber nosso orçamento{state.data ? " — não pode passar da data do evento" : ""}.
+        </p>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 whitespace-nowrap">Até dia</span>
-          <input type="date" value={state.prazo} onChange={e => onChange({ prazo: e.target.value })}
-            className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
+          <input
+            type="date"
+            value={state.prazo}
+            max={state.data || undefined}
+            onChange={e => {
+              const v = e.target.value;
+              // Não permite prazo superior à data do evento
+              onChange({ prazo: state.data && v > state.data ? state.data : v });
+            }}
+            className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]"
+          />
         </div>
+        {!state.data && (
+          <p className="text-xs text-[#C9A24B] mt-1.5">Defina a data do evento (passo “Data e horário”) para limitar este prazo.</p>
+        )}
       </div>
 
       <div className="mb-4">
