@@ -4,14 +4,15 @@ import { formatDate } from "./utils";
 
 const NAVY: [number, number, number] = [27, 42, 65];
 const GOLD: [number, number, number] = [201, 162, 75];
-const GREY: [number, number, number] = [90, 100, 120];
+const GREY: [number, number, number] = [80, 90, 110];
+const LIGHT_GREY: [number, number, number] = [140, 150, 165];
 
-// Área útil do papel timbrado (entre cabeçalho e rodapé)
-const CONTENT_TOP = 60;
+// Área útil entre cabeçalho e rodapé do papel timbrado
+const CONTENT_TOP = 62;
 const CONTENT_BOTTOM = 252;
-const LEFT = 22;
-const RIGHT = 188;
-const LINE_H = 4.4;
+const LEFT = 24;
+const RIGHT = 186;
+const VALUE_X = 64; // coluna onde começa o valor (label fica antes)
 
 async function fetchAsDataUrl(url: string): Promise<string> {
   const res = await fetch(url);
@@ -26,7 +27,6 @@ async function fetchAsDataUrl(url: string): Promise<string> {
 
 export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-
   const letterhead = await fetchAsDataUrl("/papel-timbrado.png");
 
   const drawLetterhead = () => {
@@ -34,7 +34,6 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   };
 
   drawLetterhead();
-
   let y = CONTENT_TOP;
 
   const ensureSpace = (needed: number) => {
@@ -45,37 +44,38 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     }
   };
 
-  // ── Título ────────────────────────────────────────────────────────────────
+  // ── Cabeçalho do documento ────────────────────────────────────────────────
+  doc.setFont("times", "bold");
+  doc.setFontSize(18);
   doc.setTextColor(...NAVY);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text("BRIEFING DE EVENTO", 105, y, { align: "center" });
+  doc.text("Briefing de Evento", 105, y, { align: "center" });
   y += 5;
 
-  doc.setFontSize(8);
+  doc.setFont("times", "italic");
+  doc.setFontSize(10);
   doc.setTextColor(...GOLD);
-  doc.setFont("helvetica", "italic");
-  const subtitle = state.nome ? `${state.nome}` : "Resumo de proposta";
-  doc.text(subtitle, 105, y, { align: "center" });
-  y += 6;
+  if (state.nome) doc.text(state.nome, 105, y, { align: "center" });
+  y += 4;
 
-  // Linha decorativa central
+  // Linha decorativa dupla (gold)
   doc.setDrawColor(...GOLD);
-  doc.setLineWidth(0.4);
-  doc.line(90, y, 120, y);
-  y += 8;
+  doc.setLineWidth(0.5);
+  doc.line(85, y + 1, 125, y + 1);
+  doc.setLineWidth(0.2);
+  doc.line(80, y + 2.4, 130, y + 2.4);
+  y += 10;
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const addSection = (title: string) => {
-    ensureSpace(10);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(...GOLD);
-    doc.text(title.toUpperCase(), LEFT, y);
+    ensureSpace(11);
+    doc.setFont("times", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(...NAVY);
+    doc.text(title.toUpperCase(), LEFT, y, { charSpace: 1.5 });
     doc.setDrawColor(...GOLD);
-    doc.setLineWidth(0.15);
-    doc.line(LEFT, y + 1, RIGHT, y + 1);
-    y += 6;
+    doc.setLineWidth(0.25);
+    doc.line(LEFT, y + 1.4, RIGHT, y + 1.4);
+    y += 7;
   };
 
   const addRow = (label: string, value: string) => {
@@ -83,31 +83,29 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(...NAVY);
-    const labelText = `${label}:`;
-    doc.text(labelText, LEFT, y);
+    doc.text(label, LEFT, y);
 
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
     doc.setTextColor(...GREY);
-    const valueX = LEFT + 36;
-    const wrapped = doc.splitTextToSize(value, RIGHT - valueX);
-    const needed = wrapped.length * LINE_H + 1;
+    const wrapped = doc.splitTextToSize(value, RIGHT - VALUE_X);
+    const needed = wrapped.length * 4.6 + 1.5;
     ensureSpace(needed);
-    doc.text(wrapped, valueX, y);
+    doc.text(wrapped, VALUE_X, y);
     y += needed;
   };
 
   // ── Evento ────────────────────────────────────────────────────────────────
   addSection("Evento");
   addRow("Tipo", state.tipo === "Outro" ? state.tipoOutro : state.tipo || "");
+
   const horario = [
     state.horaInicio,
     state.horaFim ? `às ${state.horaFim}` : "",
   ].filter(Boolean).join(" ");
-  addRow(
-    "Data",
-    `${formatDate(state.data)}${horario ? "  •  " + horario : ""}`,
-  );
+  addRow("Data", `${formatDate(state.data)}${horario ? "  •  " + horario : ""}`);
   if (state.obsHorario?.trim()) addRow("Obs. horário", state.obsHorario);
+
   addRow("Local", state.endereco);
   const criancas = state.criancas && state.criancas !== "0" ? ` + ${state.criancas} crianças` : "";
   addRow("Convidados", `${state.adultos} adultos${criancas}`);
@@ -155,17 +153,17 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (state.faixa) addRow("Faixa de investimento", state.faixa);
   if (state.obs?.trim()) addRow("Observações", state.obs);
 
-  // ── Data de geração (canto inferior, antes do rodapé) ────────────────────
-  doc.setFontSize(7);
-  doc.setTextColor(...GREY);
-  doc.setFont("helvetica", "italic");
+  // ── Data de geração ───────────────────────────────────────────────────────
+  doc.setFontSize(7.5);
+  doc.setTextColor(...LIGHT_GREY);
+  doc.setFont("times", "italic");
   const today = new Date().toLocaleDateString("pt-BR");
-  doc.text(`Briefing gerado em ${today}`, RIGHT, CONTENT_BOTTOM + 3, { align: "right" });
+  doc.text(`Documento gerado em ${today}`, RIGHT, CONTENT_BOTTOM + 4, { align: "right" });
 
   return doc.output("blob");
 }
 
-export function downloadPDF(blob: Blob, filename: string) {
+export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -175,3 +173,6 @@ export function downloadPDF(blob: Blob, filename: string) {
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// Alias para compatibilidade
+export const downloadPDF = downloadBlob;
