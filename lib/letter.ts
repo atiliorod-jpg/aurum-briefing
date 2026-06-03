@@ -1,7 +1,7 @@
 import {
   Document, Packer, Paragraph, TextRun, AlignmentType,
   BorderStyle, Footer, PageOrientation, Table, TableRow, TableCell,
-  WidthType, ShadingType, VerticalAlign,
+  WidthType, VerticalAlign,
 } from "docx";
 import { FormState } from "./types";
 import { formatDate } from "./utils";
@@ -9,10 +9,29 @@ import { formatDate } from "./utils";
 const NAVY = "1B2A41";
 const GOLD = "C9A24B";
 const GREY = "5A6478";
-const SOFT = "8A93A6";
+const SOFT = "9099AB";
 
 const FONT_TITLE = "Georgia";
-const FONT_BODY = "Calibri";
+const FONT_BODY = "Garamond";
+
+// ── Cardápios de Coffee Break (mantidos sincronizados com CoffeeBreakStep) ─
+const COFFEE_DETAILS: Record<string, { bebidas: string; salgados: string; doces: string }> = {
+  "Coffee Break Simples": {
+    bebidas: "Café filtrado, leite quente, água mineral e suco natural.",
+    salgados: "Mini sanduíche natural, mini pão de queijo, torta salgada, torradinhas com patês e cuscuz nordestino recheado.",
+    doces: "Bolos caseiros, mungunzá e salada de frutas.",
+  },
+  "Coffee Break Tradicional": {
+    bebidas: "Café filtrado, leite quente, chá, água mineral, sucos naturais e achocolatado.",
+    salgados: "Mini croissant recheado, croque monsieur, pão de queijo, quiche, torta salgada, pães com ovos mexidos à francesa e cuscuz nordestino recheado.",
+    doces: "Bolos caseiros, petit four, mungunzá, waffles e frutas frescas.",
+  },
+  "Coffee Break Premium": {
+    bebidas: "Café arábica filtrado, leite quente (opção zero lactose), chocolate quente, chás variados, águas mineral e com gás, sucos naturais e água aromatizada com frutas e ervas.",
+    salgados: "Mini croissant recheado, mini sanduíche artesanal, quiches (Lorraine, gorgonzola, tomate seco ou alho-poró), pão de queijo, torradinhas com patês, cuscuz recheado, beiju de queijo, croque monsieur e pães francês, integral e brioche com ovos mexidos à francesa.",
+    doces: "Bolos caseiros, waffles, tortas, frutas selecionadas, petit four, bolo de rolo e mungunzá.",
+  },
+};
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function p(opts: {
@@ -32,63 +51,49 @@ function p(opts: {
     text: opts.text ?? "",
     bold: opts.bold,
     italics: opts.italic,
-    size: opts.size ?? 22,
+    size: opts.size ?? 24,
     color: opts.color ?? NAVY,
     font: opts.font ?? FONT_BODY,
     characterSpacing: opts.spacing,
   })];
   return new Paragraph({
     alignment: opts.align ?? AlignmentType.CENTER,
-    spacing: { after: opts.spaceAfter ?? 120, before: opts.spaceBefore ?? 0 },
+    spacing: { after: opts.spaceAfter ?? 140, before: opts.spaceBefore ?? 0 },
     children,
-  });
-}
-
-function bullet(text: string) {
-  return new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 80 },
-    children: [
-      new TextRun({ text: "✦  ", color: GOLD, bold: true, size: 18, font: FONT_BODY }),
-      new TextRun({ text, size: 21, color: NAVY, font: FONT_BODY, italics: true }),
-    ],
   });
 }
 
 function ornamentLine() {
   return new Paragraph({
     alignment: AlignmentType.CENTER,
-    spacing: { before: 60, after: 60 },
+    spacing: { before: 80, after: 80 },
     children: [new TextRun({
-      text: "✦   ◆   ✦",
-      color: GOLD, size: 18, font: FONT_BODY,
-      characterSpacing: 80,
+      text: "◆     ◆     ◆",
+      color: GOLD, size: 22, font: FONT_BODY,
+      characterSpacing: 120,
     })],
   });
 }
 
-function divider() {
+function thinDivider() {
   return new Paragraph({
     alignment: AlignmentType.CENTER,
-    spacing: { before: 40, after: 80 },
-    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: GOLD, space: 4 } },
-    children: [new TextRun({ text: "" })],
+    spacing: { before: 60, after: 60 },
+    children: [new TextRun({
+      text: "——————————————",
+      color: GOLD, size: 16, font: FONT_BODY,
+    })],
   });
 }
 
-// ── Texto adaptativo por tipo de evento ────────────────────────────────────
-function getEventLabel(tipo: string | null): { title: string; nameHint: string } {
+// ── Textos adaptativos ─────────────────────────────────────────────────────
+function getEventDescription(tipo: string | null): string {
   switch (tipo) {
-    case "Aniversário":
-      return { title: "o aniversário de [NOME DO ANIVERSARIANTE]", nameHint: "ANIVERSARIANTE" };
-    case "Casamento":
-      return { title: "o casamento de [NOMES DOS NOIVOS]", nameHint: "NOIVOS" };
-    case "Confraternização / Corporativo":
-      return { title: "a confraternização de [NOME DO EVENTO / EMPRESA]", nameHint: "ANFITRIÃO" };
-    case "Almoço ou Jantar Privado":
-      return { title: "um almoço/jantar especial em homenagem a [NOME DO HOMENAGEADO]", nameHint: "ANFITRIÃO" };
-    default:
-      return { title: "[OCASIÃO ESPECIAL]", nameHint: "ANFITRIÃO" };
+    case "Aniversário": return "o aniversário de [NOME DO ANIVERSARIANTE]";
+    case "Casamento": return "o casamento de [NOMES DOS NOIVOS]";
+    case "Confraternização / Corporativo": return "a confraternização de [NOME DO EVENTO / EMPRESA]";
+    case "Almoço ou Jantar Privado": return "o almoço/jantar especial em homenagem a [NOME DO HOMENAGEADO]";
+    default: return "[TIPO DO EVENTO] de [NOME DO ANFITRIÃO / ANIVERSARIANTE / CASAL]";
   }
 }
 
@@ -102,191 +107,222 @@ function getCardapioName(state: FormState): string {
   return "[NOME DO CARDÁPIO]";
 }
 
-// ── Documento ──────────────────────────────────────────────────────────────
-export async function generateLetterDOCX(state: FormState): Promise<Blob> {
-  const { title: eventTitle } = getEventLabel(state.tipo);
-  const eventDate = state.data ? formatDate(state.data) : "[DATA DO EVENTO]";
-  const startTime = state.horaInicio || "[HORÁRIO DE INÍCIO]";
-  const endTime = state.horaFim;
-  const local = state.endereco || "[ENDEREÇO DO EVENTO]";
-  const rsvpPhone = state.whatsapp || "[TELEFONE / WHATSAPP PARA RSVP]";
-  const cardapioName = getCardapioName(state);
-
+// ── Descrição do cardápio (parágrafos) ──────────────────────────────────────
+function buildMenuParagraphs(state: FormState): Paragraph[] {
+  const items: Paragraph[] = [];
   const isCoffee = state.estilo.includes("Coffee Break");
   const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
 
-  // ── Conteúdo da carta ────────────────────────────────────────────────────
-  const content: Paragraph[] = [];
+  const sectionLabel = (label: string) => p({
+    text: label,
+    bold: true, color: GOLD, size: 20, font: FONT_BODY,
+    spaceBefore: 120, spaceAfter: 80, spacing: 100,
+  });
 
-  // Título principal
-  content.push(p({
-    text: "CONVITE",
-    bold: true, size: 52, color: NAVY, font: FONT_TITLE,
-    spacing: 240, spaceAfter: 40,
-  }));
-
-  content.push(p({
-    text: "✦ ESPECIAL ✦",
-    color: GOLD, size: 18, font: FONT_BODY,
-    spacing: 120, spaceAfter: 200,
-  }));
-
-  // Pequena linha divisória dourada
-  content.push(new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 280 },
-    children: [new TextRun({
-      text: "──────────",
-      color: GOLD, size: 18, font: FONT_BODY,
-    })],
-  }));
-
-  // Saudação
-  content.push(p({
-    text: "Prezado(a) convidado(a),",
-    italic: true, size: 24, color: NAVY, font: FONT_TITLE,
-    spaceAfter: 240,
-  }));
-
-  // Convite principal
-  content.push(p({
-    runs: [
-      new TextRun({ text: "É com grande alegria que convidamos você para celebrar conosco um momento muito especial: ", size: 22, color: NAVY, font: FONT_BODY }),
-      new TextRun({ text: eventTitle + ".", size: 22, color: NAVY, font: FONT_BODY, italics: true, bold: true }),
-    ],
-    align: AlignmentType.CENTER, spaceAfter: 200,
-  }));
-
-  content.push(p({
-    text: "Preparamos uma ocasião pensada com carinho para reunir pessoas queridas, compartilhar bons momentos e celebrar com alegria, afeto e boas memórias.",
-    italic: true, color: GREY, size: 21, spaceAfter: 280, font: FONT_BODY,
-  }));
-
-  // Bloco de detalhes (data / horário / local) — destaque
-  content.push(ornamentLine());
-
-  content.push(p({
-    text: eventDate.toUpperCase(),
-    bold: true, size: 26, color: NAVY, font: FONT_TITLE, spacing: 320,
+  const itemList = (text: string) => p({
+    text,
+    italic: true, color: NAVY, size: 22, font: FONT_BODY,
     spaceAfter: 80,
-  }));
+  });
 
-  const horarioStr = endTime
-    ? `das ${startTime} às ${endTime}`
-    : `a partir das ${startTime}`;
-  content.push(p({
-    text: horarioStr,
-    italic: true, color: GOLD, size: 20, font: FONT_BODY,
-    spaceAfter: 140,
-  }));
-
-  content.push(p({
-    text: local,
-    color: NAVY, size: 20, font: FONT_BODY,
-    spaceAfter: 80,
-  }));
-
-  content.push(ornamentLine());
-
-  // Cardápio
-  content.push(p({
-    text: "CARDÁPIO",
-    bold: true, color: GOLD, size: 18, font: FONT_BODY,
-    spacing: 320, spaceBefore: 240, spaceAfter: 120,
-  }));
-
-  content.push(p({
-    text: cardapioName,
-    bold: true, size: 26, color: NAVY, font: FONT_TITLE,
-    spaceAfter: 160,
-  }));
-
-  // Itens do cardápio
   if (isCoffee) {
-    if (state.coffeeBreakObs?.trim()) {
-      content.push(p({ text: state.coffeeBreakObs, italic: true, color: GREY, size: 20, spaceAfter: 120 }));
+    const detail = state.coffeeBreak ? COFFEE_DETAILS[state.coffeeBreak] : undefined;
+    if (detail) {
+      items.push(sectionLabel("BEBIDAS"));
+      items.push(itemList(detail.bebidas));
+      items.push(sectionLabel("SALGADOS"));
+      items.push(itemList(detail.salgados));
+      items.push(sectionLabel("DOCES"));
+      items.push(itemList(detail.doces));
+      if (state.coffeeBreakObs?.trim()) {
+        items.push(p({
+          text: `Observação: ${state.coffeeBreakObs}`,
+          italic: true, color: GREY, size: 18, spaceBefore: 100,
+        }));
+      }
     } else {
-      content.push(p({
-        text: "Seleção de bebidas, salgados e doces preparados especialmente para a ocasião.",
-        italic: true, color: GREY, size: 20, spaceAfter: 120,
-      }));
+      items.push(itemList("[INSERIR DESCRIÇÃO DO CARDÁPIO AQUI]"));
     }
   } else if (isFeijoada) {
-    content.push(p({
-      text: "Acompanhada de arroz branco, couve refogada, farofa de manteiga, laranja, abacaxi e vinagrete.",
-      italic: true, color: GREY, size: 20, spaceAfter: 140,
-    }));
+    items.push(itemList(
+      "Feijão preto encorpado com carnes nobres selecionadas, acompanhado de arroz branco, " +
+      "couve refogada, farofa de manteiga, laranja, abacaxi e vinagrete.",
+    ));
     if (state.sobremesas.length) {
-      content.push(p({ text: "Para finalizar", color: GOLD, size: 18, font: FONT_BODY, bold: true, spaceAfter: 60 }));
-      state.sobremesas.forEach((s) => content.push(bullet(s)));
+      items.push(sectionLabel("SOBREMESAS"));
+      items.push(itemList(state.sobremesas.join(", ") + "."));
     }
   } else {
     if (state.entradas.length) {
-      content.push(p({ text: "Entradas", color: GOLD, size: 18, font: FONT_BODY, bold: true, spacing: 120, spaceAfter: 60 }));
-      state.entradas.forEach((s) => content.push(bullet(s)));
+      items.push(sectionLabel("ENTRADAS"));
+      items.push(itemList(state.entradas.join(", ") + "."));
     }
     if (state.principais.length) {
-      content.push(p({ text: "Pratos principais", color: GOLD, size: 18, font: FONT_BODY, bold: true, spacing: 120, spaceBefore: 120, spaceAfter: 60 }));
-      state.principais.forEach((s) => content.push(bullet(s)));
+      items.push(sectionLabel("PRATOS PRINCIPAIS"));
+      items.push(itemList(state.principais.join(", ") + "."));
     }
     if (state.tacho.length) {
-      content.push(p({ text: "Tacho / Paellera", color: GOLD, size: 18, font: FONT_BODY, bold: true, spacing: 120, spaceBefore: 120, spaceAfter: 60 }));
-      state.tacho.forEach((s) => content.push(bullet(s)));
+      items.push(sectionLabel("TACHO / PAELLERA"));
+      items.push(itemList(state.tacho.join(", ") + "."));
     }
     if (state.sobremesas.length) {
-      content.push(p({ text: "Sobremesas", color: GOLD, size: 18, font: FONT_BODY, bold: true, spacing: 120, spaceBefore: 120, spaceAfter: 60 }));
-      state.sobremesas.forEach((s) => content.push(bullet(s)));
+      items.push(sectionLabel("SOBREMESAS"));
+      items.push(itemList(state.sobremesas.join(", ") + "."));
+    }
+    if (items.length === 0) {
+      items.push(itemList("[INSERIR DESCRIÇÃO DO CARDÁPIO AQUI]"));
     }
   }
+  return items;
+}
 
-  // Atribuição discreta à Aurum
+// ── Documento principal ────────────────────────────────────────────────────
+export async function generateLetterDOCX(state: FormState): Promise<Blob> {
+  const eventDesc = getEventDescription(state.tipo);
+  const eventDate = state.data ? formatDate(state.data) : "[DATA DO EVENTO]";
+  const startTime = state.horaInicio || "[HORÁRIO DE INÍCIO]";
+  const endTime = state.horaFim || "[HORÁRIO DE TÉRMINO]";
+  const local = state.endereco || "[ENDEREÇO COMPLETO]";
+  const rsvpPhone = state.whatsapp || "[WHATSAPP / TELEFONE]";
+  const cardapioName = getCardapioName(state);
+
+  const content: Paragraph[] = [];
+
+  // ── Título principal ────────────────────────────────────────────────────
   content.push(p({
-    text: "Cardápio assinado pela Aurum Serviços Gastronômicos.",
-    italic: true, color: SOFT, size: 16, font: FONT_BODY,
-    spaceBefore: 200, spaceAfter: 280,
+    text: "CONVITE",
+    bold: true, size: 88, color: NAVY, font: FONT_TITLE,
+    spacing: 320, spaceAfter: 0,
   }));
 
-  // Divisor
-  content.push(new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 200 },
-    children: [new TextRun({ text: "──────────", color: GOLD, size: 18, font: FONT_BODY })],
+  content.push(p({
+    text: "E S P E C I A L",
+    size: 28, color: GOLD, font: FONT_BODY, italic: true,
+    spacing: 360, spaceAfter: 200,
   }));
 
-  // RSVP
+  content.push(thinDivider());
+
+  // ── Saudação ────────────────────────────────────────────────────────────
   content.push(p({
-    text: "Sua presença tornará essa celebração ainda mais especial.",
-    italic: true, size: 22, color: NAVY, font: FONT_TITLE,
+    text: "Prezado(a) [NOME DO CONVIDADO],",
+    italic: true, size: 30, color: NAVY, font: FONT_TITLE,
+    spaceBefore: 200, spaceAfter: 240,
+  }));
+
+  // ── Convite principal ───────────────────────────────────────────────────
+  content.push(p({
+    runs: [
+      new TextRun({
+        text: "Com grande alegria, convidamos você para celebrar conosco um momento muito especial: ",
+        size: 26, color: NAVY, font: FONT_BODY,
+      }),
+      new TextRun({
+        text: eventDesc + ".",
+        size: 26, color: NAVY, font: FONT_BODY, italics: true, bold: true,
+      }),
+    ],
     spaceAfter: 200,
   }));
 
   content.push(p({
-    runs: [
-      new TextRun({ text: "Pedimos, por gentileza, a confirmação de presença até ", size: 20, color: NAVY, font: FONT_BODY }),
-      new TextRun({ text: "[DATA LIMITE PARA CONFIRMAÇÃO]", size: 20, color: NAVY, font: FONT_BODY, bold: true, italics: true }),
-      new TextRun({ text: ", através do contato ", size: 20, color: NAVY, font: FONT_BODY }),
-      new TextRun({ text: rsvpPhone, size: 20, color: NAVY, font: FONT_BODY, bold: true }),
-      new TextRun({ text: ".", size: 20, color: NAVY, font: FONT_BODY }),
-    ],
-    spaceAfter: 360,
+    text: "Será uma ocasião preparada com carinho para reunir pessoas queridas, compartilhar bons momentos e celebrar esta data de forma especial.",
+    italic: true, color: GREY, size: 24, font: FONT_BODY,
+    spaceAfter: 320,
   }));
 
-  // Assinatura
+  // ── Bloco de destaque: data / horário / local ──────────────────────────
+  content.push(ornamentLine());
+
+  content.push(p({
+    text: eventDate,
+    bold: true, size: 36, color: NAVY, font: FONT_TITLE,
+    spacing: 240, spaceAfter: 100,
+  }));
+
+  content.push(p({
+    text: `das ${startTime} às ${endTime}`,
+    italic: true, color: GOLD, size: 24, font: FONT_BODY,
+    spaceAfter: 160,
+  }));
+
+  content.push(p({
+    text: local,
+    color: NAVY, size: 22, font: FONT_BODY,
+    spaceAfter: 80,
+  }));
+
+  content.push(ornamentLine());
+
+  // ── Apresentação do cardápio ───────────────────────────────────────────
+  content.push(p({
+    runs: [
+      new TextRun({
+        text: "Para este momento, será servido o cardápio ",
+        size: 24, color: NAVY, font: FONT_BODY,
+      }),
+      new TextRun({
+        text: cardapioName,
+        size: 24, color: NAVY, font: FONT_BODY, bold: true, italics: true,
+      }),
+      new TextRun({
+        text: ", preparado pela Aurum Serviços Gastronômicos, com uma seleção pensada para oferecer aos convidados uma experiência agradável, elegante e acolhedora.",
+        size: 24, color: NAVY, font: FONT_BODY,
+      }),
+    ],
+    spaceBefore: 200, spaceAfter: 260,
+  }));
+
+  // ── CARDÁPIO em destaque ───────────────────────────────────────────────
+  content.push(p({
+    text: "CARDÁPIO",
+    bold: true, color: GOLD, size: 22, font: FONT_BODY,
+    spacing: 480, spaceAfter: 120,
+  }));
+
+  content.push(p({
+    text: cardapioName,
+    bold: true, size: 32, color: NAVY, font: FONT_TITLE,
+    spaceAfter: 160,
+  }));
+
+  // Itens
+  content.push(...buildMenuParagraphs(state));
+
+  // ── Fechamento ─────────────────────────────────────────────────────────
+  content.push(thinDivider());
+
+  content.push(p({
+    text: "Sua presença será muito especial para tornar esta celebração ainda mais memorável.",
+    italic: true, size: 26, color: NAVY, font: FONT_TITLE,
+    spaceBefore: 240, spaceAfter: 240,
+  }));
+
+  content.push(p({
+    runs: [
+      new TextRun({ text: "Pedimos, por gentileza, a confirmação de presença até ", size: 22, color: NAVY, font: FONT_BODY }),
+      new TextRun({ text: "[DATA LIMITE]", size: 22, color: NAVY, font: FONT_BODY, bold: true, italics: true }),
+      new TextRun({ text: ", através do contato ", size: 22, color: NAVY, font: FONT_BODY }),
+      new TextRun({ text: rsvpPhone, size: 22, color: NAVY, font: FONT_BODY, bold: true }),
+      new TextRun({ text: ".", size: 22, color: NAVY, font: FONT_BODY }),
+    ],
+    spaceAfter: 480,
+  }));
+
+  // ── Assinatura ─────────────────────────────────────────────────────────
   content.push(p({
     text: "Com carinho,",
-    italic: true, size: 22, color: GREY, font: FONT_TITLE,
-    spaceAfter: 80,
+    italic: true, size: 26, color: GREY, font: FONT_TITLE,
+    spaceAfter: 100,
   }));
 
   content.push(p({
-    text: "[NOME DO ANFITRIÃO / FAMÍLIA]",
-    bold: true, size: 24, color: NAVY, font: FONT_TITLE,
-    spaceAfter: 80,
+    text: "[NOME DO ANFITRIÃO / FAMÍLIA / NOIVOS]",
+    bold: true, size: 28, color: NAVY, font: FONT_TITLE,
   }));
 
-  // ── Tabela 1 célula que centraliza verticalmente todo o conteúdo ────────
-  // Página paisagem US Letter: width=15840, height=12240. Margens 720 = 0.5"
-  // Cell width = 15840 - 1440 = 14400. Height = 12240 - 1440 = 10800.
+  // ── Tabela 1 célula para centralizar verticalmente em landscape ────────
+  // Letter LANDSCAPE: 15840 x 12240 DXA. Margem 720 (0.5"). Borda gera offset.
   const wrapper = new Table({
     width: { size: 14400, type: WidthType.DXA },
     columnWidths: [14400],
@@ -307,19 +343,21 @@ export async function generateLetterDOCX(state: FormState): Promise<Blob> {
     })],
   });
 
-  // ── Documento ────────────────────────────────────────────────────────────
+  // ── Documento (LANDSCAPE explícito: width > height) ────────────────────
   const doc = new Document({
     creator: "Aurum Briefing",
     title: `Convite — ${state.nome || "evento"}`,
     styles: {
-      default: { document: { run: { font: FONT_BODY, size: 22 } } },
+      default: { document: { run: { font: FONT_BODY, size: 24 } } },
     },
     sections: [{
       properties: {
         page: {
           size: {
-            width: 12240,   // short edge — docx-js trocará internamente
-            height: 15840,  // long edge
+            // LANDSCAPE Letter — docx-js inverte width/height internamente,
+            // então passamos as dimensões portrait + flag LANDSCAPE.
+            width: 12240,
+            height: 15840,
             orientation: PageOrientation.LANDSCAPE,
           },
           margin: { top: 720, right: 720, bottom: 720, left: 720 },
@@ -340,7 +378,7 @@ export async function generateLetterDOCX(state: FormState): Promise<Blob> {
           children: [new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [new TextRun({
-              text: "Convite gerado com assessoria gastronômica Aurum",
+              text: "Cardápio e serviço gastronômico por Aurum Serviços Gastronômicos",
               size: 14, color: SOFT, font: FONT_BODY, italics: true,
             })],
           })],
