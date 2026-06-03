@@ -38,26 +38,26 @@ export default function QuandoStep({ state, onChange }: Props) {
       <h1 className="text-xl font-bold text-[#1B2A41] mb-1">Quando será o evento?</h1>
       <p className="text-gray-500 text-sm mb-5">Os horários abaixo são o <strong className="text-[#1B2A41]">início</strong> e o <strong className="text-[#1B2A41]">término do serviço da Aurum</strong> no local.</p>
       <div className="mb-4">
-        <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Data <span className="text-[#9A7B2E]">• obrigatório</span></label>
-        <input type="date" value={state.data} min={new Date().toLocaleDateString("en-CA")} onChange={e => onChange({ data: e.target.value })}
+        <label htmlFor="ev-data" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Data <span className="text-[#9A7B2E]">• obrigatório</span></label>
+        <input id="ev-data" type="date" value={state.data} min={new Date().toLocaleDateString("en-CA")} onChange={e => onChange({ data: e.target.value })}
           className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
       </div>
       <div className="grid grid-cols-2 gap-3 mb-2">
         <div>
-          <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Início do serviço</label>
-          <input type="time" step={1800} value={state.horaInicio} onChange={e => handleInicio(e.target.value)}
+          <label htmlFor="ev-inicio" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Início do serviço</label>
+          <input id="ev-inicio" type="time" step={1800} value={state.horaInicio} onChange={e => handleInicio(e.target.value)}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Término do serviço</label>
-          <input type="time" step={1800} value={state.horaFim} onChange={e => onChange({ horaFim: snap30(e.target.value) })}
+          <label htmlFor="ev-fim" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Término do serviço</label>
+          <input id="ev-fim" type="time" step={1800} value={state.horaFim} onChange={e => onChange({ horaFim: snap30(e.target.value) })}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
         </div>
       </div>
       <p className="text-xs text-gray-400 italic mb-5">Duração padrão: 4 horas de serviço. Horários em intervalos de 30 minutos (ex: 19:00 ou 19:30). O término é ajustado automaticamente ao informar o início.</p>
       <div>
-        <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações sobre o horário <span className="font-normal text-gray-400">(opcional)</span></label>
-        <input type="text" placeholder="Ex: evento pode se estender até meia-noite"
+        <label htmlFor="ev-obshorario" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações sobre o horário <span className="font-normal text-gray-400">(opcional)</span></label>
+        <input id="ev-obshorario" type="text" placeholder="Ex: evento pode se estender até meia-noite"
           value={state.obsHorario || ""}
           onChange={e => onChange({ obsHorario: e.target.value })}
           className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />

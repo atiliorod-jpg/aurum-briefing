@@ -20,7 +20,14 @@ export default function ProgressBar({ current, total }: ProgressBarProps) {
         <div className="text-xs text-white/70 tracking-wide">{label}</div>
       </div>
       <div className="mt-3 max-w-2xl mx-auto">
-        <div className="h-1 bg-white/15 rounded-full overflow-hidden">
+        <div
+          className="h-1 bg-white/15 rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={Math.round(pct)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Progresso do briefing"
+        >
           <div
             className="h-full bg-[#C9A24B] rounded-full transition-all duration-500"
             style={{ width: `${pct}%` }}

@@ -13,7 +13,9 @@ export default function OptionCard({ label, description, selected, onClick, vari
     return (
       <button
         onClick={onClick}
-        className={`relative rounded-xl border-2 px-3 py-3 text-sm text-left min-h-[64px] flex flex-col justify-center transition-all active:scale-[0.97] ${
+        role="checkbox"
+        aria-checked={selected}
+        className={`relative rounded-xl border-2 px-3 py-3 text-sm text-left min-h-[64px] flex flex-col justify-center transition-all active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A24B] focus-visible:ring-offset-1 ${
           selected
             ? "border-[#C9A24B] bg-[#FBF7EE] font-semibold shadow-sm"
             : "border-gray-200 bg-white"
@@ -33,7 +35,9 @@ export default function OptionCard({ label, description, selected, onClick, vari
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-start gap-3 rounded-xl border-2 px-4 py-4 text-left transition-all active:scale-[0.98] min-h-[56px] ${
+      role="radio"
+      aria-checked={selected}
+      className={`w-full flex items-start gap-3 rounded-xl border-2 px-4 py-4 text-left transition-all active:scale-[0.98] min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A24B] focus-visible:ring-offset-1 ${
         selected
           ? "border-[#C9A24B] bg-[#FBF7EE] shadow-sm"
           : "border-gray-200 bg-white"
