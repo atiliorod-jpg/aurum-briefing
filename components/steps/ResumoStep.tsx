@@ -5,6 +5,7 @@ import { FormState } from "@/lib/types";
 import { buildWhatsAppMessage, formatDate } from "@/lib/utils";
 import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
+import { AURUM_WHATSAPP } from "@/lib/config";
 import { StepName } from "@/lib/types";
 
 // Geradores pesados (jspdf/jszip/docx) carregados sob demanda, só ao clicar em baixar.
@@ -30,9 +31,8 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
 
   const handleWhatsApp = () => {
     track("enviar_whatsapp");
-    const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5581998184489";
     const text = encodeURIComponent(buildWhatsAppMessage(state));
-    window.open(`https://wa.me/${number}?text=${text}`, "_blank");
+    window.open(`https://wa.me/${AURUM_WHATSAPP}?text=${text}`, "_blank");
   };
 
   const handleCopy = async () => {

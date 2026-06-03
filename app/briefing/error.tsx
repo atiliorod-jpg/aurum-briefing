@@ -1,4 +1,5 @@
 "use client";
+import { AURUM_WHATSAPP } from "@/lib/config";
 
 export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
@@ -17,7 +18,7 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
           Tentar novamente
         </button>
         <a
-          href="https://wa.me/5581998184489"
+          href={`https://wa.me/${AURUM_WHATSAPP}`}
           className="block mt-3 text-sm text-[#9A7B2E] font-medium underline"
         >
           Falar com a Aurum no WhatsApp
