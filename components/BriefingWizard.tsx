@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { FormState, initialState, StepName, FLUXO_PADRAO, FLUXO_SEM_PRINCIPAIS, FLUXO_FEIJOADA } from "@/lib/types";
+import { FormState, initialState, StepName, FLUXO_PADRAO, FLUXO_SEM_PRINCIPAIS, FLUXO_FEIJOADA, FLUXO_COFFEE } from "@/lib/types";
 import ProgressBar from "@/components/ui/ProgressBar";
 import BottomNav from "@/components/ui/BottomNav";
 import WelcomeStep from "@/components/steps/WelcomeStep";
@@ -12,17 +12,18 @@ import MultiSelectStep from "@/components/steps/MultiSelectStep";
 import SingleSelectStep from "@/components/steps/SingleSelectStep";
 import ContatoStep from "@/components/steps/ContatoStep";
 import ResumoStep from "@/components/steps/ResumoStep";
+import CoffeeBreakStep from "@/components/steps/CoffeeBreakStep";
 
 // ── Estilos de serviço ──────────────────────────────────────────────────────
 const ESTILO_OPTIONS = [
-  { value: "Bufê", label: "Bufê", desc: "Pratos dispostos em mesa para servir-se à vontade" },
-  { value: "Volante", label: "Volante", desc: "Garçons circulam com bandejas entre os convidados" },
-  { value: "Empratado", label: "Empratado", desc: "Cada prato montado e servido individualmente à mesa" },
-  { value: "Tacho / Paellera", label: "Tacho / Paellera", desc: "Pratos servidos diretamente do tacho, ao centro da mesa" },
-  { value: "Feijoada Completa", label: "Feijoada Completa", desc: "Experiência gastronômica completa com todos os acompanhamentos clássicos" },
-  { value: "Jantar Harmonizado", label: "Jantar Harmonizado", desc: "Menu degustação com harmonização de vinhos e bebidas" },
-  { value: "Jantar Temático", label: "Jantar Temático", desc: "Cardápio e ambientação criados em torno de um tema" },
-  { value: "Sugestão da Aurum", label: "Sugestão da Aurum", desc: "Deixamos o cardápio a nosso cargo, conforme o perfil do evento" },
+  { value: "Serviço à americana (buffet)", label: "Serviço à americana (buffet)", desc: "Pratos dispostos em mesa para servir-se à vontade." },
+  { value: "Volante", label: "Volante", desc: "Garçons circulam com bandejas entre os convidados." },
+  { value: "Serviço franco-americano (empratado)", label: "Serviço franco-americano (empratado)", desc: "Cada prato montado e servido individualmente à mesa." },
+  { value: "Tacho / Paellera", label: "Tacho / Paellera", desc: "Pratos servidos diretamente do tacho, ao centro da mesa." },
+  { value: "Feijoada Completa", label: "Feijoada Completa", desc: "Experiência gastronômica completa com todos os acompanhamentos clássicos." },
+  { value: "Jantar Harmonizado", label: "Jantar Harmonizado", desc: "Menu degustação com harmonização de vinhos e bebidas." },
+  { value: "Jantar Temático", label: "Jantar Temático", desc: "Cardápio e ambientação criados em torno de um tema." },
+  { value: "Sugestão da Aurum", label: "Sugestão da Aurum", desc: "Deixamos o cardápio a nosso cargo, conforme o perfil do evento." },
 ];
 
 // ── Entradas ────────────────────────────────────────────────────────────────
@@ -38,34 +39,34 @@ const ENTRADAS_OPTIONS = [
   { value: "Croqueta de Cupim", label: "Croqueta de Cupim", desc: "Com vinagrete de melão fresco, redução de açaí e aioli de limão siciliano." },
   { value: "Ceviche de Peixe Branco", label: "Ceviche de Peixe Branco", desc: "Peixe marinado em limão, cebola roxa, coentro e leite de coco. Fusão nordestina com técnica peruana." },
   { value: "Sem entradas", label: "Sem entradas", desc: "" },
-  { value: "Sugestão do chef", label: "Sugestão do chef", desc: "Deixamos a seleção de entradas a cargo do chef" },
+  { value: "Sugestão do chef", label: "Sugestão do chef", desc: "Deixamos a seleção de entradas a cargo do chef." },
 ];
 
 // ── Pratos principais ───────────────────────────────────────────────────────
 const PRINCIPAIS_OPTIONS = [
-  { value: "Filé Mignon ao Molho de Vinho Tinto", label: "Filé Mignon ao Molho de Vinho Tinto", desc: "Com redução encorpada de vinho tinto e linguine na manteiga clarificada." },
-  { value: "Filé au Poivre com Fettuccine", label: "Filé au Poivre com Fettuccine", desc: "Molho au poivre cremoso com fettuccine na manteiga e sálvia fresca." },
-  { value: "Paillard ao Molho Rôti com Linguini", label: "Paillard ao Molho Rôti", desc: "Filé aberto e grelhado com molho rôti intenso e linguini ao azeite trufado." },
-  { value: "Magret de Pato ao Molho de Laranja", label: "Magret de Pato ao Laranja", desc: "Peito de pato com pele crocante, molho à l'orange e purê de batata-doce com tomilho." },
-  { value: "Codorna Confitada", label: "Codorna Confitada", desc: "Cozida lentamente em gordura, com molho de uvas tintas e aligot ou purê trufado." },
-  { value: "Salmão Grelhado com Risoto de Limão Siciliano", label: "Salmão com Risoto de Limão Siciliano", desc: "Salmão grelhado sobre risoto cremoso com raspas cítricas e manteiga noisette." },
-  { value: "Moqueca de Camarão com Pirão", label: "Moqueca de Camarão com Pirão", desc: "Camarões frescos em leite de coco e dendê, com pirão cremoso e arroz branco." },
-  { value: "Spaghetti au Mare", label: "Spaghetti au Mare", desc: "Massa com lula, polvo, camarão, vongole e mexilhão em azeite, alho e limão siciliano." },
-  { value: "Pappardelle com Ragù de Ossobuco", label: "Pappardelle com Ragù de Ossobuco", desc: "Massa grano duro com ragù cozido lentamente, parmesão e ervas." },
-  { value: "Polpetone com Polenta", label: "Polpetone com Polenta", desc: "Recheado com funghi e queijo meia cura, com polenta cremosa e molho de tomate rústico." },
-  { value: "Lasanha com Fonduta de Queijo", label: "Lasanha com Fonduta de Queijo", desc: "Bolonhesa em camadas selada na chapa para crosta dourada, finalizada com fonduta cremosa." },
-  { value: "Sugestão do chef", label: "Sugestão do chef", desc: "Deixamos a escolha a cargo do chef conforme o perfil do evento" },
+  { value: "Filé Mignon ao Molho de Redução de Vinho Tinto", label: "Filé Mignon ao Molho de Redução de Vinho Tinto", desc: "Filé mignon grelhado com redução de vinho tinto encorpada. Acompanha linguine na manteiga clarificada e ervas, com parmesão ralado na hora (opcional)." },
+  { value: "Filé au Poivre com Fettuccine", label: "Filé au Poivre com Fettuccine", desc: "Filé mignon em molho au poivre cremoso, com fettuccine na manteiga clarificada e sálvia fresca." },
+  { value: "Paillard ao Molho Rôti com Linguini", label: "Paillard ao Molho Rôti com Linguini", desc: "Filé aberto e grelhado com molho rôti intenso, acompanhado de linguini ao azeite trufado." },
+  { value: "Magret de Pato ao Molho de Laranja", label: "Magret de Pato ao Molho de Laranja", desc: "Peito de pato com pele crocante, molho à l'orange e purê de batata-doce ao tomilho." },
+  { value: "Codorna Confitada", label: "Codorna Confitada", desc: "Codorna cozida lentamente em gordura, com molho de uvas tintas e aligot ou purê trufado." },
+  { value: "Salmão Grelhado com Risoto de Limão Siciliano", label: "Salmão Grelhado com Risoto de Limão Siciliano", desc: "Salmão grelhado sobre risoto cremoso com raspas cítricas e manteiga noisette." },
+  { value: "Moqueca de Camarão com Pirão", label: "Moqueca de Camarão com Pirão", desc: "Camarões frescos cozidos em leite de coco e dendê, com pirão cremoso e arroz branco." },
+  { value: "Spaghetti au Mare", label: "Spaghetti au Mare", desc: "Massa com lula, polvo, camarão, vongole e mexilhão salteados em azeite, alho e limão siciliano." },
+  { value: "Pappardelle com Ragù de Ossobuco", label: "Pappardelle com Ragù de Ossobuco", desc: "Massa grano duro com ragù de ossobuco cozido lentamente, parmesão e ervas frescas." },
+  { value: "Polpetone com Polenta", label: "Polpetone com Polenta", desc: "Polpetone recheado com funghi e queijo meia cura, sobre polenta cremosa e molho de tomate rústico." },
+  { value: "Lasanha com Fonduta de Queijo", label: "Lasanha com Fonduta de Queijo", desc: "Lasanha bolonhesa em camadas, selada na chapa para crosta dourada e finalizada com fonduta cremosa." },
+  { value: "Sugestão do chef", label: "Sugestão do chef", desc: "Deixamos a escolha a cargo do chef, conforme o perfil do evento." },
 ];
 
 // ── Tacho / Paellera ────────────────────────────────────────────────────────
 const TACHO_OPTIONS = [
   { value: "Galinhada", label: "Galinhada", desc: "Arroz caldoso com frango caipira, temperos nordestinos e açafrão da terra." },
-  { value: "Arroz de Costela Caldoso", label: "Arroz de Costela Caldoso", desc: "Cozido junto à costela bovina, absorvendo colágeno e temperos rústicos." },
+  { value: "Arroz de Costela Caldoso", label: "Arroz de Costela Caldoso", desc: "Arroz cozido junto à costela bovina, absorvendo colágeno e temperos rústicos." },
   { value: "Arroz Ossobuco à Bourguignon", label: "Arroz Ossobuco à Bourguignon", desc: "Ossobuco braseado em vinho tinto com cenoura, cebola pérola e ervas provençais." },
   { value: "Arroz de Frutos do Mar", label: "Arroz de Frutos do Mar", desc: "Marisco, peixe, camarão e lula em caldo aromático com açafrão e azeite." },
   { value: "Baião de Dois Cremoso", label: "Baião de Dois Cremoso", desc: "Clássico nordestino de feijão verde com arroz, queijo coalho e manteiga de garrafa." },
   { value: "Penne ao Ragù de Pernil", label: "Penne ao Ragù de Pernil", desc: "Molho cremoso de queijo com ragù de pernil desfiado em vinho e ervas aromáticas." },
-  { value: "Penne com Paçoca de Carne de Sol", label: "Penne com Paçoca de Carne de Sol", desc: "Creme de queijo coalho e manteiga de garrafa com carne de sol desfiada e crocante." },
+  { value: "Penne com Paçoca de Carne de Sol", label: "Penne com Paçoca de Carne de Sol", desc: "Creme de queijo coalho e manteiga de garrafa, com carne de sol desfiada e crocante." },
   { value: "Fettuccine com Camarões e Mexilhões", label: "Fettuccine com Camarões e Mexilhões", desc: "Manteiga de ervas frescas com toque de limão siciliano, camarões e mexilhões salteados." },
   { value: "Sem tacho", label: "Sem tacho", desc: "" },
 ];
@@ -79,7 +80,7 @@ const SOBREMESAS_OPTIONS = [
   { value: "Cheesecake Basque", label: "Cheesecake Basque", desc: "Interior cremoso com topo caramelizado, servido com frutas vermelhas ou ganache." },
   { value: "Banoffee", label: "Banoffee", desc: "Base crocante com banana, doce de leite cremoso e chantilly." },
   { value: "Panna Cotta", label: "Panna Cotta", desc: "Creme italiano delicado e sedoso com calda de frutas." },
-  { value: "Tarte Tatin com Chantilly de Baunilha", label: "Tarte Tatin com Chantilly", desc: "Torta francesa invertida de maçã caramelizada com massa folhada dourada e chantilly de fava." },
+  { value: "Tarte Tatin com Chantilly de Baunilha", label: "Tarte Tatin com Chantilly", desc: "Torta francesa invertida de maçã caramelizada com massa folhada dourada e chantilly de baunilha." },
   { value: "Crêpe Suzette", label: "Crêpe Suzette", desc: "Crêpes flambados em calda de laranja com licor, servidos com sorvete de creme." },
   { value: "Mousse", label: "Mousse", desc: "Mousse leve (chocolate, maracujá ou outro sabor) com chantilly." },
   { value: "Sem sobremesa", label: "Sem sobremesa", desc: "" },
@@ -88,6 +89,8 @@ const SOBREMESAS_OPTIONS = [
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
 function resolveFluxo(state: FormState): StepName[] {
+  if (state.tipo === "Coffee-break") return FLUXO_COFFEE;
+
   const hasFeijoada = state.estilo.includes("Feijoada Completa");
   const onlyTacho =
     state.estilo.length > 0 &&
@@ -110,6 +113,7 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "tacho": return true;
     case "sobremesas": return state.sobremesas.length > 0;
     case "feijoada": return !!state.feijoada;
+    case "coffeeBreak": return !!state.coffeeBreak;
     case "estrutura": return !!state.cozinha;
     case "mesas": return !!state.mesas;
     case "bebidas": return !!state.bebidas;
@@ -131,12 +135,8 @@ export default function BriefingWizard() {
   const isSkippable = currentStep === "tacho" || currentStep === "faixa";
   const isLast = fluxo[idx + 1] === "final";
 
-  const goNext = () => {
-    if (idx < fluxo.length - 1) setIdx(i => i + 1);
-  };
-  const goBack = () => {
-    if (idx > 0) setIdx(i => i - 1);
-  };
+  const goNext = () => { if (idx < fluxo.length - 1) setIdx(i => i + 1); };
+  const goBack = () => { if (idx > 0) setIdx(i => i - 1); };
   const restart = () => { setState(initialState); setIdx(0); };
 
   const renderStep = () => {
@@ -149,9 +149,9 @@ export default function BriefingWizard() {
 
       case "estilo": return (
         <MultiSelectStep
-          stepNumber="5 / 10"
+          stepNumber="ESTILO"
           title="Estilo de serviço."
-          hint="Como prefere que o evento seja servido? Pode combinar mais de uma opção."
+          hint="Como prefere que o evento seja servido? Pode combinar mais de uma opção (até 3)."
           options={ESTILO_OPTIONS}
           selected={state.estilo}
           max={3}
@@ -161,7 +161,7 @@ export default function BriefingWizard() {
 
       case "entradas": return (
         <MultiSelectStep
-          stepNumber="6 / 10"
+          stepNumber="ENTRADAS"
           title="Entradas."
           hint="Selecione até 3 opções."
           options={ENTRADAS_OPTIONS}
@@ -173,7 +173,7 @@ export default function BriefingWizard() {
 
       case "principais": return (
         <MultiSelectStep
-          stepNumber="7 / 10"
+          stepNumber="PRATO PRINCIPAL"
           title="Prato principal."
           hint="Selecione até 3 opções."
           options={PRINCIPAIS_OPTIONS}
@@ -185,7 +185,7 @@ export default function BriefingWizard() {
 
       case "tacho": return (
         <MultiSelectStep
-          stepNumber="8 / 10"
+          stepNumber="TACHO / PAELLERA"
           title="Tacho / Paellera."
           hint="Pratos servidos diretamente do tacho, ao centro da mesa. Opcional — selecione até 2."
           options={TACHO_OPTIONS}
@@ -197,7 +197,7 @@ export default function BriefingWizard() {
 
       case "sobremesas": return (
         <MultiSelectStep
-          stepNumber="9 / 10"
+          stepNumber="SOBREMESAS"
           title="Sobremesas."
           hint="Selecione até 2 opções."
           options={SOBREMESAS_OPTIONS}
@@ -209,9 +209,9 @@ export default function BriefingWizard() {
 
       case "feijoada": return (
         <SingleSelectStep
-          stepNumber="5 / 6"
+          stepNumber="FEIJOADA"
           title="Formato da Feijoada."
-          hint="Ambas incluem todos os acompanhamentos clássicos: arroz, couve refogada, farofa de manteiga, laranja, abacaxi e vinagrete."
+          hint="Ambas as opções incluem todos os acompanhamentos clássicos: arroz, couve refogada, farofa de manteiga, laranja, abacaxi e vinagrete."
           options={[
             {
               value: "Tradicional",
@@ -221,7 +221,7 @@ export default function BriefingWizard() {
             {
               value: "Premium",
               label: "Feijoada Premium",
-              desc: "Feijão preparado com esmero, cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato.",
+              desc: "Cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato.",
             },
           ]}
           selected={state.feijoada}
@@ -229,9 +229,11 @@ export default function BriefingWizard() {
         />
       );
 
+      case "coffeeBreak": return <CoffeeBreakStep state={state} onChange={patch} />;
+
       case "estrutura": return (
         <SingleSelectStep
-          stepNumber="10 / 10"
+          stepNumber="ESTRUTURA"
           title="Estrutura no local."
           hint="O local conta com cozinha equipada para produção?"
           options={[

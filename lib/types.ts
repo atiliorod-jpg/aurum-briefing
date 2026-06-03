@@ -15,6 +15,8 @@ export interface FormState {
   tacho: string[];
   sobremesas: string[];
   feijoada: string | null;
+  coffeeBreak: string | null;
+  coffeeBreakObs: string;
   cozinha: string | null;
   mesas: string | null;
   bebidas: string | null;
@@ -42,6 +44,8 @@ export const initialState: FormState = {
   tacho: [],
   sobremesas: [],
   feijoada: null,
+  coffeeBreak: null,
+  coffeeBreakObs: "",
   cozinha: null,
   mesas: null,
   bebidas: null,
@@ -64,6 +68,7 @@ export type StepName =
   | "tacho"
   | "sobremesas"
   | "feijoada"
+  | "coffeeBreak"
   | "estrutura"
   | "mesas"
   | "bebidas"
@@ -83,8 +88,16 @@ export const FLUXO_SEM_PRINCIPAIS: StepName[] = [
   "estrutura","mesas","bebidas","faixa","contato","final",
 ];
 
+// Feijoada: sem entradas (a feijoada já é completa)
 export const FLUXO_FEIJOADA: StepName[] = [
   "welcome","tipo","quando","local","convidados",
-  "estilo","feijoada","entradas","sobremesas",
+  "estilo","feijoada","sobremesas",
+  "estrutura","mesas","bebidas","faixa","contato","final",
+];
+
+// Coffee Break: cardápio único, sem estilo/entradas/principais/tacho/sobremesas
+export const FLUXO_COFFEE: StepName[] = [
+  "welcome","tipo","quando","local","convidados",
+  "coffeeBreak",
   "estrutura","mesas","bebidas","faixa","contato","final",
 ];

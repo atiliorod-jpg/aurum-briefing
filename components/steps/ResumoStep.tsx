@@ -30,22 +30,34 @@ export default function ResumoStep({ state, onRestart }: Props) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isFeijoada = state.tipo === "Evento de Feijoada";
+  const isCoffee = state.tipo === "Coffee-break";
+  const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
+
+  const cardapioRows: Array<{ label: string; value: string }> = isCoffee
+    ? [
+        { label: "Cardápio", value: state.coffeeBreak || "" },
+        ...(state.coffeeBreakObs ? [{ label: "Alterações", value: state.coffeeBreakObs }] : []),
+      ]
+    : isFeijoada
+    ? [
+        { label: "Estilo", value: state.estilo.join(", ") },
+        { label: "Feijoada", value: state.feijoada || "" },
+        ...(state.sobremesas.length ? [{ label: "Sobremesas", value: state.sobremesas.join(", ") }] : []),
+      ]
+    : [
+        { label: "Estilo", value: state.estilo.join(", ") },
+        ...(state.entradas.length ? [{ label: "Entradas", value: state.entradas.join(", ") }] : []),
+        ...(state.principais.length ? [{ label: "Principais", value: state.principais.join(", ") }] : []),
+        ...(state.tacho.length ? [{ label: "Tacho", value: state.tacho.join(", ") }] : []),
+        ...(state.sobremesas.length ? [{ label: "Sobremesas", value: state.sobremesas.join(", ") }] : []),
+      ];
 
   const rows: Array<{ label: string; value: string }> = [
     { label: "Tipo", value: state.tipo === "Outro" ? state.tipoOutro : state.tipo || "" },
     { label: "Data", value: `${formatDate(state.data)}${state.horaInicio ? " • " + state.horaInicio : ""}` },
     { label: "Local", value: state.endereco },
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
-    ...(isFeijoada
-      ? [{ label: "Feijoada", value: state.feijoada || "" }]
-      : [
-          { label: "Estilo", value: state.estilo.join(", ") },
-          { label: "Entradas", value: state.entradas.join(", ") },
-          { label: "Principais", value: state.principais.join(", ") },
-          ...(state.tacho.length ? [{ label: "Tacho", value: state.tacho.join(", ") }] : []),
-          { label: "Sobremesas", value: state.sobremesas.join(", ") },
-        ]),
+    ...cardapioRows,
     { label: "Cozinha", value: state.cozinha || "" },
     { label: "Bebidas", value: state.bebidas || "" },
     ...(state.faixa ? [{ label: "Faixa", value: state.faixa }] : []),

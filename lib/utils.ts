@@ -27,19 +27,26 @@ export function buildWhatsAppMessage(state: FormState): string {
   lines.push(`• Convidados: ${state.adultos} adultos${criancas}`);
   if (state.restricoes.trim()) lines.push(`• Restrições alimentares: ${state.restricoes}`);
 
-  const isFeijoada = state.estilo.includes("Feijoada Completa");
+  const isCoffee = state.tipo === "Coffee-break";
+  const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
 
-  lines.push(``);
-  lines.push(`*ESTILO DE SERVIÇO*`);
-  lines.push(`• ${state.estilo.join(", ")}`);
-
-  if (isFeijoada) {
+  if (isCoffee) {
+    lines.push(``);
+    lines.push(`*COFFEE BREAK*`);
+    if (state.coffeeBreak) lines.push(`• Cardápio: ${state.coffeeBreak}`);
+    if (state.coffeeBreakObs?.trim()) lines.push(`• Alterações pedidas: ${state.coffeeBreakObs}`);
+  } else if (isFeijoada) {
+    lines.push(``);
+    lines.push(`*ESTILO DE SERVIÇO*`);
+    lines.push(`• ${state.estilo.join(", ")}`);
     lines.push(``);
     lines.push(`*FEIJOADA*`);
-    lines.push(`• Formato: ${state.feijoada}`);
-    if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
+    if (state.feijoada) lines.push(`• Formato: ${state.feijoada}`);
     if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
   } else {
+    lines.push(``);
+    lines.push(`*ESTILO DE SERVIÇO*`);
+    lines.push(`• ${state.estilo.join(", ")}`);
     lines.push(``);
     lines.push(`*CARDÁPIO*`);
     if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
