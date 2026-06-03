@@ -37,9 +37,33 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
 
   const handleCopy = async () => {
     const text = buildWhatsAppMessage(state);
-    if (navigator.clipboard) await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    let ok = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      } else {
+        // Fallback para navegadores/contextos sem Clipboard API
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+    } catch {
+      ok = false;
+    }
+    if (ok) {
+      track("copiar_resumo");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      setFeedback({ kind: "err", msg: "Não foi possível copiar automaticamente. Selecione o texto manualmente ou use o WhatsApp." });
+    }
   };
 
   const handleDownloadPDF = async () => {

@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Briefing do Evento — Aurum Serviços Gastronômicos",
   description: "Monte o briefing do seu evento em poucos minutos e receba uma proposta gastronômica personalizada da Aurum.",
+  // Ferramenta compartilhada por link — não deve aparecer em buscas do Google
+  robots: { index: false, follow: false },
   openGraph: {
     title: "Briefing do Evento — Aurum Serviços Gastronômicos",
     description: "Monte o briefing do seu evento em poucos minutos e receba uma proposta gastronômica personalizada da Aurum.",
