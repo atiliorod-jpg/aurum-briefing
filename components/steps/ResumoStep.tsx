@@ -4,6 +4,8 @@ import { FormState } from "@/lib/types";
 import { buildWhatsAppMessage, formatDate } from "@/lib/utils";
 import { generateBriefingPDF, downloadBlob } from "@/lib/pdf";
 import { generateLetterDOCX } from "@/lib/letter";
+import { generateInvitationPDF } from "@/lib/invitation-pdf";
+import { resolveInvitation } from "@/lib/invitation";
 
 interface Props { state: FormState; onRestart: () => void; }
 
@@ -52,6 +54,19 @@ export default function ResumoStep({ state, onRestart }: Props) {
       setFeedback({ kind: "err", msg: "Não foi possível gerar a carta em Word." });
     } finally { setBusy(null); }
   };
+
+  const handleInvitationPDF = async () => {
+    try {
+      setBusy("convitepdf");
+      const blob = await generateInvitationPDF(state);
+      downloadBlob(blob, `Convite_Aurum_${fileBase()}.pdf`);
+    } catch (e) {
+      console.error(e);
+      setFeedback({ kind: "err", msg: "Não foi possível gerar o convite em PDF. Tente a versão em Word." });
+    } finally { setBusy(null); }
+  };
+
+  const cartaCompleta = resolveInvitation(state).completa;
 
   const isCoffee = state.estilo.includes("Coffee Break");
   const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
@@ -132,29 +147,50 @@ export default function ResumoStep({ state, onRestart }: Props) {
           Enviar pelo WhatsApp
         </button>
 
-        <div className="grid grid-cols-2 gap-2.5 mt-2">
-          <button onClick={handleDownloadPDF} disabled={!!busy}
-            className="border-2 border-[#C9A24B] text-[#1B2A41] py-3.5 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50">
-            {busy === "pdf" ? "Gerando…" : "📄  Baixar PDF"}
-          </button>
-          <button onClick={handleDownloadLetter} disabled={!!busy}
-            className="border-2 border-[#C9A24B] text-[#1B2A41] py-3.5 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50">
-            {busy === "docx" ? "Gerando…" : "📝  Carta (Word)"}
-          </button>
+        <button onClick={handleDownloadPDF} disabled={!!busy}
+          className="border-2 border-[#1B2A41] text-[#1B2A41] py-3.5 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50 mt-1">
+          {busy === "pdf" ? "Gerando…" : "📄  Baixar briefing em PDF"}
+        </button>
+
+        {/* ── Convite para os convidados ── */}
+        <div className="mt-3 pt-3 border-t border-gray-200 text-left">
+          <p className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2">🎁 Convite para os convidados</p>
+          {cartaCompleta ? (
+            <>
+              <button onClick={handleInvitationPDF} disabled={!!busy}
+                className="w-full bg-[#C9A24B] text-[#1B2A41] py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all disabled:opacity-50">
+                {busy === "convitepdf" ? "Gerando convite…" : "✨  Baixar convite pronto (PDF)"}
+              </button>
+              <button onClick={handleDownloadLetter} disabled={!!busy}
+                className="w-full mt-2 border-2 border-[#C9A24B] text-[#1B2A41] py-3 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50">
+                {busy === "docx" ? "Gerando…" : "📝  Ou baixar em Word (editável)"}
+              </button>
+              <p className="text-xs text-gray-400 italic mt-2">
+                Carta completa com os dados que você preencheu — pronta para enviar aos convidados.
+              </p>
+            </>
+          ) : (
+            <>
+              <button onClick={handleDownloadLetter} disabled={!!busy}
+                className="w-full border-2 border-[#C9A24B] text-[#1B2A41] py-3.5 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50">
+                {busy === "docx" ? "Gerando…" : "📝  Baixar carta-convite (Word)"}
+              </button>
+              <p className="text-xs text-gray-400 italic mt-2">
+                Carta editável — alguns campos ficarão em branco para você preencher.
+                💡 Volte ao passo <strong>“Carta-convite”</strong> e preencha os 3 dados para
+                receber o <strong>convite pronto em PDF</strong>.
+              </p>
+            </>
+          )}
         </div>
 
         <button onClick={handleCopy}
-          className="text-gray-500 text-sm py-2 underline">
+          className="text-gray-500 text-sm py-2 underline mt-1">
           {copied ? "✓ Copiado!" : "Copiar resumo em texto"}
         </button>
 
         <button onClick={onRestart} className="text-gray-400 text-sm underline py-1">Preencher novamente</button>
       </div>
-
-      <p className="text-xs text-gray-400 italic mt-4 leading-relaxed">
-        O <strong>PDF</strong> é o briefing oficial em papel timbrado da Aurum. <br />
-        A <strong>Carta (Word)</strong> é um convite paisagem editável para o anfitrião enviar aos convidados.
-      </p>
     </div>
   );
 }

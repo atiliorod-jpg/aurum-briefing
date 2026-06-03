@@ -29,6 +29,10 @@ export interface FormState {
   email: string;
   prazo: string;
   obs: string;
+  // Campos opcionais para deixar a carta-convite 100% pronta (gera PDF)
+  cartaHomenageado: string;
+  cartaDataLimite: string;
+  cartaAssinatura: string;
 }
 
 export const initialState: FormState = {
@@ -62,6 +66,9 @@ export const initialState: FormState = {
   email: "",
   prazo: "",
   obs: "",
+  cartaHomenageado: "",
+  cartaDataLimite: "",
+  cartaAssinatura: "",
 };
 
 export type StepName =
@@ -82,6 +89,7 @@ export type StepName =
   | "bebidas"
   | "faixa"
   | "contato"
+  | "carta"
   | "final";
 
 export const FLUXO_PADRAO: StepName[] = [

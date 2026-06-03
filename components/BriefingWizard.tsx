@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { FormState, initialState, StepName, FLUXO_PADRAO, FLUXO_SEM_PRINCIPAIS, FLUXO_FEIJOADA, FLUXO_COFFEE } from "@/lib/types";
+import { FormState, initialState, StepName } from "@/lib/types";
 import ProgressBar from "@/components/ui/ProgressBar";
 import BottomNav from "@/components/ui/BottomNav";
 import WelcomeStep from "@/components/steps/WelcomeStep";
@@ -13,6 +13,7 @@ import SingleSelectStep from "@/components/steps/SingleSelectStep";
 import ContatoStep from "@/components/steps/ContatoStep";
 import ResumoStep from "@/components/steps/ResumoStep";
 import CoffeeBreakStep from "@/components/steps/CoffeeBreakStep";
+import CartaStep from "@/components/steps/CartaStep";
 
 // ── Estilos de serviço ──────────────────────────────────────────────────────
 const ESTILO_OPTIONS = [
@@ -90,17 +91,31 @@ const SOBREMESAS_OPTIONS = [
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
 function resolveFluxo(state: FormState): StepName[] {
-  const hasCoffee = state.estilo.includes("Coffee Break");
-  if (hasCoffee) return FLUXO_COFFEE;
+  const e = state.estilo;
+  const inicio: StepName[] = ["welcome", "tipo", "quando", "local", "convidados", "faixa", "estilo"];
 
-  const hasFeijoada = state.estilo.includes("Feijoada Completa");
-  const onlyTacho =
-    state.estilo.length > 0 &&
-    state.estilo.every((e) => e === "Tacho / Paellera");
+  // Coffee Break: cardápio único, sem bebidas (já incluído)
+  if (e.includes("Coffee Break")) {
+    return [...inicio, "coffeeBreak", "estrutura", "mesas", "contato", "carta", "final"];
+  }
 
-  if (hasFeijoada) return FLUXO_FEIJOADA;
-  if (onlyTacho) return FLUXO_SEM_PRINCIPAIS;
-  return FLUXO_PADRAO;
+  const fimComBebidas: StepName[] = ["estrutura", "mesas", "bebidas", "contato", "carta", "final"];
+
+  // Feijoada: completa, sem entradas/principais/tacho
+  if (e.includes("Feijoada Completa")) {
+    return [...inicio, "feijoada", "sobremesas", ...fimComBebidas];
+  }
+
+  // Demais: monta o cardápio conforme os estilos escolhidos
+  const hasTacho = e.includes("Tacho / Paellera");
+  const onlyTacho = e.length > 0 && e.every((x) => x === "Tacho / Paellera");
+
+  const cardapio: StepName[] = ["entradas"];
+  if (!onlyTacho) cardapio.push("principais");   // tacho sozinho dispensa prato principal
+  if (hasTacho) cardapio.push("tacho");          // tacho só aparece se foi escolhido no estilo
+  cardapio.push("sobremesas");
+
+  return [...inicio, ...cardapio, ...fimComBebidas];
 }
 
 function canAdvance(step: StepName, state: FormState): boolean {
@@ -121,6 +136,7 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "bebidas": return !!state.bebidas;
     case "faixa": return true;
     case "contato": return state.nome.trim().length > 0 && state.whatsapp.trim().length > 0;
+    case "carta": return true; // opcional
     default: return true;
   }
 }
@@ -134,7 +150,7 @@ export default function BriefingWizard() {
   const fluxo = resolveFluxo(state);
   const currentStep = fluxo[idx];
   const total = fluxo.length - 1;
-  const isSkippable = currentStep === "tacho" || currentStep === "faixa";
+  const isSkippable = currentStep === "tacho" || currentStep === "faixa" || currentStep === "carta";
   const isLast = fluxo[idx + 1] === "final";
 
   const goNext = () => { if (idx < fluxo.length - 1) setIdx(i => i + 1); };
@@ -307,6 +323,7 @@ export default function BriefingWizard() {
       );
 
       case "contato": return <ContatoStep state={state} onChange={patch} />;
+      case "carta": return <CartaStep state={state} onChange={patch} />;
       case "final": return <ResumoStep state={state} onRestart={restart} />;
     }
   };
