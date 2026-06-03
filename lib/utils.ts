@@ -6,6 +6,31 @@ export function formatDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+// Formata telefone no padrão (DD)NNNNN-NNNN — ex: (81)99818-4489
+export function formatPhone(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 11);
+  if (d.length === 0) return "";
+  if (d.length <= 2) return `(${d}`;
+  const ddd = d.slice(0, 2);
+  const rest = d.slice(2);
+  if (rest.length <= 4) return `(${ddd})${rest}`;
+  // celular (9 dígitos) ou fixo (8 dígitos): separa os 4 últimos com travessão
+  const tail = rest.slice(-4);
+  const head = rest.slice(0, rest.length - 4);
+  return `(${ddd})${head}-${tail}`;
+}
+
+// Desloca um horário "HH:MM" por N horas (pode ser negativo)
+export function shiftHour(time: string, delta: number): string {
+  if (!time) return "";
+  const [h, m] = time.split(":").map(Number);
+  let total = h * 60 + m + delta * 60;
+  total = ((total % 1440) + 1440) % 1440;
+  const nh = Math.floor(total / 60);
+  const nm = total % 60;
+  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+}
+
 export function buildWhatsAppMessage(state: FormState): string {
   const lines: string[] = [];
   lines.push(`*BRIEFING DE EVENTO — AURUM*`);
