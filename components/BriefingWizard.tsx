@@ -286,6 +286,7 @@ export default function BriefingWizard() {
           onChange={v => patch({ entradas: v })}
           suggestion={state.sugestaoEntradas}
           onSuggestionChange={v => patch({ sugestaoEntradas: v })}
+          exclusiveValues={["Sem entradas", "Sugestão do chef"]}
           priceNote
         />
       );
@@ -301,6 +302,7 @@ export default function BriefingWizard() {
           onChange={v => patch({ principais: v })}
           suggestion={state.sugestaoPrincipais}
           onSuggestionChange={v => patch({ sugestaoPrincipais: v })}
+          exclusiveValues={["Sugestão do chef"]}
           priceNote
         />
       );
@@ -314,6 +316,7 @@ export default function BriefingWizard() {
           selected={state.tacho}
           max={2}
           onChange={v => patch({ tacho: v })}
+          exclusiveValues={["Sem tacho"]}
         />
       );
 
@@ -328,6 +331,7 @@ export default function BriefingWizard() {
           onChange={v => patch({ sobremesas: v })}
           suggestion={state.sugestaoSobremesas}
           onSuggestionChange={v => patch({ sugestaoSobremesas: v })}
+          exclusiveValues={["Sem sobremesa", "Sugestão do chef"]}
           priceNote
         />
       );

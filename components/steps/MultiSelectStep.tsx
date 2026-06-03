@@ -12,18 +12,32 @@ interface MultiSelectStepProps {
   suggestion?: string;
   onSuggestionChange?: (value: string) => void;
   priceNote?: boolean;
+  /** Opções exclusivas (ex: "Sem entradas", "Sugestão do chef"): ao marcar uma,
+   *  limpa as demais; ao marcar qualquer outra, remove as exclusivas. */
+  exclusiveValues?: string[];
 }
 
 export default function MultiSelectStep({
   stepNumber, title, hint, options, selected, max, onChange,
-  suggestion, onSuggestionChange, priceNote,
+  suggestion, onSuggestionChange, priceNote, exclusiveValues = [],
 }: MultiSelectStepProps) {
+  const isExclusive = (v: string) => exclusiveValues.includes(v);
+
   const toggle = (value: string) => {
-    const idx = selected.indexOf(value);
-    if (idx >= 0) {
-      onChange(selected.filter((v) => v !== value));
+    const has = selected.includes(value);
+
+    // Opção exclusiva: seleciona sozinha (ou desmarca)
+    if (isExclusive(value)) {
+      onChange(has ? [] : [value]);
+      return;
+    }
+
+    // Opção normal: primeiro descarta qualquer exclusiva marcada
+    const base = selected.filter((v) => !isExclusive(v));
+    if (base.includes(value)) {
+      onChange(base.filter((v) => v !== value));
     } else {
-      const next = selected.length >= max ? selected.slice(1) : selected;
+      const next = base.length >= max ? base.slice(1) : base;
       onChange([...next, value]);
     }
   };
