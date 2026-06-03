@@ -14,8 +14,8 @@ function addHours(time: string, hours: number): string {
 
 export default function QuandoStep({ state, onChange }: Props) {
   const handleInicio = (v: string) => {
-    const fim = state.horaFim || addHours(v, 4);
-    onChange({ horaInicio: v, horaFim: fim });
+    // Sempre recalcula o término para manter os 4 h padrão ao alterar o início.
+    onChange({ horaInicio: v, horaFim: addHours(v, 4) });
   };
 
   return (

@@ -27,10 +27,13 @@ export function buildWhatsAppMessage(state: FormState): string {
   lines.push(`• Convidados: ${state.adultos} adultos${criancas}`);
   if (state.restricoes.trim()) lines.push(`• Restrições alimentares: ${state.restricoes}`);
 
-  const isCoffee = state.tipo === "Coffee-break";
+  const isCoffee = state.estilo.includes("Coffee Break");
   const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
 
   if (isCoffee) {
+    lines.push(``);
+    lines.push(`*ESTILO DE SERVIÇO*`);
+    lines.push(`• ${state.estilo.join(", ")}`);
     lines.push(``);
     lines.push(`*COFFEE BREAK*`);
     if (state.coffeeBreak) lines.push(`• Cardápio: ${state.coffeeBreak}`);
@@ -43,6 +46,7 @@ export function buildWhatsAppMessage(state: FormState): string {
     lines.push(`*FEIJOADA*`);
     if (state.feijoada) lines.push(`• Formato: ${state.feijoada}`);
     if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
+    if (state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
   } else {
     lines.push(``);
     lines.push(`*ESTILO DE SERVIÇO*`);
@@ -50,16 +54,19 @@ export function buildWhatsAppMessage(state: FormState): string {
     lines.push(``);
     lines.push(`*CARDÁPIO*`);
     if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
+    if (state.sugestaoEntradas?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradas}`);
     if (state.principais.length) lines.push(`• Pratos principais: ${state.principais.join(", ")}`);
+    if (state.sugestaoPrincipais?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipais}`);
     if (state.tacho.length) lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
     if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
+    if (state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
   }
 
   lines.push(``);
   lines.push(`*ESTRUTURA*`);
   lines.push(`• Cozinha: ${state.cozinha}`);
   lines.push(`• Mesas e louças: ${state.mesas}`);
-  lines.push(`• Bebidas: ${state.bebidas}`);
+  if (!isCoffee) lines.push(`• Bebidas: ${state.bebidas}`);
 
   lines.push(``);
   lines.push(`*PRÓXIMOS PASSOS*`);

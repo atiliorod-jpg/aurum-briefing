@@ -21,6 +21,7 @@ const ESTILO_OPTIONS = [
   { value: "Serviço franco-americano (empratado)", label: "Serviço franco-americano (empratado)", desc: "Cada prato montado e servido individualmente à mesa." },
   { value: "Tacho / Paellera", label: "Tacho / Paellera", desc: "Pratos servidos diretamente do tacho, ao centro da mesa." },
   { value: "Feijoada Completa", label: "Feijoada Completa", desc: "Experiência gastronômica completa com todos os acompanhamentos clássicos." },
+  { value: "Coffee Break", label: "Coffee Break", desc: "Cardápio dedicado para reuniões, treinamentos, recepções e momentos de pausa." },
   { value: "Jantar Harmonizado", label: "Jantar Harmonizado", desc: "Menu degustação com harmonização de vinhos e bebidas." },
   { value: "Jantar Temático", label: "Jantar Temático", desc: "Cardápio e ambientação criados em torno de um tema." },
   { value: "Sugestão da Aurum", label: "Sugestão da Aurum", desc: "Deixamos o cardápio a nosso cargo, conforme o perfil do evento." },
@@ -89,7 +90,8 @@ const SOBREMESAS_OPTIONS = [
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
 function resolveFluxo(state: FormState): StepName[] {
-  if (state.tipo === "Coffee-break") return FLUXO_COFFEE;
+  const hasCoffee = state.estilo.includes("Coffee Break");
+  if (hasCoffee) return FLUXO_COFFEE;
 
   const hasFeijoada = state.estilo.includes("Feijoada Completa");
   const onlyTacho =
@@ -168,6 +170,9 @@ export default function BriefingWizard() {
           selected={state.entradas}
           max={3}
           onChange={v => patch({ entradas: v })}
+          suggestion={state.sugestaoEntradas}
+          onSuggestionChange={v => patch({ sugestaoEntradas: v })}
+          priceNote
         />
       );
 
@@ -180,6 +185,9 @@ export default function BriefingWizard() {
           selected={state.principais}
           max={3}
           onChange={v => patch({ principais: v })}
+          suggestion={state.sugestaoPrincipais}
+          onSuggestionChange={v => patch({ sugestaoPrincipais: v })}
+          priceNote
         />
       );
 
@@ -204,6 +212,9 @@ export default function BriefingWizard() {
           selected={state.sobremesas}
           max={2}
           onChange={v => patch({ sobremesas: v })}
+          suggestion={state.sugestaoSobremesas}
+          onSuggestionChange={v => patch({ sugestaoSobremesas: v })}
+          priceNote
         />
       );
 

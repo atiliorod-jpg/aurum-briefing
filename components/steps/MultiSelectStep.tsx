@@ -9,9 +9,15 @@ interface MultiSelectStepProps {
   selected: string[];
   max: number;
   onChange: (selected: string[]) => void;
+  suggestion?: string;
+  onSuggestionChange?: (value: string) => void;
+  priceNote?: boolean;
 }
 
-export default function MultiSelectStep({ stepNumber, title, hint, options, selected, max, onChange }: MultiSelectStepProps) {
+export default function MultiSelectStep({
+  stepNumber, title, hint, options, selected, max, onChange,
+  suggestion, onSuggestionChange, priceNote,
+}: MultiSelectStepProps) {
   const toggle = (value: string) => {
     const idx = selected.indexOf(value);
     if (idx >= 0) {
@@ -41,9 +47,29 @@ export default function MultiSelectStep({ stepNumber, title, hint, options, sele
           />
         ))}
       </div>
-      <p className={`text-xs text-right mt-3 italic ${selected.length === max ? "text-[#C9A24B] font-semibold" : "text-gray-400"}`}>
-        {selected.length} de {max} selecionados
-      </p>
+      <div className="flex items-center justify-between mt-3 text-xs italic">
+        {priceNote && max > 1 ? (
+          <span className="text-gray-400">Mais opções podem alterar o valor final da proposta.</span>
+        ) : <span />}
+        <span className={selected.length === max ? "text-[#C9A24B] font-semibold not-italic" : "text-gray-400"}>
+          {selected.length} de {max} selecionados
+        </span>
+      </div>
+
+      {onSuggestionChange && (
+        <div className="mt-5">
+          <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">
+            Tem uma sugestão fora do cardápio? <span className="font-normal text-gray-400">(opcional)</span>
+          </label>
+          <textarea
+            rows={2}
+            placeholder="Descreva um prato ou ideia que gostaria de incluir."
+            value={suggestion || ""}
+            onChange={(e) => onSuggestionChange(e.target.value)}
+            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B] resize-none"
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -2,14 +2,11 @@
 import OptionCard from "@/components/ui/OptionCard";
 import { FormState } from "@/lib/types";
 
-const OPTIONS = [
-  { value: "Aniversário", label: "Aniversário" },
+const OPTIONS: Array<{ value: string; label: string; desc?: string }> = [
   { value: "Casamento", label: "Casamento" },
+  { value: "Aniversário", label: "Aniversário" },
   { value: "Confraternização / Corporativo", label: "Confraternização ou Evento Corporativo" },
-  { value: "Jantar Privado", label: "Jantar Privado" },
-  { value: "Jantar Harmonizado", label: "Jantar Harmonizado", desc: "Menu degustação com harmonização de vinhos e bebidas" },
-  { value: "Jantar Temático", label: "Jantar Temático", desc: "Cardápio e ambientação criados em torno de um tema" },
-  { value: "Coffee-break", label: "Coffee-break" },
+  { value: "Almoço ou Jantar Privado", label: "Almoço ou Jantar Privado" },
   { value: "Outro", label: "Outro" },
 ];
 
