@@ -11,15 +11,21 @@ function xmlEscape(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// Frase do tipo de evento — encaixa em "celebrar conosco ___ de ___"
+// Frase do tipo de evento — encaixa em "celebrar conosco ___ <conector> ___"
 function getTipoFrase(tipo: string | null): string | null {
   switch (tipo) {
-    case "Aniversário": return "o aniversário";
-    case "Casamento": return "o casamento";
-    case "Confraternização / Corporativo": return "a confraternização";
-    case "Almoço ou Jantar Privado": return "uma ocasião especial";
+    case "Aniversário": return "a celebração do aniversário";
+    case "Casamento": return "a celebração do casamento";
+    case "Confraternização / Corporativo": return "a confraternização especial";
+    case "Almoço ou Jantar Privado": return "a ocasião especial";
     default: return null; // mantém o placeholder editável
   }
+}
+
+// Conector entre o tipo do evento e o nome do anfitrião
+// (o template traz " de "; Almoço/Jantar usa " promovida por ")
+function getConector(tipo: string | null): string {
+  return tipo === "Almoço ou Jantar Privado" ? " promovida por " : " de ";
 }
 
 // Placeholder do nome do homenageado/anfitrião — sempre com opção de empresa quando faz sentido
@@ -44,12 +50,19 @@ function getAssinaturaPlaceholder(tipo: string | null): string {
   }
 }
 
-// Nome do cardápio = derivado do estilo de serviço (Feijoada → apenas "Feijoada")
+// Nome do cardápio = derivado do estilo de serviço escolhido
 function getCardapioName(state: FormState): string | null {
-  if (state.estilo.includes("Feijoada Completa")) return "Feijoada";
-  if (state.estilo.includes("Coffee Break")) return state.coffeeBreak || "Coffee Break";
-  if (state.estilo.includes("Jantar Harmonizado")) return "Jantar Harmonizado";
-  if (state.estilo.includes("Jantar Temático")) return "Jantar Temático";
+  const e = state.estilo;
+  if (e.includes("Feijoada Completa")) return "Feijoada";
+  if (e.includes("Coffee Break")) return state.coffeeBreak || "Coffee Break";
+  if (e.includes("Jantar Harmonizado")) return "Jantar Harmonizado";
+  if (e.includes("Jantar Temático")) return "Jantar Temático";
+  if (e.includes("Serviço franco-americano (empratado)")) return "Menu Aurum Experience";
+  if (e.includes("Serviço à americana (buffet)") || e.includes("Volante")) return "Cardápio Aurum Especial";
+  if (e.includes("Tacho / Paellera")) {
+    const pratos = state.tacho.filter((t) => t !== "Sem tacho");
+    return pratos.length ? `Tacho/Paella de ${pratos.join(", ")}` : "Tacho/Paella";
+  }
   return null; // mantém o placeholder editável para o anfitrião nomear
 }
 
@@ -67,6 +80,15 @@ export async function generateLetterDOCX(state: FormState): Promise<Blob> {
 
   const docPath = "word/document.xml";
   let xml = await zip.file(docPath)!.async("string");
+
+  // Conector entre tipo e nome: troca o run isolado " de " quando necessário
+  const conector = getConector(state.tipo);
+  if (conector !== " de ") {
+    xml = xml.replace(
+      '<w:t xml:space="preserve"> de </w:t>',
+      `<w:t xml:space="preserve">${xmlEscape(conector)}</w:t>`,
+    );
+  }
 
   // Horário do convite = 1 hora antes do início do serviço (tempo de chegada dos convidados)
   const horarioConvite = state.horaInicio ? shiftHour(state.horaInicio, -1) : null;
