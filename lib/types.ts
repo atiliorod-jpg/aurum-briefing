@@ -26,6 +26,7 @@ export interface FormState {
   faixa: string | null;
   nome: string;
   whatsapp: string;
+  email: string;
   prazo: string;
   obs: string;
 }
@@ -58,6 +59,7 @@ export const initialState: FormState = {
   faixa: null,
   nome: "",
   whatsapp: "",
+  email: "",
   prazo: "",
   obs: "",
 };

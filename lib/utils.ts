@@ -12,6 +12,7 @@ export function buildWhatsAppMessage(state: FormState): string {
   lines.push(``);
   lines.push(`*Cliente:* ${state.nome}`);
   lines.push(`*WhatsApp:* ${state.whatsapp}`);
+  if (state.email?.trim()) lines.push(`*E-mail:* ${state.email}`);
   lines.push(``);
   lines.push(`*EVENTO*`);
   const tipoLabel = state.tipo === "Outro" ? `Outro — ${state.tipoOutro}` : state.tipo || "";

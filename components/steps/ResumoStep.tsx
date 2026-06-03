@@ -2,11 +2,15 @@
 import { useState } from "react";
 import { FormState } from "@/lib/types";
 import { buildWhatsAppMessage, formatDate } from "@/lib/utils";
+import { generateBriefingPDF, downloadPDF } from "@/lib/pdf";
 
 interface Props { state: FormState; onRestart: () => void; }
 
+const AURUM_EMAIL = "aurumbuffet.eventos@gmail.com";
+
 export default function ResumoStep({ state, onRestart }: Props) {
   const [copied, setCopied] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const handleWhatsApp = () => {
     const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5581998184489";
@@ -28,6 +32,48 @@ export default function ResumoStep({ state, onRestart }: Props) {
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const fileName = () => {
+    const safe = (state.nome || "cliente").trim().replace(/\s+/g, "_").replace(/[^\w-]/g, "");
+    const date = state.data ? state.data.replace(/-/g, "") : new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    return `Briefing_Aurum_${safe}_${date}.pdf`;
+  };
+
+  const handlePDF = async () => {
+    try {
+      setGenerating(true);
+      const blob = await generateBriefingPDF(state);
+      downloadPDF(blob, fileName());
+    } catch (err) {
+      console.error(err);
+      alert("Não foi possível gerar o PDF agora. Tente novamente.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleEmail = async () => {
+    try {
+      setGenerating(true);
+      // Gera e baixa o PDF primeiro — o cliente anexa no e-mail
+      const blob = await generateBriefingPDF(state);
+      downloadPDF(blob, fileName());
+
+      const subject = encodeURIComponent(`Briefing de evento — ${state.nome || "Novo cliente"}`);
+      const body = encodeURIComponent(
+        `Olá Aurum,\n\nSegue meu briefing para avaliação. ` +
+        `O PDF completo foi baixado no meu dispositivo — basta anexá-lo a este e-mail antes de enviar.\n\n` +
+        `Resumo:\n${buildWhatsAppMessage(state).replace(/\*/g, "")}\n\n` +
+        `Aguardo retorno.\n${state.nome || ""}`,
+      );
+      window.location.href = `mailto:${AURUM_EMAIL}?subject=${subject}&body=${body}`;
+    } catch (err) {
+      console.error(err);
+      alert("Não foi possível preparar o e-mail. Tente novamente.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const isCoffee = state.estilo.includes("Coffee Break");
@@ -66,16 +112,16 @@ export default function ResumoStep({ state, onRestart }: Props) {
     { label: "Cozinha", value: state.cozinha || "" },
     ...(isCoffee ? [] : [{ label: "Bebidas", value: state.bebidas || "" }]),
     ...(state.faixa ? [{ label: "Faixa", value: state.faixa }] : []),
-    { label: "Contato", value: `${state.nome} • ${state.whatsapp}` },
+    { label: "Contato", value: `${state.nome} • ${state.whatsapp}${state.email ? " • " + state.email : ""}` },
   ];
 
   return (
     <div className="text-center">
-      <div className="w-18 h-18 rounded-full bg-[#C9A24B] flex items-center justify-center mx-auto mb-5 shadow-lg" style={{ width: 72, height: 72 }}>
+      <div className="rounded-full bg-[#C9A24B] flex items-center justify-center mx-auto mb-5 shadow-lg" style={{ width: 72, height: 72 }}>
         <span className="text-[#1B2A41] text-4xl font-bold">✓</span>
       </div>
       <h2 className="text-2xl font-bold text-[#1B2A41] mb-2">Briefing pronto!</h2>
-      <p className="text-gray-500 text-sm mb-6">Confira o resumo e envie pelo WhatsApp.</p>
+      <p className="text-gray-500 text-sm mb-6">Confira o resumo e escolha como deseja enviar.</p>
 
       <div className="bg-white rounded-2xl p-5 text-left shadow-sm mb-4 max-h-72 overflow-y-auto">
         <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-3">Resumo do evento</h3>
@@ -97,12 +143,28 @@ export default function ResumoStep({ state, onRestart }: Props) {
           </svg>
           Enviar pelo WhatsApp da Aurum
         </button>
-        <button onClick={handleCopy}
-          className="border-2 border-[#1B2A41] text-[#1B2A41] py-4 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all">
-          {copied ? "✓ Copiado!" : "📋  Copiar resumo"}
+
+        <button onClick={handlePDF} disabled={generating}
+          className="flex items-center justify-center gap-2.5 bg-[#1B2A41] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all disabled:opacity-50">
+          {generating ? "Gerando PDF…" : "📄  Baixar PDF do briefing"}
         </button>
+
+        <button onClick={handleEmail} disabled={generating}
+          className="flex items-center justify-center gap-2.5 border-2 border-[#C9A24B] text-[#1B2A41] py-4 rounded-xl font-semibold text-base active:scale-[0.97] transition-all disabled:opacity-50">
+          ✉️  Enviar por e-mail
+        </button>
+
+        <button onClick={handleCopy}
+          className="border-2 border-gray-200 text-[#1B2A41] py-3 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all">
+          {copied ? "✓ Copiado!" : "📋  Copiar resumo em texto"}
+        </button>
+
         <button onClick={onRestart} className="text-gray-400 text-sm underline py-2">Preencher novamente</button>
       </div>
+
+      <p className="text-xs text-gray-400 italic mt-4 leading-relaxed">
+        O e-mail abre seu app de mensagens com o resumo preenchido. O PDF é baixado automaticamente para você anexar antes de enviar.
+      </p>
     </div>
   );
 }

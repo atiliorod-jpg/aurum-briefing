@@ -11,6 +11,7 @@ export default function ContatoStep({ state, onChange }: Props) {
       {[
         { label: "Nome", key: "nome", type: "text", placeholder: "Seu nome", required: true },
         { label: "WhatsApp", key: "whatsapp", type: "tel", placeholder: "(81) 9 ____-____", required: true },
+        { label: "E-mail (opcional)", key: "email", type: "email", placeholder: "seu@email.com", required: false },
         { label: "Quando precisa da proposta?", key: "prazo", type: "text", placeholder: "Ex: até dia 10/06", required: false },
       ].map(({ label, key, type, placeholder }) => (
         <div key={key} className="mb-4">
