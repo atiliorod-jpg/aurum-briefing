@@ -9,7 +9,7 @@ export default function LocalStep({ state, onChange }: Props) {
       <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">LOCAL</div>
       <h1 className="text-xl font-bold text-[#1B2A41] mb-1">Onde acontece?</h1>
       <p className="text-gray-500 text-sm mb-5">Endereço completo do local.</p>
-      <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Endereço <span className="text-[#C9A24B]">• obrigatório</span></label>
+      <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Endereço <span className="text-[#9A7B2E]">• obrigatório</span></label>
       <textarea
         rows={3}
         placeholder="Rua, número, apto/bloco, bairro, cidade."

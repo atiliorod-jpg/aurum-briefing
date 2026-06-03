@@ -7,7 +7,8 @@ interface ProgressBarProps {
 
 export default function ProgressBar({ current, total }: ProgressBarProps) {
   const pct = current === 0 ? 0 : Math.min(100, (current / total) * 100);
-  const label = current === 0 ? "Início" : current === total ? "Concluído" : `Passo ${current} de ${total}`;
+  // Sem denominador fixo (o total varia conforme o cardápio escolhido) para não confundir.
+  const label = current === 0 ? "Início" : current === total ? "Concluído" : `Passo ${current}`;
 
   return (
     <header className="bg-[#1B2A41] text-white px-5 py-4 sticky top-0 z-50 shadow-md">

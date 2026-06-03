@@ -27,6 +27,17 @@ export function sugestaoRSVP(eventoISO: string): string {
   return `${alvo.getDate()} de ${MESES[alvo.getMonth()]}`;
 }
 
+// Telefone completo = DDD (2) + 8 (fixo) ou 9 (celular) dígitos
+export function isPhoneComplete(v: string): boolean {
+  const d = v.replace(/\D/g, "");
+  return d.length === 10 || d.length === 11;
+}
+
+// Validação simples de e-mail
+export function isEmailValid(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
+
 // Formata telefone no padrão (DD)NNNNN-NNNN — ex: (81)99818-4489
 export function formatPhone(raw: string): string {
   const d = raw.replace(/\D/g, "").slice(0, 11);

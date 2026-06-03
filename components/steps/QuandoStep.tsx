@@ -24,8 +24,8 @@ export default function QuandoStep({ state, onChange }: Props) {
       <h1 className="text-xl font-bold text-[#1B2A41] mb-1">Quando será o evento?</h1>
       <p className="text-gray-500 text-sm mb-5">Os horários abaixo são o <strong className="text-[#1B2A41]">início</strong> e o <strong className="text-[#1B2A41]">término do serviço da Aurum</strong> no local.</p>
       <div className="mb-4">
-        <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Data <span className="text-[#C9A24B]">• obrigatório</span></label>
-        <input type="date" value={state.data} onChange={e => onChange({ data: e.target.value })}
+        <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Data <span className="text-[#9A7B2E]">• obrigatório</span></label>
+        <input type="date" value={state.data} min={new Date().toLocaleDateString("en-CA")} onChange={e => onChange({ data: e.target.value })}
           className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
       </div>
       <div className="grid grid-cols-2 gap-3 mb-2">

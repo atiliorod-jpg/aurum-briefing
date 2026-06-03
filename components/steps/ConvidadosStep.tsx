@@ -3,6 +3,13 @@ import { FormState } from "@/lib/types";
 
 interface Props { state: FormState; onChange: (patch: Partial<FormState>) => void; }
 
+// Mantém só dígitos e limita a um teto sensato (evita valores absurdos)
+function clamp(v: string): string {
+  const d = v.replace(/\D/g, "");
+  if (d === "") return "";
+  return String(Math.min(parseInt(d, 10), 5000));
+}
+
 export default function ConvidadosStep({ state, onChange }: Props) {
   return (
     <div>
@@ -11,15 +18,15 @@ export default function ConvidadosStep({ state, onChange }: Props) {
       <p className="text-gray-500 text-sm mb-5">Mesmo uma estimativa já ajuda.</p>
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
-          <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Adultos <span className="text-[#C9A24B]">• obrigatório</span></label>
-          <input type="number" min="0" placeholder="Ex: 40" value={state.adultos}
-            onChange={e => onChange({ adultos: e.target.value })}
+          <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Adultos <span className="text-[#9A7B2E]">• obrigatório</span></label>
+          <input type="number" min="1" max="5000" inputMode="numeric" placeholder="Ex: 40" value={state.adultos}
+            onChange={e => onChange({ adultos: clamp(e.target.value) })}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Crianças (até 10)</label>
-          <input type="number" min="0" placeholder="Ex: 5" value={state.criancas}
-            onChange={e => onChange({ criancas: e.target.value })}
+          <input type="number" min="0" max="5000" inputMode="numeric" placeholder="Ex: 5" value={state.criancas}
+            onChange={e => onChange({ criancas: clamp(e.target.value) })}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
         </div>
       </div>

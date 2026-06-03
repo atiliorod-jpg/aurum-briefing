@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
 import { FormState, initialState, StepName } from "@/lib/types";
+import { isPhoneComplete, isEmailValid } from "@/lib/utils";
 import ProgressBar from "@/components/ui/ProgressBar";
 import BottomNav from "@/components/ui/BottomNav";
 import WelcomeStep from "@/components/steps/WelcomeStep";
@@ -132,7 +133,7 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "tipo": return !!state.tipo && (state.tipo !== "Outro" || state.tipoOutro.trim().length > 0);
     case "quando": return !!state.data;
     case "local": return state.endereco.trim().length > 3;
-    case "convidados": return !!state.adultos;
+    case "convidados": return Number(state.adultos) >= 1;
     case "estilo": return state.estilo.length > 0;
     case "entradas": return state.entradas.length > 0;
     case "principais": return state.principais.length > 0;
@@ -145,7 +146,10 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "mesas": return !!state.mesas;
     case "bebidas": return !!state.bebidas;
     case "faixa": return true;
-    case "contato": return state.nome.trim().length > 0 && state.whatsapp.trim().length > 0;
+    case "contato":
+      return state.nome.trim().length > 0
+        && isPhoneComplete(state.whatsapp)
+        && (state.email.trim() === "" || isEmailValid(state.email));
     case "carta": return true; // opcional
     default: return true;
   }
@@ -158,7 +162,7 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "tipo": return "Escolha o tipo de evento para continuar.";
     case "quando": return "Selecione a data do evento para continuar.";
     case "local": return "Informe o endereço do evento para continuar.";
-    case "convidados": return "Informe o número de adultos para continuar.";
+    case "convidados": return "Informe ao menos 1 adulto para continuar.";
     case "estilo": return "Escolha ao menos um estilo de serviço.";
     case "entradas": return "Selecione uma opção (ou “Sem entradas”) para continuar.";
     case "principais": return "Selecione ao menos um prato principal.";
@@ -167,7 +171,9 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "estrutura": return "Selecione uma opção para continuar.";
     case "mesas": return "Selecione uma opção para continuar.";
     case "bebidas": return "Selecione uma opção para continuar.";
-    case "contato": return "Preencha o nome e o WhatsApp para continuar.";
+    case "contato":
+      if (state.email.trim() !== "" && !isEmailValid(state.email)) return "O e-mail informado parece inválido.";
+      return "Preencha o nome e um WhatsApp completo (com DDD).";
     default: return "Preencha os campos obrigatórios para continuar.";
   }
 }
@@ -239,6 +245,7 @@ export default function BriefingWizard() {
   const goNext = () => { if (idx < fluxo.length - 1) setIdx(i => i + 1); };
   const goBack = () => { if (idx > 0) setIdx(i => i - 1); };
   const restart = () => {
+    if (!window.confirm("Tem certeza que deseja apagar tudo e preencher um novo briefing?")) return;
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     setState(initialState); setIdx(0); setReviewMode(false);
   };

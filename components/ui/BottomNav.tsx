@@ -24,7 +24,7 @@ export default function BottomNav({ onBack, onNext, canGoBack, canAdvance, isLas
       )}
       {!canAdvance && requiredHint && (
         <div className="text-center pt-2 px-5">
-          <p className="text-xs text-[#C9A24B] font-medium">{requiredHint}</p>
+          <p className="text-xs text-[#9A7B2E] font-semibold">{requiredHint}</p>
         </div>
       )}
       {isSkippable && (
