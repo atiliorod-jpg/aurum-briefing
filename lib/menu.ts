@@ -16,8 +16,8 @@ export interface MenuOption {
 
 // ── Feijoada ────────────────────────────────────────────────────────────────
 export const FEIJOADA_OPTIONS: MenuOption[] = [
-  { value: "Tradicional", label: "Feijoada Tradicional", desc: "Feijão preto encorpado com cortes selecionados — costelinha, paio, linguiças, bacon e carne seca — servidos no tacho, como a tradição manda." },
-  { value: "Premium", label: "Feijoada Premium", desc: "Cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato." },
+  { value: "Tradicional", label: "Feijoada Tradicional", desc: "Feijão preto encorpado com cortes selecionados — costelinha, paio, linguiças, bacon e carne seca — servidos no tacho, como a tradição manda.", preco: 90 },
+  { value: "Premium", label: "Feijoada Premium", desc: "Cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato.", preco: 110 },
 ];
 
 // ── Coffee Break (bebidas / salgados / doces de cada nível) ─────────────────
@@ -58,33 +58,33 @@ export const ESTILO_OPTIONS: MenuOption[] = [
 // ── Entradas ────────────────────────────────────────────────────────────────
 export const ENTRADAS_OPTIONS: MenuOption[] = [
   { value: "Sugestão do chef", label: "✨ Deixar a sugestão com o chef", desc: "Não precisa escolher: o chef seleciona as entradas ideais conforme o perfil e o estilo do seu evento." },
-  { value: "Carpaccio de Vitelo / Filé Mignon", label: "Carpaccio de Vitelo / Filé Mignon", desc: "Finas lâminas com brotos, parmesão, alcaparras e molho djon. Acompanha torradas." },
-  { value: "Carpaccio de Polvo", label: "Carpaccio de Polvo", desc: "Lâminas de polvo com azeite, ervas frescas, aioli e molho djon. Acompanha torradas." },
-  { value: "Caponata de Polvo", label: "Caponata de Polvo", desc: "Releitura italiana com polvo, berinjela, tomate e ervas agridoces. Acompanha torradas." },
-  { value: "Gravlax de Salmão", label: "Gravlax de Salmão", desc: "Salmão curado em sal, beterraba e ervas, com creme azedo e dill. Acompanha torradas." },
-  { value: "Terrine de Salmão", label: "Terrine de Salmão", desc: "Terrine em camadas com ricota e creme de leite fresco, servida fria com molho de acerola." },
-  { value: "Burrata com Tomate Confit", label: "Burrata com Tomate Confit", desc: "Burrata cremosa sobre tomates confitados, redução de balsâmico e flor de sal." },
-  { value: "Salada Parmese", label: "Salada Parmese", desc: "Melão, figo, presunto de Parma, parmesão e amêndoas tostadas com azeite e manjericão roxo." },
-  { value: "Steak Tartare", label: "Steak Tartare", desc: "Filé mignon cortado na ponta da faca com mostarda, alcaparras e ovo de codorna. Acompanha torradas." },
-  { value: "Croqueta de Cupim", label: "Croqueta de Cupim", desc: "Com vinagrete de melão fresco, redução de açaí e aioli de limão siciliano." },
-  { value: "Ceviche de Peixe Branco", label: "Ceviche de Peixe Branco", desc: "Peixe marinado em limão, cebola roxa, coentro e leite de coco. Fusão nordestina com técnica peruana." },
+  { value: "Carpaccio de Vitelo / Filé Mignon", label: "Carpaccio de Vitelo / Filé Mignon", desc: "Finas lâminas com brotos, parmesão, alcaparras e molho djon. Acompanha torradas.", preco: 60 },
+  { value: "Carpaccio de Polvo", label: "Carpaccio de Polvo", desc: "Lâminas de polvo com azeite, ervas frescas, aioli e molho djon. Acompanha torradas.", preco: 80 },
+  { value: "Caponata de Polvo", label: "Caponata de Polvo", desc: "Releitura italiana com polvo, berinjela, tomate e ervas agridoces. Acompanha torradas.", preco: 70 },
+  { value: "Gravlax de Salmão", label: "Gravlax de Salmão", desc: "Salmão curado em sal, beterraba e ervas, com creme azedo e dill. Acompanha torradas.", preco: 75 },
+  { value: "Terrine de Salmão", label: "Terrine de Salmão", desc: "Terrine em camadas com ricota e creme de leite fresco, servida fria com molho de acerola.", preco: 65 },
+  { value: "Burrata com Tomate Confit", label: "Burrata com Tomate Confit", desc: "Burrata cremosa sobre tomates confitados, redução de balsâmico e flor de sal.", preco: 65 },
+  { value: "Salada Parmese", label: "Salada Parmese", desc: "Melão, figo, presunto de Parma, parmesão e amêndoas tostadas com azeite e manjericão roxo.", preco: 50 },
+  { value: "Steak Tartare", label: "Steak Tartare", desc: "Filé mignon cortado na ponta da faca com mostarda, alcaparras e ovo de codorna. Acompanha torradas.", preco: 65 },
+  { value: "Croqueta de Cupim", label: "Croqueta de Cupim", desc: "Com vinagrete de melão fresco, redução de açaí e aioli de limão siciliano.", preco: 60 },
+  { value: "Ceviche de Peixe Branco", label: "Ceviche de Peixe Branco", desc: "Peixe marinado em limão, cebola roxa, coentro e leite de coco. Fusão nordestina com técnica peruana.", preco: 60 },
   { value: "Sem entradas", label: "Sem entradas", desc: "" },
 ];
 
 // ── Pratos principais ───────────────────────────────────────────────────────
 export const PRINCIPAIS_OPTIONS: MenuOption[] = [
   { value: "Sugestão do chef", label: "✨ Deixar a sugestão com o chef", desc: "Não precisa escolher: o chef define o prato principal ideal conforme o perfil e o estilo do seu evento." },
-  { value: "Filé Mignon ao Molho de Redução de Vinho Tinto", label: "Filé Mignon ao Molho de Redução de Vinho Tinto", desc: "Filé mignon grelhado com redução de vinho tinto encorpada. Acompanha linguine na manteiga clarificada e ervas, com parmesão ralado na hora (opcional)." },
-  { value: "Filé au Poivre com Fettuccine", label: "Filé au Poivre com Fettuccine", desc: "Filé mignon em molho au poivre cremoso, com fettuccine na manteiga clarificada e sálvia fresca." },
-  { value: "Paillard ao Molho Rôti com Linguini", label: "Paillard ao Molho Rôti com Linguini", desc: "Filé aberto e grelhado com molho rôti intenso, acompanhado de linguini ao azeite trufado." },
-  { value: "Magret de Pato ao Molho de Laranja", label: "Magret de Pato ao Molho de Laranja", desc: "Peito de pato com pele crocante, molho à l'orange e purê de batata-doce ao tomilho." },
-  { value: "Codorna Confitada", label: "Codorna Confitada", desc: "Codorna cozida lentamente em gordura, com molho de uvas tintas e aligot ou purê trufado." },
-  { value: "Salmão Grelhado com Risoto de Limão Siciliano", label: "Salmão Grelhado com Risoto de Limão Siciliano", desc: "Salmão grelhado sobre risoto cremoso com raspas cítricas e manteiga noisette." },
-  { value: "Moqueca de Camarão com Pirão", label: "Moqueca de Camarão com Pirão", desc: "Camarões frescos cozidos em leite de coco e dendê, com pirão cremoso e arroz branco." },
-  { value: "Spaghetti au Mare", label: "Spaghetti au Mare", desc: "Massa com lula, polvo, camarão, vongole e mexilhão salteados em azeite, alho e limão siciliano." },
-  { value: "Pappardelle com Ragù de Ossobuco", label: "Pappardelle com Ragù de Ossobuco", desc: "Massa grano duro com ragù de ossobuco cozido lentamente, parmesão e ervas frescas." },
-  { value: "Polpetone com Polenta", label: "Polpetone com Polenta", desc: "Polpetone recheado com funghi e queijo meia cura, sobre polenta cremosa e molho de tomate rústico." },
-  { value: "Lasanha com Fonduta de Queijo", label: "Lasanha com Fonduta de Queijo", desc: "Lasanha bolonhesa em camadas, selada na chapa para crosta dourada e finalizada com fonduta cremosa." },
+  { value: "Filé Mignon ao Molho de Redução de Vinho Tinto", label: "Filé Mignon ao Molho de Redução de Vinho Tinto", desc: "Filé mignon grelhado com redução de vinho tinto encorpada. Acompanha linguine na manteiga clarificada e ervas, com parmesão ralado na hora (opcional).", preco: 98 },
+  { value: "Filé au Poivre com Fettuccine", label: "Filé au Poivre com Fettuccine", desc: "Filé mignon em molho au poivre cremoso, com fettuccine na manteiga clarificada e sálvia fresca.", preco: 88 },
+  { value: "Paillard ao Molho Rôti com Linguini", label: "Paillard ao Molho Rôti com Linguini", desc: "Filé aberto e grelhado com molho rôti intenso, acompanhado de linguini ao azeite trufado.", preco: 78 },
+  { value: "Magret de Pato ao Molho de Laranja", label: "Magret de Pato ao Molho de Laranja", desc: "Peito de pato com pele crocante, molho à l'orange e purê de batata-doce ao tomilho.", preco: 110 },
+  { value: "Codorna Confitada", label: "Codorna Confitada", desc: "Codorna cozida lentamente em gordura, com molho de uvas tintas e aligot ou purê trufado.", preco: 92 },
+  { value: "Salmão Grelhado com Risoto de Limão Siciliano", label: "Salmão Grelhado com Risoto de Limão Siciliano", desc: "Salmão grelhado sobre risoto cremoso com raspas cítricas e manteiga noisette.", preco: 95 },
+  { value: "Moqueca de Camarão com Pirão", label: "Moqueca de Camarão com Pirão", desc: "Camarões frescos cozidos em leite de coco e dendê, com pirão cremoso e arroz branco.", preco: 90 },
+  { value: "Spaghetti au Mare", label: "Spaghetti au Mare", desc: "Massa com lula, polvo, camarão, vongole e mexilhão salteados em azeite, alho e limão siciliano.", preco: 98 },
+  { value: "Pappardelle com Ragù de Ossobuco", label: "Pappardelle com Ragù de Ossobuco", desc: "Massa grano duro com ragù de ossobuco cozido lentamente, parmesão e ervas frescas.", preco: 78 },
+  { value: "Polpetone com Polenta", label: "Polpetone com Polenta", desc: "Polpetone recheado com funghi e queijo meia cura, sobre polenta cremosa e molho de tomate rústico.", preco: 88 },
+  { value: "Lasanha com Fonduta de Queijo", label: "Lasanha com Fonduta de Queijo", desc: "Lasanha bolonhesa em camadas, selada na chapa para crosta dourada e finalizada com fonduta cremosa.", preco: 75 },
 ];
 
 // ── Tacho / Paellera ────────────────────────────────────────────────────────
@@ -102,16 +102,16 @@ export const TACHO_OPTIONS: MenuOption[] = [
 // ── Sobremesas ──────────────────────────────────────────────────────────────
 export const SOBREMESAS_OPTIONS: MenuOption[] = [
   { value: "Sugestão do chef", label: "✨ Deixar a sugestão com o chef", desc: "Não precisa escolher: o chef define as sobremesas ideais conforme o perfil e o estilo do seu evento." },
-  { value: "Crème Brûlée", label: "Crème Brûlée", desc: "Creme de baunilha com crosta fina de açúcar caramelizado na hora." },
-  { value: "Tiramisù", label: "Tiramisù", desc: "Biscoito embebido em café com creme de mascarpone e toque de cacau." },
-  { value: "Petit Gâteau com Sorvete", label: "Petit Gâteau com Sorvete", desc: "Bolinho de chocolate com interior derretido, assado na hora, com sorvete de creme." },
-  { value: "Bolo de Rolo com Sorvete", label: "Bolo de Rolo com Sorvete", desc: "Clássico pernambucano com goiabada cremosa, sorvete artesanal e calda de frutas vermelhas." },
-  { value: "Cheesecake Basque", label: "Cheesecake Basque", desc: "Interior cremoso com topo caramelizado, servido com frutas vermelhas ou ganache." },
-  { value: "Banoffee", label: "Banoffee", desc: "Base crocante com banana, doce de leite cremoso e chantilly." },
-  { value: "Panna Cotta", label: "Panna Cotta", desc: "Creme italiano delicado e sedoso com calda de frutas." },
-  { value: "Tarte Tatin com Chantilly de Baunilha", label: "Tarte Tatin com Chantilly", desc: "Torta francesa invertida de maçã caramelizada com massa folhada dourada e chantilly de baunilha." },
-  { value: "Crêpe Suzette", label: "Crêpe Suzette", desc: "Crêpes flambados em calda de laranja com licor, servidos com sorvete de creme." },
-  { value: "Mousse", label: "Mousse", desc: "Mousse leve (chocolate, maracujá ou outro sabor) com chantilly." },
+  { value: "Crème Brûlée", label: "Crème Brûlée", desc: "Creme de baunilha com crosta fina de açúcar caramelizado na hora.", preco: 38 },
+  { value: "Tiramisù", label: "Tiramisù", desc: "Biscoito embebido em café com creme de mascarpone e toque de cacau.", preco: 45 },
+  { value: "Petit Gâteau com Sorvete", label: "Petit Gâteau com Sorvete", desc: "Bolinho de chocolate com interior derretido, assado na hora, com sorvete de creme.", preco: 40 },
+  { value: "Bolo de Rolo com Sorvete", label: "Bolo de Rolo com Sorvete", desc: "Clássico pernambucano com goiabada cremosa, sorvete artesanal e calda de frutas vermelhas.", preco: 40 },
+  { value: "Cheesecake Basque", label: "Cheesecake Basque", desc: "Interior cremoso com topo caramelizado, servido com frutas vermelhas ou ganache.", preco: 39 },
+  { value: "Banoffee", label: "Banoffee", desc: "Base crocante com banana, doce de leite cremoso e chantilly.", preco: 32 },
+  { value: "Panna Cotta", label: "Panna Cotta", desc: "Creme italiano delicado e sedoso com calda de frutas.", preco: 30 },
+  { value: "Tarte Tatin com Chantilly de Baunilha", label: "Tarte Tatin com Chantilly", desc: "Torta francesa invertida de maçã caramelizada com massa folhada dourada e chantilly de baunilha.", preco: 45 },
+  { value: "Crêpe Suzette", label: "Crêpe Suzette", desc: "Crêpes flambados em calda de laranja com licor, servidos com sorvete de creme.", preco: 45 },
+  { value: "Mousse", label: "Mousse", desc: "Mousse leve (chocolate, maracujá ou outro sabor) com chantilly.", preco: 35 },
   { value: "Sem sobremesa", label: "Sem sobremesa", desc: "" },
 ];
 

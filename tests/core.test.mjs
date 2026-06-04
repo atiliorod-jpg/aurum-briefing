@@ -83,15 +83,28 @@ test("link curto: briefing enorme compacta e mantém restrições", () => {
 console.log("orçamento:");
 test("formatBRL", () => assert.equal(formatBRL(2250).replace(/ /g, " "), "R$ 2.250,00"));
 test("estimar tacho × pessoas", () => {
-  const e = estimar({ ...base, adultos: "50", criancas: "0", tacho: ["Galinhada"] });
+  const e = estimar({ ...base, adultos: "50", criancas: "0", mesas: "Local fornece", tacho: ["Galinhada"] });
   assert.equal(e.porPessoa, 45);
   assert.equal(e.pessoas, 50);
   assert.equal(e.total, 2250);
 });
-test("estimar ignora item sem preço mas sinaliza", () => {
-  const e = estimar({ ...base, adultos: "10", tacho: ["Galinhada", "Penne com Paçoca de Carne de Sol"] });
-  assert.equal(e.porPessoa, 45); // só a galinhada tem preço
-  assert.ok(e.temItemSemPreco);
+test("estimar cardápio completo (entrada+principal+sobremesa)", () => {
+  const e = estimar({ ...base, adultos: "10", mesas: "Local fornece",
+    entradas: ["Salada Parmese"], principais: ["Lasanha com Fonduta de Queijo"], sobremesas: ["Panna Cotta"] });
+  assert.equal(e.porPessoa, 50 + 75 + 30); // 155
+  assert.equal(e.total, 1550);
+  assert.ok(!e.temItemSemPreco);
+});
+test("estimar feijoada premium", () => {
+  const e = estimar({ ...base, adultos: "30", mesas: "Local fornece", feijoada: "Premium" });
+  assert.equal(e.porPessoa, 110);
+  assert.equal(e.total, 3300);
+});
+test("estimar soma adicional de louças (Incluir Aurum)", () => {
+  const e = estimar({ ...base, adultos: "20", mesas: "Incluir Aurum", tacho: ["Galinhada"] });
+  assert.equal(e.porPessoa, 45 + 10); // prato + louças
+  assert.ok(e.incluiLoucas);
+  assert.equal(e.total, 1100);
 });
 
 console.log(`\n${passed} testes passaram.`);

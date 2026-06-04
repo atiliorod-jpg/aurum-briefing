@@ -13,6 +13,12 @@ export default function EstimativaCard({ state }: { state: FormState }) {
         <strong>{formatBRL(e.porPessoa)}</strong> por pessoa × <strong>{e.pessoas}</strong> convidados ={" "}
         <strong className="text-lg text-[#1B2A41]">{formatBRL(e.total)}</strong>
       </p>
+      {e.incluiLoucas && (
+        <p className="text-xs text-gray-500 mt-1.5">
+          Inclui um <strong>adicional básico de louças e talheres</strong> (a partir de R$ 10/pessoa) — pode
+          variar conforme os pratos escolhidos.
+        </p>
+      )}
       {e.temItemSemPreco && (
         <p className="text-xs text-gray-500 mt-1.5">
           Há itens selecionados ainda sem valor cadastrado — o total pode aumentar.
