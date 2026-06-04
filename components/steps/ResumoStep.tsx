@@ -23,11 +23,14 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   // Conversão: o cliente chegou ao resumo final
   useEffect(() => { track("briefing_concluido"); }, []);
 
-  const fileBase = () => {
-    const safe = (state.nome || "cliente").trim().replace(/\s+/g, "_").replace(/[^\w-]/g, "");
-    const date = state.data ? state.data.replace(/-/g, "") : new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    return `${safe}_${date}`;
+  // Limpa um nome para uso em nome de arquivo (mantém acentos e espaços)
+  const limpaNome = (raw: string, fallback: string) => {
+    const clean = (raw || "").replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim();
+    return clean || fallback;
   };
+  // Nome do convite = homenageado (aniversariante/noivos/empresa) ou contato
+  const nomeConvite = () => limpaNome(state.cartaHomenageado || state.nome, "Convidados");
+  const nomeBriefing = () => limpaNome(state.nome, "Cliente");
 
   const handleWhatsApp = () => {
     track("enviar_whatsapp");
@@ -73,7 +76,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
       track("baixar_briefing_pdf");
       const generateBriefingPDF = await loadBriefingPDF();
       const blob = await generateBriefingPDF(state);
-      downloadBlob(blob, `Briefing_Aurum_${fileBase()}.pdf`);
+      downloadBlob(blob, `Briefing Aurum - ${nomeBriefing()}.pdf`);
     } catch (e) {
       console.error(e);
       setFeedback({ kind: "err", msg: "Não foi possível gerar o PDF." });
@@ -86,7 +89,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
       track("baixar_carta_word");
       const generateLetterDOCX = await loadLetterDOCX();
       const blob = await generateLetterDOCX(state);
-      downloadBlob(blob, `Carta_Aurum_${fileBase()}.docx`);
+      downloadBlob(blob, `${nomeConvite()} - Convite.docx`);
     } catch (e) {
       console.error(e);
       setFeedback({ kind: "err", msg: "Não foi possível gerar a carta em Word." });
@@ -99,7 +102,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
       track("baixar_convite_pdf");
       const generateInvitationPDF = await loadInvitationPDF();
       const blob = await generateInvitationPDF(state);
-      downloadBlob(blob, `Convite_Aurum_${fileBase()}.pdf`);
+      downloadBlob(blob, `${nomeConvite()} - Convite.pdf`);
     } catch (e) {
       console.error(e);
       setFeedback({ kind: "err", msg: "Não foi possível gerar o convite em PDF. Tente a versão em Word." });
