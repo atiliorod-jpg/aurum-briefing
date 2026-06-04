@@ -93,7 +93,7 @@ export const TACHO_OPTIONS: MenuOption[] = [
   { value: "Penne ao Ragù de Pernil", label: "Penne ao molho de queijo com ragù de pernil", desc: "Molho cremoso de queijo com ragù de pernil desfiado em vinho e ervas aromáticas.", preco: 50 },
   { value: "Arroz de Costela Caldoso", label: "Arroz de Costela Caldoso", desc: "Arroz cozido junto à costela bovina, absorvendo colágeno e temperos rústicos.", preco: 55 },
   { value: "Arroz Ossobuco à Bourguignon", label: "Arroz Ossobuco à Bourguignon", desc: "Ossobuco braseado em vinho tinto com cenoura, cebola pérola e ervas provençais.", preco: 60 },
-  { value: "Penne com Paçoca de Carne de Sol", label: "Penne ao creme de queijo regional com paçoca de carne de sol", desc: "Creme de queijo coalho e manteiga de garrafa, com carne de sol desfiada e crocante." },
+  { value: "Penne com Paçoca de Carne de Sol", label: "Penne ao creme de queijo regional com paçoca de carne de sol", desc: "Creme de queijo coalho e manteiga de garrafa, com carne de sol desfiada e crocante.", preco: 60 },
   { value: "Baião de dois do mar ao sertão", label: "Baião de dois do mar ao sertão", desc: "Do mar ao sertão: feijão verde, queijo coalho e manteiga de garrafa, com camarão.", preco: 65 },
   { value: "Arroz de Frutos do Mar", label: "Arroz de Frutos do Mar", desc: "Marisco, peixe, camarão e lula em caldo aromático com açafrão e azeite.", preco: 70 },
   { value: "Fettuccine com Camarões e Mexilhões", label: "Fettuccine com camarões e mexilhões", desc: "Camarões e mexilhões salteados na manteiga de ervas frescas com toque de limão siciliano.", preco: 75 },
