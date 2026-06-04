@@ -2,41 +2,6 @@ import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { resolveInvitation, InvitationContent } from "./invitation";
 
-interface ConviteLinks {
-  confirmar?: string; // WhatsApp do anfitrião
-  mapa?: string;      // Google Maps (confiável no celular)
-}
-
-// Remove complementos (apto, bloco, etc.) que atrapalham a navegação
-function enderecoParaMapa(addr: string): string {
-  let s = addr.replace(/—?\s*n[ºo°]?\s*e\s*complemento:?/gi, ", ");
-  s = s.replace(/\b(apto|apartamento|ap|bloco|bl|andar|sala|conj(unto)?|fundos|complemento|torre)\b\.?\s*[\wºª°-]*/gi, "");
-  s = s.replace(/\s*,\s*(,\s*)+/g, ", ").replace(/\s{2,}/g, " ").replace(/^[\s,]+|[\s,]+$/g, "").trim();
-  return s;
-}
-
-// Monta os links do convite a partir do briefing (sem nada armazenado — só URLs)
-function buildLinks(state: FormState, c: InvitationContent): ConviteLinks {
-  const links: ConviteLinks = {};
-  const refOk = !c.tipoFrase.includes("[") && !c.nome.includes("[");
-  const ref = refOk ? `${c.tipoFrase}${c.conector}${c.nome}` : "no seu evento";
-
-  // Confirmar presença → WhatsApp do ANFITRIÃO (número do contato do briefing)
-  const hostDigits = (state.whatsapp || "").replace(/\D/g, "");
-  if (hostDigits.length >= 10) {
-    const wa = hostDigits.length >= 12 ? hostDigits : `55${hostDigits}`;
-    const msg = `Ola! Sou ___ e confirmo presenca ${ref}, no dia ${c.data}. (somos ___ pessoas)`;
-    links.confirmar = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
-  }
-
-  // Como chegar → Google Maps (abre o app no celular ou o mapa web; sem apto/bloco)
-  if (!c.local.includes("[")) {
-    links.mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoParaMapa(c.local))}`;
-  }
-
-  return links;
-}
-
 const NAVY: [number, number, number] = [27, 42, 65];
 const GOLD: [number, number, number] = [184, 146, 60];
 
@@ -93,7 +58,7 @@ function makeLayout(scale: number): Layout {
 }
 
 // Desenha (ou só mede) o convite a partir de yStart. Retorna o y final.
-function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, yStart: number, links: ConviteLinks): number {
+function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, yStart: number): number {
   let y = yStart;
 
   const centered = (
@@ -115,6 +80,7 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
     if (charSpace) doc.setCharSpace(0);
   };
 
+  const lineH = L.detalhe * 0.3528 * 1.25;
   const detail = (label: string, value: string) => {
     doc.setFontSize(L.detalhe);
     doc.setFont("Cardo", "bold");
@@ -122,21 +88,36 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
     const labelW = doc.getTextWidth(label);
     doc.setCharSpace(0);
     doc.setFont("Cardo", "normal");
-    const valueW = doc.getTextWidth(value);
     const gap = 3;
-    let x = CENTER - (labelW + gap + valueW) / 2;
-    if (draw) {
-      doc.setFont("Cardo", "bold");
-      doc.setTextColor(...GOLD);
-      doc.setCharSpace(0.4);
-      doc.text(label, x, y);
-      doc.setCharSpace(0);
-      x += labelW + gap;
+    // Quebra o valor (ex.: endereço longo) para nunca estourar a largura
+    const valueLines = doc.splitTextToSize(value, MAX_W - labelW - gap) as string[];
+
+    if (valueLines.length <= 1) {
+      // Linha única: "RÓTULO  valor" centralizado (como Data e Horário)
+      const valueW = doc.getTextWidth(valueLines[0] || value);
+      let x = CENTER - (labelW + gap + valueW) / 2;
+      if (draw) {
+        doc.setFont("Cardo", "bold"); doc.setTextColor(...GOLD); doc.setCharSpace(0.4);
+        doc.text(label, x, y); doc.setCharSpace(0);
+        x += labelW + gap;
+        doc.setFont("Cardo", "normal"); doc.setTextColor(...NAVY);
+        doc.text(valueLines[0] || value, x, y);
+      }
+      y += L.detalhe * 0.5;
+    } else {
+      // Valor longo: rótulo centralizado e o valor quebrado abaixo (LOCAL fica fixo abaixo)
+      if (draw) {
+        doc.setFont("Cardo", "bold"); doc.setTextColor(...GOLD); doc.setCharSpace(0.4);
+        doc.text(label, CENTER, y, { align: "center" }); doc.setCharSpace(0);
+      }
+      y += lineH;
       doc.setFont("Cardo", "normal");
-      doc.setTextColor(...NAVY);
-      doc.text(value, x, y);
+      for (const ln of valueLines) {
+        if (draw) { doc.setTextColor(...NAVY); doc.text(ln, CENTER, y, { align: "center" }); }
+        y += lineH;
+      }
+      y += 1;
     }
-    y += L.detalhe * 0.5;
   };
 
   centered("Convite Especial", "Cardo", "bold", L.titulo, GOLD, 1.2, 0.8);
@@ -172,35 +153,6 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
   y += 1 * L.scale;
   centered(c.assinatura, "Cardo", "bold", L.assinatura, NAVY, 1.1, 0.3);
 
-  // ── Botões interativos (links clicáveis) ──────────────────────────────────
-  const temLinks = links.confirmar || links.mapa;
-  if (temLinks) {
-    y += 5 * L.scale;
-    if (draw) {
-      doc.setDrawColor(...GOLD);
-      doc.setLineWidth(0.2);
-      doc.line(CENTER - 30, y - 2.5, CENTER + 30, y - 2.5);
-    }
-    const linkSize = L.corpo * 0.95;
-    const addLink = (text: string, url?: string) => {
-      if (!url) return;
-      doc.setFont("Cardo", "normal");
-      doc.setFontSize(linkSize);
-      const w = doc.getTextWidth(text);
-      const x = CENTER - w / 2;
-      if (draw) {
-        doc.setTextColor(...NAVY);
-        doc.textWithLink(text, x, y, { url });
-        doc.setDrawColor(...GOLD);
-        doc.setLineWidth(0.2);
-        doc.line(x, y + 1.3, x + w, y + 1.3);
-      }
-      y += linkSize * 0.3528 * 1.7;
-    };
-    addLink("Confirmar presença pelo WhatsApp", links.confirmar);
-    addLink("Como chegar (abrir no mapa)", links.mapa);
-  }
-
   return y;
 }
 
@@ -221,21 +173,19 @@ export async function generateInvitationPDF(state: FormState): Promise<Blob> {
   doc.addFileToVFS("GreatVibes-Regular.ttf", vibes);
   doc.addFont("GreatVibes-Regular.ttf", "GreatVibes", "normal");
 
-  const links = buildLinks(state, c);
-
   // 1) Mede com escala cheia e reduz até caber no espaço disponível (sem estourar)
   const disponivel = BOTTOM - TOP;
   let scale = 1;
-  let usado = render(doc, c, makeLayout(scale), false, TOP, links) - TOP;
+  let usado = render(doc, c, makeLayout(scale), false, TOP) - TOP;
   for (let i = 0; i < 6 && usado > disponivel; i++) {
     scale = Math.max(0.7, scale * (disponivel / usado) * 0.98);
-    usado = render(doc, c, makeLayout(scale), false, TOP, links) - TOP;
+    usado = render(doc, c, makeLayout(scale), false, TOP) - TOP;
   }
 
   // 2) Centraliza verticalmente o bloco e desenha de fato
   const yStart = Math.max(TOP, (PAGE_H - usado) / 2);
   doc.addImage(bg, "PNG", 0, 0, 297, 210, undefined, "FAST");
-  render(doc, c, makeLayout(scale), true, yStart, links);
+  render(doc, c, makeLayout(scale), true, yStart);
 
   return doc.output("blob");
 }
