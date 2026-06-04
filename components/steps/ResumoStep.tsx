@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { track } from "@vercel/analytics";
 import { FormState } from "@/lib/types";
-import { buildWhatsAppMessage, formatDate } from "@/lib/utils";
+import { buildWhatsAppMessage, buildWhatsAppLinkText, formatDate } from "@/lib/utils";
 import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
 import { AURUM_WHATSAPP } from "@/lib/config";
@@ -31,7 +31,8 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
 
   const handleWhatsApp = () => {
     track("enviar_whatsapp");
-    const text = encodeURIComponent(buildWhatsAppMessage(state));
+    // Usa versão compacta automaticamente se a mensagem completa for grande demais p/ o link
+    const text = encodeURIComponent(buildWhatsAppLinkText(state));
     window.open(`https://wa.me/${AURUM_WHATSAPP}?text=${text}`, "_blank");
   };
 

@@ -1,7 +1,7 @@
 // Testes leves das funções puras críticas (sem framework — roda com `npm test`).
 // Executa com tsx para entender os imports .ts.
 import assert from "node:assert/strict";
-import { formatDate, formatPhone, isPhoneComplete, isEmailValid, shiftHour, sugestaoRSVP, buildWhatsAppMessage } from "../lib/utils.ts";
+import { formatDate, formatPhone, isPhoneComplete, isEmailValid, shiftHour, sugestaoRSVP, buildWhatsAppMessage, buildWhatsAppLinkText } from "../lib/utils.ts";
 import { resolveInvitation, getConector, getTipoFrase, getCardapioName } from "../lib/invitation.ts";
 
 let passed = 0;
@@ -59,6 +59,24 @@ test("mensagem contém seções", () => {
   assert.ok(m.includes("BRIEFING DE EVENTO"));
   assert.ok(m.includes("CARDÁPIO"));
   assert.ok(m.includes("Louças e talheres"));
+});
+test("link curto: evento normal usa versão completa", () => {
+  // sem textos longos, o link é igual à mensagem completa
+  assert.equal(buildWhatsAppLinkText(base), buildWhatsAppMessage(base));
+});
+test("link curto: briefing enorme compacta e mantém restrições", () => {
+  const grande = "x".repeat(600);
+  const cheio = {
+    ...base, restricoes: "Alergia a frutos do mar",
+    sugestaoEntradas: grande, sugestaoPrincipais: grande, sugestaoSobremesas: grande, obs: grande,
+    entradas: ["Carpaccio de Polvo"], principais: ["Spaghetti au Mare"], sobremesas: ["Tiramisù"],
+  };
+  const link = buildWhatsAppLinkText(cheio);
+  const full = buildWhatsAppMessage(cheio);
+  assert.ok(link.length < full.length, "link deve ser menor que a versão completa");
+  assert.ok(!link.includes(grande), "não deve conter o texto livre gigante");
+  assert.ok(link.includes("Alergia a frutos do mar"), "deve manter restrições alimentares");
+  assert.ok(link.includes("completas no resumo"), "deve avisar que o resto está no PDF/Word");
 });
 
 console.log(`\n${passed} testes passaram.`);

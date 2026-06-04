@@ -63,7 +63,11 @@ export function shiftHour(time: string, delta: number): string {
   return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }
 
-export function buildWhatsAppMessage(state: FormState): string {
+// Monta a mensagem do briefing. Em modo compacto, omite textos livres longos
+// (sugestões, observações) — usado quando a mensagem seria grande demais para o
+// link do WhatsApp; os detalhes completos seguem no PDF.
+export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean } = {}): string {
+  const compact = !!opts.compact;
   const lines: string[] = [];
   lines.push(`*BRIEFING DE EVENTO — AURUM*`);
   lines.push(``);
@@ -79,10 +83,11 @@ export function buildWhatsAppMessage(state: FormState): string {
     state.horaFim ? `às ${state.horaFim}` : "",
   ].filter(Boolean).join(" ");
   lines.push(`• Data: ${formatDate(state.data)}${horario ? `  •  ${horario}` : ""}`);
-  if (state.obsHorario?.trim()) lines.push(`• Observação de horário: ${state.obsHorario}`);
+  if (!compact && state.obsHorario?.trim()) lines.push(`• Observação de horário: ${state.obsHorario}`);
   lines.push(`• Local: ${state.endereco}`);
   const criancas = state.criancas && state.criancas !== "0" ? ` + ${state.criancas} crianças` : "";
   lines.push(`• Convidados: ${state.adultos} adultos${criancas}`);
+  // Restrições/alergias são mantidas mesmo no compacto (segurança alimentar)
   if (state.restricoes.trim()) lines.push(`• Restrições alimentares: ${state.restricoes}`);
 
   const isCoffeeOnly = state.estilo.length > 0 && state.estilo.every((x) => x === "Coffee Break");
@@ -94,23 +99,23 @@ export function buildWhatsAppMessage(state: FormState): string {
   lines.push(``);
   lines.push(`*CARDÁPIO*`);
   if (state.entradas.length) lines.push(`• Entradas: ${state.entradas.join(", ")}`);
-  if (state.sugestaoEntradas?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradas}`);
+  if (!compact && state.sugestaoEntradas?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradas}`);
   if (state.principais.length) lines.push(`• Pratos principais: ${state.principais.join(", ")}`);
-  if (state.sugestaoPrincipais?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipais}`);
+  if (!compact && state.sugestaoPrincipais?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipais}`);
   if (state.tacho.length) lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
   if (state.feijoada) lines.push(`• Feijoada: ${state.feijoada}`);
   if (state.coffeeBreak) lines.push(`• Coffee Break: ${state.coffeeBreak}`);
-  if (state.coffeeBreakObs?.trim()) lines.push(`• Alterações no coffee: ${state.coffeeBreakObs}`);
+  if (!compact && state.coffeeBreakObs?.trim()) lines.push(`• Alterações no coffee: ${state.coffeeBreakObs}`);
   if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
-  if (state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
+  if (!compact && state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
 
   // Direcionamento de cardápio sob medida (Sugestão da Aurum)
   if (state.estilo.includes("Sugestão da Aurum")) {
     lines.push(``);
     lines.push(`*CARDÁPIO SOB MEDIDA*`);
     if (state.cardapioPerfil.length) lines.push(`• Perfil: ${state.cardapioPerfil.join(", ")}`);
-    if (state.cardapioNaoPodeFaltar?.trim()) lines.push(`• Não pode faltar: ${state.cardapioNaoPodeFaltar}`);
-    if (state.cardapioEvitar?.trim()) lines.push(`• Evitar: ${state.cardapioEvitar}`);
+    if (!compact && state.cardapioNaoPodeFaltar?.trim()) lines.push(`• Não pode faltar: ${state.cardapioNaoPodeFaltar}`);
+    if (!compact && state.cardapioEvitar?.trim()) lines.push(`• Evitar: ${state.cardapioEvitar}`);
   }
 
   lines.push(``);
@@ -123,7 +128,22 @@ export function buildWhatsAppMessage(state: FormState): string {
   lines.push(`*PRÓXIMOS PASSOS*`);
   if (state.faixa) lines.push(`• Faixa de investimento: ${state.faixa}`);
   if (state.prazo) lines.push(`• Prazo para proposta: até ${formatDate(state.prazo)}`);
-  if (state.obs.trim()) lines.push(`• Observações: ${state.obs}`);
+  if (!compact && state.obs.trim()) lines.push(`• Observações: ${state.obs}`);
+
+  if (compact) {
+    lines.push(``);
+    lines.push(`_Observações e sugestões completas no resumo em PDF/Word._`);
+  }
 
   return lines.join("\n");
+}
+
+// Texto para o link do WhatsApp: usa a versão completa quando cabe no link;
+// se ficar grande demais (alguns aparelhos cortam), usa a versão compacta.
+// O limite considera o tamanho JÁ codificado para URL (acentos contam mais).
+const WA_LINK_LIMITE = 1900;
+export function buildWhatsAppLinkText(state: FormState): string {
+  const full = buildWhatsAppMessage(state);
+  if (encodeURIComponent(full).length <= WA_LINK_LIMITE) return full;
+  return buildWhatsAppMessage(state, { compact: true });
 }
