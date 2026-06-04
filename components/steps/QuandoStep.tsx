@@ -60,17 +60,20 @@ export default function QuandoStep({ state, onChange }: Props) {
         </div>
         <div>
           <label htmlFor="ev-fim" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Término do serviço</label>
-          <select id="ev-fim" value={state.horaFim} onChange={e => onChange({ horaFim: e.target.value })}
-            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]">
-            <option value="">--:--</option>
-            {HORARIOS.map(h => <option key={h} value={h}>{h}</option>)}
-          </select>
+          <div id="ev-fim" aria-readonly="true"
+            className="w-full border-2 border-gray-100 rounded-xl px-4 py-3.5 text-base bg-gray-50 text-gray-500 flex items-center justify-between">
+            <span>{state.horaFim || "--:--"}</span>
+            <span aria-hidden className="text-gray-300">🔒</span>
+          </div>
         </div>
       </div>
-      <p className="text-xs text-gray-500 italic mb-5">Duração padrão: 4 horas de serviço. Horários em intervalos de 30 minutos (ex: 19:00 ou 19:30). O término é ajustado automaticamente ao informar o início.</p>
+      <p className="text-xs text-gray-500 italic mb-5">
+        Duração padrão: <strong className="not-italic text-[#1B2A41]">4 horas de serviço</strong> — o término é calculado automaticamente.
+        Precisa de mais tempo? Informe nas <strong className="not-italic text-[#1B2A41]">observações</strong> abaixo.
+      </p>
       <div>
         <label htmlFor="ev-obshorario" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações sobre o horário <span className="font-normal text-gray-500">(opcional)</span></label>
-        <input id="ev-obshorario" type="text" placeholder="Ex: evento pode se estender até meia-noite"
+        <input id="ev-obshorario" type="text" placeholder="Ex: gostaria de 1 hora adicional de serviço"
           value={state.obsHorario || ""}
           onChange={e => onChange({ obsHorario: e.target.value })}
           className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />

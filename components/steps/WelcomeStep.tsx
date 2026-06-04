@@ -32,7 +32,7 @@ export default function WelcomeStep() {
       </p>
 
       <div className="bg-white rounded-xl p-5 text-left shadow-sm text-sm text-gray-500 leading-relaxed space-y-1.5 mb-4">
-        <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 5 minutos.</strong></p>
+        <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 7 minutos.</strong></p>
         <p>📱 Otimizado para o celular — basta tocar nas opções.</p>
         <p>💬 Ao final, você copia o resumo e envia para a nossa equipe.</p>
       </div>

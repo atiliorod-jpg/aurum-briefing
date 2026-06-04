@@ -39,7 +39,7 @@ export default function ContatoStep({ state, onChange }: Props) {
           Para quando você precisa da proposta? <span className="font-normal text-gray-500">(opcional)</span>
         </label>
         <p className="text-xs text-gray-500 mb-1.5">
-          Data limite para você receber nosso orçamento — não pode ser no passado{state.data ? " nem após a data do evento" : ""}.
+          Data limite para você receber nosso orçamento.
         </p>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 whitespace-nowrap">Até dia</span>
