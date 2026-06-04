@@ -12,6 +12,13 @@ function addHours(time: string, hours: number): string {
   return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }
 
+// Lista de horários em intervalos de 30 minutos (00:00 → 23:30) para o seletor
+const HORARIOS: string[] = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
+  const m = i % 2 === 0 ? "00" : "30";
+  return `${String(h).padStart(2, "0")}:${m}`;
+});
+
 // Ajusta os minutos para apenas :00 ou :30 (facilita a organização do horário)
 function snap30(time: string): string {
   if (!time) return "";
@@ -45,13 +52,19 @@ export default function QuandoStep({ state, onChange }: Props) {
       <div className="grid grid-cols-2 gap-3 mb-2">
         <div>
           <label htmlFor="ev-inicio" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Início do serviço</label>
-          <input id="ev-inicio" type="time" step={1800} value={state.horaInicio} onChange={e => handleInicio(e.target.value)}
-            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
+          <select id="ev-inicio" value={state.horaInicio} onChange={e => handleInicio(e.target.value)}
+            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]">
+            <option value="">--:--</option>
+            {HORARIOS.map(h => <option key={h} value={h}>{h}</option>)}
+          </select>
         </div>
         <div>
           <label htmlFor="ev-fim" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Término do serviço</label>
-          <input id="ev-fim" type="time" step={1800} value={state.horaFim} onChange={e => onChange({ horaFim: snap30(e.target.value) })}
-            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
+          <select id="ev-fim" value={state.horaFim} onChange={e => onChange({ horaFim: e.target.value })}
+            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]">
+            <option value="">--:--</option>
+            {HORARIOS.map(h => <option key={h} value={h}>{h}</option>)}
+          </select>
         </div>
       </div>
       <p className="text-xs text-gray-500 italic mb-5">Duração padrão: 4 horas de serviço. Horários em intervalos de 30 minutos (ex: 19:00 ou 19:30). O término é ajustado automaticamente ao informar o início.</p>
