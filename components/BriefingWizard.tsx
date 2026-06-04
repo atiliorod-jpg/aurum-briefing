@@ -18,8 +18,9 @@ import CartaStep from "@/components/steps/CartaStep";
 import SugestaoStep from "@/components/steps/SugestaoStep";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 import {
-  ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS,
+  ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS, FEIJOADA_OPTIONS,
 } from "@/lib/menu";
+import { mostrarPrecoCardapio } from "@/lib/orcamento";
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
 // Estilos cujo cardápio é escolhido item a item (entradas/principais/sobremesas)
@@ -209,6 +210,12 @@ export default function BriefingWizard() {
     setReviewMode(false);
   };
 
+  // No serviço empratado, os preços do cardápio valem e o limite é 2 por etapa
+  const empratado = mostrarPrecoCardapio(state);
+  // Mostra o preço nos cartões só quando ele se aplica (empratado)
+  const comPreco = (opts: typeof ENTRADAS_OPTIONS, mostrar: boolean) =>
+    mostrar ? opts : opts.map((o) => ({ ...o, preco: undefined }));
+
   const renderStep = () => {
     switch (currentStep) {
       case "welcome": return <WelcomeStep />;
@@ -233,15 +240,16 @@ export default function BriefingWizard() {
         <MultiSelectStep
           stepNumber="ENTRADAS"
           title="Entradas."
-          hint="Selecione até 3 opções."
-          options={ENTRADAS_OPTIONS}
+          hint={empratado ? "No serviço empratado, selecione até 2 opções." : "Selecione até 3 opções."}
+          options={comPreco(ENTRADAS_OPTIONS, empratado)}
           selected={state.entradas}
-          max={3}
+          max={empratado ? 2 : 3}
           onChange={v => patch({ entradas: v })}
           suggestion={state.sugestaoEntradas}
           onSuggestionChange={v => patch({ sugestaoEntradas: v })}
           exclusiveValues={["Sem entradas", "Sugestão do chef"]}
           priceNote
+          footer={<EstimativaCard state={state} />}
         />
       );
 
@@ -249,15 +257,16 @@ export default function BriefingWizard() {
         <MultiSelectStep
           stepNumber="PRATO PRINCIPAL"
           title="Prato principal."
-          hint="Selecione até 3 opções."
-          options={PRINCIPAIS_OPTIONS}
+          hint={empratado ? "No serviço empratado, selecione até 2 opções." : "Selecione até 3 opções."}
+          options={comPreco(PRINCIPAIS_OPTIONS, empratado)}
           selected={state.principais}
-          max={3}
+          max={empratado ? 2 : 3}
           onChange={v => patch({ principais: v })}
           suggestion={state.sugestaoPrincipais}
           onSuggestionChange={v => patch({ sugestaoPrincipais: v })}
           exclusiveValues={["Sugestão do chef"]}
           priceNote
+          footer={<EstimativaCard state={state} />}
         />
       );
 
@@ -285,7 +294,7 @@ export default function BriefingWizard() {
           stepNumber="SOBREMESAS"
           title="Sobremesas."
           hint="Selecione até 2 opções."
-          options={SOBREMESAS_OPTIONS}
+          options={comPreco(SOBREMESAS_OPTIONS, empratado)}
           selected={state.sobremesas}
           max={2}
           onChange={v => patch({ sobremesas: v })}
@@ -293,6 +302,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoSobremesas: v })}
           exclusiveValues={["Sem sobremesa", "Sugestão do chef"]}
           priceNote
+          footer={<EstimativaCard state={state} />}
         />
       );
 
@@ -301,20 +311,10 @@ export default function BriefingWizard() {
           stepNumber="FEIJOADA"
           title="Formato da Feijoada."
           hint="Ambas as opções incluem todos os acompanhamentos clássicos: arroz, couve refogada, farofa de manteiga, laranja, abacaxi e vinagrete."
-          options={[
-            {
-              value: "Tradicional",
-              label: "Feijoada Tradicional",
-              desc: "Feijão preto encorpado com cortes selecionados — costelinha, paio, linguiças, bacon e carne seca — servidos no tacho, como a tradição manda.",
-            },
-            {
-              value: "Premium",
-              label: "Feijoada Premium",
-              desc: "Cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato.",
-            },
-          ]}
+          options={FEIJOADA_OPTIONS}
           selected={state.feijoada}
           onChange={v => patch({ feijoada: v })}
+          footer={<EstimativaCard state={state} />}
         />
       );
 
@@ -346,10 +346,11 @@ export default function BriefingWizard() {
           options={[
             { value: "Local fornece", label: "O local fornece tudo" },
             { value: "Eu providencio", label: "Vou providenciar" },
-            { value: "Incluir Aurum", label: "Incluir na proposta Aurum" },
+            { value: "Incluir Aurum", label: "Incluir na proposta Aurum", desc: "Adicional básico a partir de R$ 10/pessoa (pode variar conforme os pratos)." },
           ]}
           selected={state.mesas}
           onChange={v => patch({ mesas: v })}
+          footer={<EstimativaCard state={state} />}
         />
       );
 

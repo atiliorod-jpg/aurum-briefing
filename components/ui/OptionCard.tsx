@@ -55,6 +55,7 @@ export default function OptionCard({ label, description, selected, onClick, vari
       <span className="flex-1">
         <span className="block text-[#1B2A41] font-medium text-base leading-snug">{label}</span>
         {description && <span className="block text-gray-500 text-sm mt-0.5 leading-snug">{description}</span>}
+        {price && <span className="block text-xs font-bold text-[#9A7B2E] mt-1">{price} / pessoa</span>}
       </span>
     </button>
   );

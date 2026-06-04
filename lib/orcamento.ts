@@ -31,27 +31,36 @@ export interface Estimativa {
   incluiLoucas: boolean;    // adicional de louças e talheres somado
 }
 
+export const ESTILO_EMPRATADO = "Serviço franco-americano (empratado)";
+
 export function estimar(state: FormState): Estimativa {
   const pessoas = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
-  const selecionados = [
-    ...state.entradas, ...state.principais, ...state.tacho, ...state.sobremesas,
-    ...(state.feijoada ? [state.feijoada] : []),
-  ];
+  // Por ora, os valores de entradas/principais/sobremesas valem só no empratado.
+  // Tacho e Feijoada têm preço próprio e contam sempre.
+  const empratado = state.estilo.includes(ESTILO_EMPRATADO);
 
   let porPessoa = 0;
   const itens: { nome: string; preco: number }[] = [];
   let temItemSemPreco = false;
 
-  for (const v of selecionados) {
-    if (IGNORAR.has(v)) continue;
-    const p = precoDe(v);
-    if (p != null) {
-      porPessoa += p;
-      itens.push({ nome: v, preco: p });
-    } else {
-      temItemSemPreco = true;
+  const somar = (lista: string[], aplicarPreco: boolean) => {
+    for (const v of lista) {
+      if (IGNORAR.has(v)) continue;
+      const p = aplicarPreco ? precoDe(v) : undefined;
+      if (p != null) {
+        porPessoa += p;
+        itens.push({ nome: v, preco: p });
+      } else if (aplicarPreco) {
+        temItemSemPreco = true;
+      }
     }
-  }
+  };
+
+  somar(state.entradas, empratado);
+  somar(state.principais, empratado);
+  somar(state.sobremesas, empratado);
+  somar(state.tacho, true);
+  if (state.feijoada) somar([state.feijoada], true);
 
   // Louças e talheres na proposta Aurum: adicional por pessoa
   const incluiLoucas = state.mesas === "Incluir Aurum";
@@ -61,4 +70,9 @@ export function estimar(state: FormState): Estimativa {
   }
 
   return { pessoas, porPessoa, total: porPessoa * pessoas, itens, temItemSemPreco, incluiLoucas };
+}
+
+// Mostra o preço dos itens do cardápio (entradas/principais/sobremesas) só no empratado
+export function mostrarPrecoCardapio(state: FormState): boolean {
+  return state.estilo.includes(ESTILO_EMPRATADO);
 }

@@ -88,12 +88,19 @@ test("estimar tacho × pessoas", () => {
   assert.equal(e.pessoas, 50);
   assert.equal(e.total, 2250);
 });
-test("estimar cardápio completo (entrada+principal+sobremesa)", () => {
+test("estimar cardápio completo no empratado (entrada+principal+sobremesa)", () => {
   const e = estimar({ ...base, adultos: "10", mesas: "Local fornece",
+    estilo: ["Serviço franco-americano (empratado)"],
     entradas: ["Salada Parmese"], principais: ["Lasanha com Fonduta de Queijo"], sobremesas: ["Panna Cotta"] });
   assert.equal(e.porPessoa, 50 + 75 + 30); // 155
   assert.equal(e.total, 1550);
   assert.ok(!e.temItemSemPreco);
+});
+test("sem empratado, cardápio não é precificado ainda", () => {
+  const e = estimar({ ...base, adultos: "10", mesas: "Local fornece",
+    estilo: ["Serviço à americana (buffet)"],
+    entradas: ["Salada Parmese"], principais: ["Lasanha com Fonduta de Queijo"] });
+  assert.equal(e.porPessoa, 0); // buffet ainda sem preço
 });
 test("estimar feijoada premium", () => {
   const e = estimar({ ...base, adultos: "30", mesas: "Local fornece", feijoada: "Premium" });
