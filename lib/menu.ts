@@ -96,7 +96,6 @@ export const TACHO_OPTIONS: MenuOption[] = [
   { value: "Penne ao Ragù de Pernil", label: "Penne ao Ragù de Pernil", desc: "Molho cremoso de queijo com ragù de pernil desfiado em vinho e ervas aromáticas." },
   { value: "Penne com Paçoca de Carne de Sol", label: "Penne com Paçoca de Carne de Sol", desc: "Creme de queijo coalho e manteiga de garrafa, com carne de sol desfiada e crocante." },
   { value: "Fettuccine com Camarões e Mexilhões", label: "Fettuccine com Camarões e Mexilhões", desc: "Manteiga de ervas frescas com toque de limão siciliano, camarões e mexilhões salteados." },
-  { value: "Sem tacho", label: "Sem tacho", desc: "" },
 ];
 
 // ── Sobremesas ──────────────────────────────────────────────────────────────

@@ -5,7 +5,7 @@ import { FormState } from "@/lib/types";
 interface Props { state: FormState; onChange: (patch: Partial<FormState>) => void; }
 
 export default function LocalStep({ state, onChange }: Props) {
-  const [cep, setCep] = useState("");
+  const cep = state.cep;
   const [buscando, setBuscando] = useState(false);
   const [erroCep, setErroCep] = useState(false);
 
@@ -51,7 +51,7 @@ export default function LocalStep({ state, onChange }: Props) {
             inputMode="numeric"
             placeholder="00000-000"
             value={cep}
-            onChange={e => { const f = formatCep(e.target.value); setCep(f); if (f.replace(/\D/g, "").length === 8) buscarCep(f); }}
+            onChange={e => { const f = formatCep(e.target.value); onChange({ cep: f }); if (f.replace(/\D/g, "").length === 8) buscarCep(f); }}
             onBlur={() => buscarCep(cep)}
             className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]"
           />

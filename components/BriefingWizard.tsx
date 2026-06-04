@@ -66,7 +66,7 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "estilo": return state.estilo.length > 0;
     case "entradas": return state.entradas.length > 0;
     case "principais": return state.principais.length > 0;
-    case "tacho": return true;
+    case "tacho": return state.tacho.length > 0;
     case "sobremesas": return state.sobremesas.length > 0;
     case "sugestao": return true; // direcionamento opcional
     case "feijoada": return !!state.feijoada;
@@ -95,6 +95,7 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "estilo": return "Escolha ao menos um estilo de serviço.";
     case "entradas": return "Selecione uma opção (ou “Sem entradas”) para continuar.";
     case "principais": return "Selecione ao menos um prato principal.";
+    case "tacho": return "Selecione ao menos um prato de tacho/paellera.";
     case "sobremesas": return "Selecione uma opção (ou “Sem sobremesa”) para continuar.";
     case "feijoada": return "Escolha o formato da feijoada.";
     case "estrutura": return "Selecione uma opção para continuar.";
@@ -184,7 +185,7 @@ export default function BriefingWizard() {
   const fluxo = resolveFluxo(state);
   const currentStep = fluxo[idx];
   const total = fluxo.length - 1;
-  const isSkippable = currentStep === "tacho" || currentStep === "faixa" || currentStep === "carta";
+  const isSkippable = currentStep === "faixa" || currentStep === "carta";
   const isLast = fluxo[idx + 1] === "final";
 
   const goNext = () => { if (idx < fluxo.length - 1) { setDirecao("fwd"); setIdx(i => i + 1); } };
@@ -267,13 +268,12 @@ export default function BriefingWizard() {
             stepNumber="TACHO / PAELLERA"
             title="Tacho / Paellera."
             hint={podeDois
-              ? "Pratos servidos diretamente do tacho, ao centro da mesa. Opcional — selecione até 2."
-              : "Pratos servidos diretamente do tacho, ao centro da mesa. Opcional — 1 opção (a 2ª fica disponível para eventos com mais de 40 convidados)."}
+              ? "Pratos servidos diretamente do tacho, ao centro da mesa. Selecione até 2."
+              : "Pratos servidos diretamente do tacho, ao centro da mesa. Selecione 1 (a 2ª opção fica disponível para eventos com mais de 40 convidados)."}
             options={TACHO_OPTIONS}
             selected={state.tacho}
             max={podeDois ? 2 : 1}
             onChange={v => patch({ tacho: v })}
-            exclusiveValues={["Sem tacho"]}
           />
         );
       }

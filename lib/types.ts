@@ -5,6 +5,7 @@ export interface FormState {
   horaInicio: string;
   horaFim: string;
   obsHorario: string;
+  cep: string;
   endereco: string;
   adultos: string;
   criancas: string;
@@ -46,6 +47,7 @@ export const initialState: FormState = {
   horaInicio: "",
   horaFim: "",
   obsHorario: "",
+  cep: "",
   endereco: "",
   adultos: "",
   criancas: "",
