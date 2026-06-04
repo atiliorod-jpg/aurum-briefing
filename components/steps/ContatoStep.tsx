@@ -7,7 +7,6 @@ interface Props { state: FormState; onChange: (patch: Partial<FormState>) => voi
 export default function ContatoStep({ state, onChange }: Props) {
   const whatsErro = state.whatsapp.trim() !== "" && !isPhoneComplete(state.whatsapp);
   const emailErro = state.email.trim() !== "" && !isEmailValid(state.email);
-  const hoje = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD no fuso local
   return (
     <div>
       <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">CONTATO</div>
@@ -34,33 +33,11 @@ export default function ContatoStep({ state, onChange }: Props) {
         );
       })}
 
-      <div className="mb-4">
-        <label htmlFor="ct-prazo" className="block text-sm font-semibold text-[#1B2A41] mb-0.5">
-          Para quando você precisa da proposta? <span className="font-normal text-gray-500">(opcional)</span>
-        </label>
-        <p className="text-xs text-gray-500 mb-1.5">
-          Data limite para você receber nosso orçamento.
+      <div className="mb-4 bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl px-4 py-3">
+        <p className="text-sm text-[#1B2A41] leading-relaxed">
+          ⏱ <strong>Sua proposta de orçamento é enviada em até 24 horas</strong> após recebermos o
+          seu briefing.
         </p>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 whitespace-nowrap">Até dia</span>
-          <input
-            id="ct-prazo"
-            type="date"
-            value={state.prazo}
-            min={hoje}
-            max={state.data || undefined}
-            onChange={e => {
-              let v = e.target.value;
-              if (v && v < hoje) v = hoje;                       // não permite passado
-              if (v && state.data && v > state.data) v = state.data; // não permite após o evento
-              onChange({ prazo: v });
-            }}
-            className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]"
-          />
-        </div>
-        {!state.data && (
-          <p className="text-xs text-[#C9A24B] mt-1.5">Defina a data do evento (passo “Data e horário”) para limitar este prazo.</p>
-        )}
       </div>
 
       <div className="mb-4">

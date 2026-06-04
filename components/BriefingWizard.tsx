@@ -37,7 +37,7 @@ function resolveFluxo(state: FormState): StepName[] {
   const hasCoffee = e.includes("Coffee Break");
   const hasSugestao = e.includes("Sugestão da Aurum");
 
-  const inicio: StepName[] = ["welcome", "tipo", "quando", "local", "convidados", "faixa", "estilo"];
+  const inicio: StepName[] = ["welcome", "tipo", "quando", "local", "convidados", "estilo"];
 
   // Cada estilo adiciona suas etapas de cardápio (compatível com combinações)
   const menu: StepName[] = [];
@@ -76,7 +76,6 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "estrutura": return !!state.cozinha;
     case "mesas": return !!state.mesas;
     case "bebidas": return !!state.bebidas;
-    case "faixa": return true;
     case "contato":
       return state.nome.trim().length > 0
         && isPhoneComplete(state.whatsapp)
@@ -187,7 +186,7 @@ export default function BriefingWizard() {
   const fluxo = resolveFluxo(state);
   const currentStep = fluxo[idx];
   const total = fluxo.length - 1;
-  const isSkippable = currentStep === "faixa" || currentStep === "carta";
+  const isSkippable = currentStep === "carta";
   const isLast = fluxo[idx + 1] === "final";
 
   const goNext = () => { if (idx < fluxo.length - 1) { setDirecao("fwd"); setIdx(i => i + 1); } };
@@ -228,10 +227,11 @@ export default function BriefingWizard() {
         <MultiSelectStep
           stepNumber="ESTILO"
           title="Estilo de serviço."
-          hint="Como prefere que o evento seja servido? Pode combinar mais de uma opção (até 3)."
+          hint="Como prefere que o evento seja servido? Pode combinar até 2 opções. Jantar Harmonizado, Jantar Temático e Sugestão da Aurum são exclusivos (escolha única)."
           options={ESTILO_OPTIONS}
           selected={state.estilo}
-          max={3}
+          max={2}
+          exclusiveValues={["Jantar Harmonizado", "Jantar Temático", "Sugestão da Aurum"]}
           onChange={setEstilo}
         />
       );
@@ -366,24 +366,6 @@ export default function BriefingWizard() {
           ]}
           selected={state.bebidas}
           onChange={v => patch({ bebidas: v })}
-        />
-      );
-
-      case "faixa": return (
-        <SingleSelectStep
-          stepNumber=""
-          title="Faixa de investimento."
-          hint="Totalmente opcional — se preferir, toque em “Pular este passo”. Ajuda a calibrar a proposta ao seu orçamento."
-          options={[
-            { value: "Até R$ 5 mil", label: "Até R$ 5 mil" },
-            { value: "R$ 5 mil a R$ 10 mil", label: "R$ 5 mil a R$ 10 mil" },
-            { value: "R$ 10 mil a R$ 15 mil", label: "R$ 10 mil a R$ 15 mil" },
-            { value: "R$ 15 mil a R$ 20 mil", label: "R$ 15 mil a R$ 20 mil" },
-            { value: "Acima de R$ 20 mil", label: "Acima de R$ 20 mil" },
-            { value: "Prefiro receber sugestões", label: "Prefiro receber sugestões" },
-          ]}
-          selected={state.faixa}
-          onChange={v => patch({ faixa: v })}
         />
       );
 

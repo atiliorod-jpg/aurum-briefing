@@ -34,18 +34,22 @@ export default function WelcomeStep() {
       <div className="bg-white rounded-xl p-5 text-left shadow-sm text-sm text-gray-500 leading-relaxed space-y-1.5 mb-4">
         <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 7 minutos.</strong></p>
         <p>📱 Otimizado para o celular — basta tocar nas opções.</p>
-        <p>💬 Ao final, você copia o resumo e envia para a nossa equipe.</p>
+        <p>💬 Ao final, você gera o resumo em PDF e nos envia pelo WhatsApp.</p>
+      </div>
+
+      <div className="bg-white rounded-xl p-5 text-left shadow-sm text-sm text-gray-500 leading-relaxed space-y-1.5 mb-4">
+        <p className="font-semibold text-[#1B2A41]">📄 Ao final, gere o resumo em PDF</p>
+        <p>
+          Com papel timbrado e a estimativa parcial. <strong className="text-[#1B2A41]">Envie-o para a
+          nossa equipe pelo WhatsApp</strong> para recebermos seu briefing e prepararmos a proposta.
+        </p>
       </div>
 
       <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-5 text-left text-sm text-gray-600 leading-relaxed space-y-2">
-        <p className="font-semibold text-[#1B2A41]">🎁 Dois brindes ao final, gratuitos:</p>
+        <p className="font-semibold text-[#1B2A41]">🎁 Brinde ao final, gratuito:</p>
         <p>
           💌 <strong className="text-[#1B2A41]">Carta-convite pronta</strong> (PDF ou Word) — com o seu
           cardápio, para você personalizar e enviar aos convidados do evento.
-        </p>
-        <p>
-          📄 <strong className="text-[#1B2A41]">Resumo em PDF</strong> — com papel timbrado, ideal para
-          compartilhar com outras pessoas envolvidas no evento.
         </p>
         <p className="text-xs text-gray-500 pt-1 border-t border-[#C9A24B]/20">
           📲 <strong>No celular?</strong> Ao abrir a carta no Word, ative o

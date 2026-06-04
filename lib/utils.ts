@@ -126,8 +126,7 @@ export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean
 
   lines.push(``);
   lines.push(`*PRÓXIMOS PASSOS*`);
-  if (state.faixa) lines.push(`• Faixa de investimento: ${state.faixa}`);
-  if (state.prazo) lines.push(`• Prazo para proposta: até ${formatDate(state.prazo)}`);
+  lines.push(`• Proposta de orçamento enviada em até 24 horas.`);
   if (!compact && state.obs.trim()) lines.push(`• Observações: ${state.obs}`);
 
   if (compact) {

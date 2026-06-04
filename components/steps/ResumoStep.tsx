@@ -139,7 +139,6 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     { label: "Cozinha", value: state.cozinha || "" },
     ...(isCoffeeOnly ? [] : [{ label: "Bebidas", value: state.bebidas || "" }]),
     { label: "Louças e talheres", value: state.mesas || "" },
-    ...(state.faixa ? [{ label: "Faixa", value: state.faixa }] : []),
     { label: "Contato", value: `${state.nome} • ${state.whatsapp}${state.email ? " • " + state.email : ""}` },
   ];
 

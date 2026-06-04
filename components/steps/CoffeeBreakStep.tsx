@@ -13,6 +13,31 @@ const OPTIONS = Object.entries(COFFEE_DETAILS).map(([value, d]) => ({
   value, label: value, ...d,
 }));
 
+// Quebra a string "item a; item b; item c." em itens limpos para exibir em lista
+function splitItens(texto: string): string[] {
+  return texto
+    .split(";")
+    .map((s) => s.replace(/\.+\s*$/, "").trim())
+    .filter(Boolean);
+}
+
+// Bloco de uma categoria (Bebidas / Salgados / Doces) renderizado como lista
+function CategoriaLista({ titulo, texto }: { titulo: string; texto: string }) {
+  return (
+    <div>
+      <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2">{titulo}</h3>
+      <ul className="space-y-1">
+        {splitItens(texto).map((item, i) => (
+          <li key={i} className="text-sm text-[#1B2A41] leading-relaxed flex gap-2">
+            <span aria-hidden className="text-[#C9A24B] mt-0.5">•</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function CoffeeBreakStep({ state, onChange }: Props) {
   const [openDetail, setOpenDetail] = useState(false);
   const selected = OPTIONS.find((o) => o.value === state.coffeeBreak);
@@ -33,20 +58,11 @@ export default function CoffeeBreakStep({ state, onChange }: Props) {
         <p className="text-gray-500 text-sm mb-5 italic">{selected.hint}</p>
 
         <div className="bg-white rounded-xl p-5 shadow-sm space-y-4">
-          <div>
-            <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2">Bebidas</h3>
-            <p className="text-sm text-[#1B2A41] leading-relaxed">{selected.bebidas}</p>
-          </div>
+          <CategoriaLista titulo="Bebidas" texto={selected.bebidas} />
           <div className="border-t border-gray-100" />
-          <div>
-            <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2">Salgados</h3>
-            <p className="text-sm text-[#1B2A41] leading-relaxed">{selected.salgados}</p>
-          </div>
+          <CategoriaLista titulo="Salgados" texto={selected.salgados} />
           <div className="border-t border-gray-100" />
-          <div>
-            <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2">Doces</h3>
-            <p className="text-sm text-[#1B2A41] leading-relaxed">{selected.doces}</p>
-          </div>
+          <CategoriaLista titulo="Doces" texto={selected.doces} />
         </div>
 
         <div className="mt-5">

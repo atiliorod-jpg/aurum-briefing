@@ -2,6 +2,12 @@ import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { formatDate } from "./utils";
 import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS } from "./menu";
+import { estimar, formatBRL } from "./orcamento";
+
+// Quebra "item a; item b." em itens limpos (mesma lógica da tela de coffee break)
+function splitItens(texto: string): string[] {
+  return texto.split(";").map((s) => s.replace(/\.+\s*$/, "").trim()).filter(Boolean);
+}
 
 const NAVY: [number, number, number] = [27, 42, 65];
 const GOLD: [number, number, number] = [201, 162, 75];
@@ -172,9 +178,12 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     addDishItem(state.coffeeBreak, "");
     const d = COFFEE_DETAILS[state.coffeeBreak];
     if (d) {
-      addDishItem("Bebidas", d.bebidas);
-      addDishItem("Salgados", d.salgados);
-      addDishItem("Doces", d.doces);
+      const addCoffeeCat = (titulo: string, texto: string) => {
+        addRow(titulo, splitItens(texto).join(" · "));
+      };
+      addCoffeeCat("Bebidas", d.bebidas);
+      addCoffeeCat("Salgados", d.salgados);
+      addCoffeeCat("Doces", d.doces);
     }
     y += 1;
   }
@@ -201,9 +210,25 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   addRow("Nome", state.nome);
   addRow("WhatsApp", state.whatsapp);
   if (state.email?.trim()) addRow("E-mail", state.email);
-  if (state.prazo?.trim()) addRow("Prazo desejado", `até ${formatDate(state.prazo)}`);
-  if (state.faixa) addRow("Faixa de investimento", state.faixa);
   if (state.obs?.trim()) addRow("Observações", state.obs);
+  addRow("Proposta", "Orçamento enviado em até 24 horas.");
+
+  // ── Estimativa parcial ────────────────────────────────────────────────────
+  const est = estimar(state);
+  if (est.porPessoa > 0 && est.pessoas > 0) {
+    addSection("Estimativa parcial");
+
+    const ADICIONAL = "Louças e talheres (básico)";
+    const comida = est.itens.filter((i) => i.nome !== ADICIONAL).reduce((s, i) => s + i.preco, 0);
+    const loucas = est.itens.filter((i) => i.nome === ADICIONAL).reduce((s, i) => s + i.preco, 0);
+
+    if (comida > 0) addRow("Cardápio", `${formatBRL(comida)} por pessoa × ${est.pessoas} = ${formatBRL(comida * est.pessoas)}`);
+    if (loucas > 0) addRow("Louças e talheres", `${formatBRL(loucas)} por pessoa × ${est.pessoas} = ${formatBRL(loucas * est.pessoas)}`);
+    addRow("Total estimado", `${formatBRL(est.porPessoa)} por pessoa × ${est.pessoas} = ${formatBRL(est.total)}`);
+
+    if (est.temItemSemPreco) addRow("Observação", "Há itens selecionados ainda sem valor — o total pode aumentar.");
+    addRow("", "Valor de referência. Não é a proposta final — a Aurum confirma o orçamento.");
+  }
 
   // ── Data de geração ───────────────────────────────────────────────────────
   doc.setFontSize(7.5);
