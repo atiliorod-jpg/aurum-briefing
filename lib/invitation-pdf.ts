@@ -2,6 +2,51 @@ import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { resolveInvitation, InvitationContent } from "./invitation";
 
+interface ConviteLinks {
+  confirmar?: string; // WhatsApp do anfitrião
+  agenda?: string;    // Google Agenda
+  mapa?: string;      // Google Maps
+}
+
+// "2026-12-12" + "19:00" → "20261212T190000" (formato do Google Agenda)
+function toGCal(dataISO: string, hhmm: string): string {
+  const d = dataISO.replace(/-/g, "");
+  const t = (hhmm || "19:00").replace(":", "") + "00";
+  return `${d}T${t}`;
+}
+
+// Monta os links do convite a partir do briefing (sem nada armazenado — só URLs)
+function buildLinks(state: FormState, c: InvitationContent): ConviteLinks {
+  const links: ConviteLinks = {};
+  const refOk = !c.tipoFrase.includes("[") && !c.nome.includes("[");
+  const ref = refOk ? `${c.tipoFrase}${c.conector}${c.nome}` : "no seu evento";
+
+  // Confirmar presença → WhatsApp do ANFITRIÃO (número do contato do briefing)
+  const hostDigits = (state.whatsapp || "").replace(/\D/g, "");
+  if (hostDigits.length >= 10) {
+    const wa = hostDigits.length >= 12 ? hostDigits : `55${hostDigits}`;
+    const msg = `Ola! Sou ___ e confirmo presenca ${ref}, no dia ${c.data}. (somos ___ pessoas)`;
+    links.confirmar = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+  }
+
+  // Como chegar → Google Maps
+  if (!c.local.includes("[")) {
+    links.mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.local)}`;
+  }
+
+  // Adicionar à agenda → Google Agenda (data/horário/local já preenchidos)
+  if (state.data && !c.local.includes("[") && !c.horario.includes("[")) {
+    const start = toGCal(state.data, c.horario);
+    const end = toGCal(state.data, state.horaFim || "23:00");
+    const title = refOk ? `${c.tipoFrase}${c.conector}${c.nome}`.replace(/^./, (m) => m.toUpperCase()) : "Evento";
+    links.agenda =
+      `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+      `&text=${encodeURIComponent(title)}&dates=${start}/${end}` +
+      `&location=${encodeURIComponent(c.local)}`;
+  }
+  return links;
+}
+
 const NAVY: [number, number, number] = [27, 42, 65];
 const GOLD: [number, number, number] = [184, 146, 60];
 
@@ -58,7 +103,7 @@ function makeLayout(scale: number): Layout {
 }
 
 // Desenha (ou só mede) o convite a partir de yStart. Retorna o y final.
-function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, yStart: number): number {
+function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, yStart: number, links: ConviteLinks): number {
   let y = yStart;
 
   const centered = (
@@ -137,6 +182,36 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
   y += 1 * L.scale;
   centered(c.assinatura, "Cardo", "bold", L.assinatura, NAVY, 1.1, 0.3);
 
+  // ── Botões interativos (links clicáveis) ──────────────────────────────────
+  const temLinks = links.confirmar || links.agenda || links.mapa;
+  if (temLinks) {
+    y += 5 * L.scale;
+    if (draw) {
+      doc.setDrawColor(...GOLD);
+      doc.setLineWidth(0.2);
+      doc.line(CENTER - 30, y - 2.5, CENTER + 30, y - 2.5);
+    }
+    const linkSize = L.corpo * 0.95;
+    const addLink = (text: string, url?: string) => {
+      if (!url) return;
+      doc.setFont("Cardo", "normal");
+      doc.setFontSize(linkSize);
+      const w = doc.getTextWidth(text);
+      const x = CENTER - w / 2;
+      if (draw) {
+        doc.setTextColor(...NAVY);
+        doc.textWithLink(text, x, y, { url });
+        doc.setDrawColor(...GOLD);
+        doc.setLineWidth(0.2);
+        doc.line(x, y + 1.3, x + w, y + 1.3);
+      }
+      y += linkSize * 0.3528 * 1.7;
+    };
+    addLink("Confirmar presença pelo WhatsApp", links.confirmar);
+    addLink("Adicionar à agenda", links.agenda);
+    addLink("Como chegar ao local", links.mapa);
+  }
+
   return y;
 }
 
@@ -157,19 +232,21 @@ export async function generateInvitationPDF(state: FormState): Promise<Blob> {
   doc.addFileToVFS("GreatVibes-Regular.ttf", vibes);
   doc.addFont("GreatVibes-Regular.ttf", "GreatVibes", "normal");
 
+  const links = buildLinks(state, c);
+
   // 1) Mede com escala cheia e reduz até caber no espaço disponível (sem estourar)
   const disponivel = BOTTOM - TOP;
   let scale = 1;
-  let usado = render(doc, c, makeLayout(scale), false, TOP) - TOP;
+  let usado = render(doc, c, makeLayout(scale), false, TOP, links) - TOP;
   for (let i = 0; i < 6 && usado > disponivel; i++) {
     scale = Math.max(0.7, scale * (disponivel / usado) * 0.98);
-    usado = render(doc, c, makeLayout(scale), false, TOP) - TOP;
+    usado = render(doc, c, makeLayout(scale), false, TOP, links) - TOP;
   }
 
   // 2) Centraliza verticalmente o bloco e desenha de fato
   const yStart = Math.max(TOP, (PAGE_H - usado) / 2);
   doc.addImage(bg, "PNG", 0, 0, 297, 210, undefined, "FAST");
-  render(doc, c, makeLayout(scale), true, yStart);
+  render(doc, c, makeLayout(scale), true, yStart, links);
 
   return doc.output("blob");
 }
