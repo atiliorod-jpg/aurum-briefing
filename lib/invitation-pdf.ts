@@ -4,7 +4,7 @@ import { resolveInvitation, InvitationContent } from "./invitation";
 
 interface ConviteLinks {
   confirmar?: string; // WhatsApp do anfitrião
-  waze?: string;      // Waze
+  mapa?: string;      // Google Maps (confiável no celular)
 }
 
 // Remove complementos (apto, bloco, etc.) que atrapalham a navegação
@@ -29,9 +29,9 @@ function buildLinks(state: FormState, c: InvitationContent): ConviteLinks {
     links.confirmar = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
   }
 
-  // Rota no Waze — endereço limpo, sem apto/bloco
+  // Como chegar → Google Maps (abre o app no celular ou o mapa web; sem apto/bloco)
   if (!c.local.includes("[")) {
-    links.waze = `https://www.waze.com/ul?q=${encodeURIComponent(enderecoParaMapa(c.local))}&navigate=yes`;
+    links.mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoParaMapa(c.local))}`;
   }
 
   return links;
@@ -173,7 +173,7 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
   centered(c.assinatura, "Cardo", "bold", L.assinatura, NAVY, 1.1, 0.3);
 
   // ── Botões interativos (links clicáveis) ──────────────────────────────────
-  const temLinks = links.confirmar || links.waze;
+  const temLinks = links.confirmar || links.mapa;
   if (temLinks) {
     y += 5 * L.scale;
     if (draw) {
@@ -198,7 +198,7 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
       y += linkSize * 0.3528 * 1.7;
     };
     addLink("Confirmar presença pelo WhatsApp", links.confirmar);
-    addLink("Abrir rota no Waze", links.waze);
+    addLink("Como chegar (abrir no mapa)", links.mapa);
   }
 
   return y;
