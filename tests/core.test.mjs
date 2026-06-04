@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { formatDate, formatPhone, isPhoneComplete, isEmailValid, shiftHour, sugestaoRSVP, buildWhatsAppMessage, buildWhatsAppLinkText } from "../lib/utils.ts";
 import { resolveInvitation, getConector, getTipoFrase, getCardapioName } from "../lib/invitation.ts";
+import { estimar, formatBRL } from "../lib/orcamento.ts";
 
 let passed = 0;
 function test(name, fn) {
@@ -77,6 +78,20 @@ test("link curto: briefing enorme compacta e mantém restrições", () => {
   assert.ok(!link.includes(grande), "não deve conter o texto livre gigante");
   assert.ok(link.includes("Alergia a frutos do mar"), "deve manter restrições alimentares");
   assert.ok(link.includes("completas no resumo"), "deve avisar que o resto está no PDF/Word");
+});
+
+console.log("orçamento:");
+test("formatBRL", () => assert.equal(formatBRL(2250).replace(/ /g, " "), "R$ 2.250,00"));
+test("estimar tacho × pessoas", () => {
+  const e = estimar({ ...base, adultos: "50", criancas: "0", tacho: ["Galinhada"] });
+  assert.equal(e.porPessoa, 45);
+  assert.equal(e.pessoas, 50);
+  assert.equal(e.total, 2250);
+});
+test("estimar ignora item sem preço mas sinaliza", () => {
+  const e = estimar({ ...base, adultos: "10", tacho: ["Galinhada", "Penne com Paçoca de Carne de Sol"] });
+  assert.equal(e.porPessoa, 45); // só a galinhada tem preço
+  assert.ok(e.temItemSemPreco);
 });
 
 console.log(`\n${passed} testes passaram.`);

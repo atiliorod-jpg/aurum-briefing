@@ -7,6 +7,7 @@ import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
 import { AURUM_WHATSAPP } from "@/lib/config";
 import { StepName } from "@/lib/types";
+import EstimativaCard from "@/components/ui/EstimativaCard";
 
 // Geradores pesados (jspdf/jszip/docx) carregados sob demanda, só ao clicar em baixar.
 const loadBriefingPDF = () => import("@/lib/pdf").then(m => m.generateBriefingPDF);
@@ -180,6 +181,10 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
             </div>
           );
         })}
+      </div>
+
+      <div className="mb-3">
+        <EstimativaCard state={state} />
       </div>
 
       {onEdit && (

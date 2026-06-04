@@ -1,11 +1,13 @@
 "use client";
+import { ReactNode } from "react";
 import OptionCard from "@/components/ui/OptionCard";
+import { formatBRL } from "@/lib/orcamento";
 
 interface MultiSelectStepProps {
   stepNumber: string;
   title: string;
   hint: string;
-  options: Array<{ value: string; label: string; desc?: string }>;
+  options: Array<{ value: string; label: string; desc?: string; preco?: number }>;
   selected: string[];
   max: number;
   onChange: (selected: string[]) => void;
@@ -15,11 +17,13 @@ interface MultiSelectStepProps {
   /** Opções exclusivas (ex: "Sem entradas", "Sugestão do chef"): ao marcar uma,
    *  limpa as demais; ao marcar qualquer outra, remove as exclusivas. */
   exclusiveValues?: string[];
+  /** Conteúdo extra renderizado abaixo das opções (ex.: estimativa de valor) */
+  footer?: ReactNode;
 }
 
 export default function MultiSelectStep({
   stepNumber, title, hint, options, selected, max, onChange,
-  suggestion, onSuggestionChange, priceNote, exclusiveValues = [],
+  suggestion, onSuggestionChange, priceNote, exclusiveValues = [], footer,
 }: MultiSelectStepProps) {
   const isExclusive = (v: string) => exclusiveValues.includes(v);
 
@@ -55,6 +59,7 @@ export default function MultiSelectStep({
             key={o.value}
             label={o.label}
             description={o.desc}
+            price={o.preco != null ? formatBRL(o.preco) : undefined}
             selected={selected.includes(o.value)}
             onClick={() => toggle(o.value)}
             variant="multi"
@@ -84,6 +89,8 @@ export default function MultiSelectStep({
           />
         </div>
       )}
+
+      {footer && <div className="mt-5">{footer}</div>}
     </div>
   );
 }

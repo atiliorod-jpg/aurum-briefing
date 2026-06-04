@@ -11,6 +11,7 @@ export interface MenuOption {
   value: string;
   label: string;
   desc?: string;
+  preco?: number; // valor por pessoa (R$) — usado na estimativa/pré-orçamento
 }
 
 // ── Feijoada ────────────────────────────────────────────────────────────────
@@ -88,14 +89,14 @@ export const PRINCIPAIS_OPTIONS: MenuOption[] = [
 
 // ── Tacho / Paellera ────────────────────────────────────────────────────────
 export const TACHO_OPTIONS: MenuOption[] = [
-  { value: "Galinhada", label: "Galinhada", desc: "Arroz caldoso com frango caipira, temperos nordestinos e açafrão da terra." },
-  { value: "Arroz de Costela Caldoso", label: "Arroz de Costela Caldoso", desc: "Arroz cozido junto à costela bovina, absorvendo colágeno e temperos rústicos." },
-  { value: "Arroz Ossobuco à Bourguignon", label: "Arroz Ossobuco à Bourguignon", desc: "Ossobuco braseado em vinho tinto com cenoura, cebola pérola e ervas provençais." },
-  { value: "Arroz de Frutos do Mar", label: "Arroz de Frutos do Mar", desc: "Marisco, peixe, camarão e lula em caldo aromático com açafrão e azeite." },
-  { value: "Baião de Dois Cremoso", label: "Baião de Dois Cremoso", desc: "Clássico nordestino de feijão verde com arroz, queijo coalho e manteiga de garrafa." },
-  { value: "Penne ao Ragù de Pernil", label: "Penne ao Ragù de Pernil", desc: "Molho cremoso de queijo com ragù de pernil desfiado em vinho e ervas aromáticas." },
-  { value: "Penne com Paçoca de Carne de Sol", label: "Penne com Paçoca de Carne de Sol", desc: "Creme de queijo coalho e manteiga de garrafa, com carne de sol desfiada e crocante." },
-  { value: "Fettuccine com Camarões e Mexilhões", label: "Fettuccine com Camarões e Mexilhões", desc: "Manteiga de ervas frescas com toque de limão siciliano, camarões e mexilhões salteados." },
+  { value: "Galinhada", label: "Galinhada", desc: "Arroz caldoso com frango caipira, temperos nordestinos e açafrão da terra.", preco: 45 },
+  { value: "Penne ao Ragù de Pernil", label: "Penne ao molho de queijo com ragù de pernil", desc: "Molho cremoso de queijo com ragù de pernil desfiado em vinho e ervas aromáticas.", preco: 50 },
+  { value: "Arroz de Costela Caldoso", label: "Arroz de Costela Caldoso", desc: "Arroz cozido junto à costela bovina, absorvendo colágeno e temperos rústicos.", preco: 55 },
+  { value: "Arroz Ossobuco à Bourguignon", label: "Arroz Ossobuco à Bourguignon", desc: "Ossobuco braseado em vinho tinto com cenoura, cebola pérola e ervas provençais.", preco: 60 },
+  { value: "Penne com Paçoca de Carne de Sol", label: "Penne ao creme de queijo regional com paçoca de carne de sol", desc: "Creme de queijo coalho e manteiga de garrafa, com carne de sol desfiada e crocante." },
+  { value: "Baião de dois do mar ao sertão", label: "Baião de dois do mar ao sertão", desc: "Do mar ao sertão: feijão verde, queijo coalho e manteiga de garrafa, com camarão.", preco: 65 },
+  { value: "Arroz de Frutos do Mar", label: "Arroz de Frutos do Mar", desc: "Marisco, peixe, camarão e lula em caldo aromático com açafrão e azeite.", preco: 70 },
+  { value: "Fettuccine com Camarões e Mexilhões", label: "Fettuccine com camarões e mexilhões", desc: "Camarões e mexilhões salteados na manteiga de ervas frescas com toque de limão siciliano.", preco: 75 },
 ];
 
 // ── Sobremesas ──────────────────────────────────────────────────────────────

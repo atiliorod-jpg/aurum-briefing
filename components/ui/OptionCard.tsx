@@ -6,9 +6,10 @@ interface OptionCardProps {
   selected: boolean;
   onClick: () => void;
   variant?: "single" | "multi";
+  price?: string; // ex.: "R$ 45,00 / pessoa"
 }
 
-export default function OptionCard({ label, description, selected, onClick, variant = "single" }: OptionCardProps) {
+export default function OptionCard({ label, description, selected, onClick, variant = "single", price }: OptionCardProps) {
   if (variant === "multi") {
     return (
       <button
@@ -27,6 +28,9 @@ export default function OptionCard({ label, description, selected, onClick, vari
         <span className="block font-medium text-[#1B2A41] leading-snug pr-4">{label}</span>
         {description && (
           <span className="block text-xs text-gray-500 mt-1 leading-snug font-normal">{description}</span>
+        )}
+        {price && (
+          <span className="block text-xs font-bold text-[#9A7B2E] mt-1.5">{price} / pessoa</span>
         )}
       </button>
     );

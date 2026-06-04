@@ -16,6 +16,7 @@ import ResumoStep from "@/components/steps/ResumoStep";
 import CoffeeBreakStep from "@/components/steps/CoffeeBreakStep";
 import CartaStep from "@/components/steps/CartaStep";
 import SugestaoStep from "@/components/steps/SugestaoStep";
+import EstimativaCard from "@/components/ui/EstimativaCard";
 import {
   ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS,
 } from "@/lib/menu";
@@ -274,6 +275,7 @@ export default function BriefingWizard() {
             selected={state.tacho}
             max={podeDois ? 2 : 1}
             onChange={v => patch({ tacho: v })}
+            footer={<EstimativaCard state={state} />}
           />
         );
       }
