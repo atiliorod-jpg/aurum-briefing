@@ -1,47 +1,17 @@
 "use client";
 import { useState } from "react";
 import { FormState } from "@/lib/types";
+import { COFFEE_DETAILS } from "@/lib/menu";
 
 interface Props {
   state: FormState;
   onChange: (patch: Partial<FormState>) => void;
 }
 
-interface CoffeeOption {
-  value: string;
-  label: string;
-  hint: string;
-  bebidas: string;
-  salgados: string;
-  doces: string;
-}
-
-const OPTIONS: CoffeeOption[] = [
-  {
-    value: "Coffee Break Simples",
-    label: "Coffee Break Simples",
-    hint: "Ideal para reuniões rápidas, treinamentos curtos e momentos de pausa com uma seleção prática, leve e bem apresentada.",
-    bebidas: "Café filtrado; leite quente; água mineral; suco de polpa selecionada — 1 opção.",
-    salgados: "Mini sanduíche natural de frango ou queijo; mini pão de queijo; torta salgada; torradinhas com patês; cuscuz nordestino recheado.",
-    doces: "Bolos caseiros; mungunzá; salada de frutas.",
-  },
-  {
-    value: "Coffee Break Tradicional",
-    label: "Coffee Break Tradicional",
-    hint: "Indicado para eventos corporativos, cursos, palestras, treinamentos e recepções que pedem maior variedade de itens doces, salgados e bebidas.",
-    bebidas: "Café filtrado; leite quente; chá; água mineral; suco de polpa selecionada — 2 opções; achocolatado.",
-    salgados: "Mini croissant; croque monsieur; pão de queijo; quiche; torta salgada; pães com ovos mexidos à francesa; cuscuz nordestino recheado.",
-    doces: "Bolos caseiros; petit four; mungunzá; waffles; frutas ou salada de frutas.",
-  },
-  {
-    value: "Coffee Break Premium",
-    label: "Coffee Break Premium",
-    hint: "Pensado para eventos mais sofisticados, recepções especiais e experiências personalizadas, com itens artesanais, regionais e apresentação refinada.",
-    bebidas: "Café arábico filtrado; leite quente com opção zero lactose; chocolate quente; chás variados; água mineral com e sem gás; sucos naturais variados — 2 opções; água aromatizada com frutas e ervas.",
-    salgados: "Mini croissant; mini sanduíche artesanal; quiches a escolha — Lorraine, gorgonzola, tomate seco ou alho-poró; pão de queijo; torradinhas com patês; cuscuz recheado; beiju recheado com queijo; croque monsieur; pães francês, integral e brioche com ovos mexidos à francesa.",
-    doces: "Bolos caseiros; waffles; tortas; frutas selecionadas ou salada de frutas; petit four; bolo de rolo; mungunzá.",
-  },
-];
+// Fonte única: lib/menu.ts (mesmos textos usados no PDF do briefing)
+const OPTIONS = Object.entries(COFFEE_DETAILS).map(([value, d]) => ({
+  value, label: value, ...d,
+}));
 
 export default function CoffeeBreakStep({ state, onChange }: Props) {
   const [openDetail, setOpenDetail] = useState(false);

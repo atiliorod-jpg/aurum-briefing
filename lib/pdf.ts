@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { formatDate } from "./utils";
+import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS } from "./menu";
 
 const NAVY: [number, number, number] = [27, 42, 65];
 const GOLD: [number, number, number] = [201, 162, 75];
@@ -95,6 +96,44 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     y += needed;
   };
 
+  // Rótulo de um grupo de pratos (ex: "Entradas")
+  const addDishLabel = (label: string) => {
+    ensureSpace(6);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...GOLD);
+    doc.text(label.toUpperCase(), LEFT, y, { charSpace: 0.5 });
+    y += 5;
+  };
+
+  // Um prato: nome em destaque + descrição abaixo (quando houver)
+  const addDishItem = (name: string, desc: string) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...NAVY);
+    const nameLines = doc.splitTextToSize(`•  ${name}`, RIGHT - (LEFT + 3));
+    const descLines = desc ? doc.splitTextToSize(desc, RIGHT - (LEFT + 7)) : [];
+    ensureSpace(nameLines.length * 4.3 + descLines.length * 3.6 + 2.5);
+    doc.text(nameLines, LEFT + 3, y);
+    y += nameLines.length * 4.3;
+    if (descLines.length) {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...GREY);
+      doc.text(descLines, LEFT + 7, y);
+      y += descLines.length * 3.6;
+    }
+    y += 2;
+  };
+
+  // Lista de pratos de uma categoria, cada um com sua descrição
+  const addDishList = (label: string, values: string[]) => {
+    if (!values.length) return;
+    addDishLabel(label);
+    for (const v of values) addDishItem(v, getDescricao(v));
+    y += 1;
+  };
+
   // ── Evento ────────────────────────────────────────────────────────────────
   addSection("Evento");
   addRow("Tipo", state.tipo === "Outro" ? state.tipoOutro : state.tipo || "");
@@ -118,15 +157,29 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   addRow("Estilo", state.estilo.join(", "));
 
   addSection("Cardápio");
-  if (state.entradas.length) addRow("Entradas", state.entradas.join(", "));
+  addDishList("Entradas", state.entradas);
   if (state.sugestaoEntradas?.trim()) addRow("Sugestão de entrada", state.sugestaoEntradas);
-  if (state.principais.length) addRow("Pratos principais", state.principais.join(", "));
+  addDishList("Pratos principais", state.principais);
   if (state.sugestaoPrincipais?.trim()) addRow("Sugestão de principal", state.sugestaoPrincipais);
-  if (state.tacho.length) addRow("Tacho/Paellera", state.tacho.join(", "));
-  if (state.feijoada) addRow("Feijoada", state.feijoada);
-  if (state.coffeeBreak) addRow("Coffee Break", state.coffeeBreak);
+  addDishList("Tacho / Paellera", state.tacho);
+  if (state.feijoada) {
+    addDishLabel("Feijoada");
+    addDishItem(getFeijoadaLabel(state.feijoada), getDescricao(state.feijoada));
+    y += 1;
+  }
+  if (state.coffeeBreak) {
+    addDishLabel("Coffee Break");
+    addDishItem(state.coffeeBreak, "");
+    const d = COFFEE_DETAILS[state.coffeeBreak];
+    if (d) {
+      addDishItem("Bebidas", d.bebidas);
+      addDishItem("Salgados", d.salgados);
+      addDishItem("Doces", d.doces);
+    }
+    y += 1;
+  }
   if (state.coffeeBreakObs?.trim()) addRow("Alterações no coffee", state.coffeeBreakObs);
-  if (state.sobremesas.length) addRow("Sobremesas", state.sobremesas.join(", "));
+  addDishList("Sobremesas", state.sobremesas);
   if (state.sugestaoSobremesas?.trim()) addRow("Sugestão de sobremesa", state.sugestaoSobremesas);
 
   // Direcionamento de cardápio sob medida (Sugestão da Aurum)

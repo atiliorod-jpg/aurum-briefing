@@ -13,6 +13,34 @@ export interface MenuOption {
   desc?: string;
 }
 
+// ── Feijoada ────────────────────────────────────────────────────────────────
+export const FEIJOADA_OPTIONS: MenuOption[] = [
+  { value: "Tradicional", label: "Feijoada Tradicional", desc: "Feijão preto encorpado com cortes selecionados — costelinha, paio, linguiças, bacon e carne seca — servidos no tacho, como a tradição manda." },
+  { value: "Premium", label: "Feijoada Premium", desc: "Cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato." },
+];
+
+// ── Coffee Break (bebidas / salgados / doces de cada nível) ─────────────────
+export const COFFEE_DETAILS: Record<string, { hint: string; bebidas: string; salgados: string; doces: string }> = {
+  "Coffee Break Simples": {
+    hint: "Ideal para reuniões rápidas, treinamentos curtos e momentos de pausa com uma seleção prática, leve e bem apresentada.",
+    bebidas: "Café filtrado; leite quente; água mineral; suco de polpa selecionada — 1 opção.",
+    salgados: "Mini sanduíche natural de frango ou queijo; mini pão de queijo; torta salgada; torradinhas com patês; cuscuz nordestino recheado.",
+    doces: "Bolos caseiros; mungunzá; salada de frutas.",
+  },
+  "Coffee Break Tradicional": {
+    hint: "Indicado para eventos corporativos, cursos, palestras, treinamentos e recepções que pedem maior variedade de itens doces, salgados e bebidas.",
+    bebidas: "Café filtrado; leite quente; chá; água mineral; suco de polpa selecionada — 2 opções; achocolatado.",
+    salgados: "Mini croissant; croque monsieur; pão de queijo; quiche; torta salgada; pães com ovos mexidos à francesa; cuscuz nordestino recheado.",
+    doces: "Bolos caseiros; petit four; mungunzá; waffles; frutas ou salada de frutas.",
+  },
+  "Coffee Break Premium": {
+    hint: "Pensado para eventos mais sofisticados, recepções especiais e experiências personalizadas, com itens artesanais, regionais e apresentação refinada.",
+    bebidas: "Café arábico filtrado; leite quente com opção zero lactose; chocolate quente; chás variados; água mineral com e sem gás; sucos naturais variados — 2 opções; água aromatizada com frutas e ervas.",
+    salgados: "Mini croissant; mini sanduíche artesanal; quiches a escolha — Lorraine, gorgonzola, tomate seco ou alho-poró; pão de queijo; torradinhas com patês; cuscuz recheado; beiju recheado com queijo; croque monsieur; pães francês, integral e brioche com ovos mexidos à francesa.",
+    doces: "Bolos caseiros; waffles; tortas; frutas selecionadas ou salada de frutas; petit four; bolo de rolo; mungunzá.",
+  },
+};
+
 // ── Estilos de serviço ──────────────────────────────────────────────────────
 export const ESTILO_OPTIONS: MenuOption[] = [
   { value: "Serviço à americana (buffet)", label: "Serviço à americana (buffet)", desc: "Pratos dispostos em mesa para servir-se à vontade." },
@@ -86,3 +114,16 @@ export const SOBREMESAS_OPTIONS: MenuOption[] = [
   { value: "Mousse", label: "Mousse", desc: "Mousse leve (chocolate, maracujá ou outro sabor) com chantilly." },
   { value: "Sem sobremesa", label: "Sem sobremesa", desc: "" },
 ];
+
+// Busca a descrição de uma preparação pelo seu "value" (em qualquer categoria).
+const TODAS_OPCOES: MenuOption[] = [
+  ...ENTRADAS_OPTIONS, ...PRINCIPAIS_OPTIONS, ...TACHO_OPTIONS, ...SOBREMESAS_OPTIONS, ...FEIJOADA_OPTIONS,
+];
+export function getDescricao(value: string): string {
+  return TODAS_OPCOES.find((o) => o.value === value)?.desc || "";
+}
+
+// Nome de exibição da feijoada (Tradicional/Premium → "Feijoada Tradicional"...)
+export function getFeijoadaLabel(value: string): string {
+  return FEIJOADA_OPTIONS.find((o) => o.value === value)?.label || value;
+}
