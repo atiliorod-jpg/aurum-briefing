@@ -4,19 +4,28 @@ import { resolveInvitation, InvitationContent } from "./invitation";
 
 interface ConviteLinks {
   confirmar?: string; // WhatsApp do anfitrião
-  agenda?: string;    // Google Agenda
+  agenda?: string;    // Calendário nativo (.ics) ou Google Agenda (fallback)
   mapa?: string;      // Google Maps
+  waze?: string;      // Waze
 }
 
-// "2026-12-12" + "19:00" → "20261212T190000" (formato do Google Agenda)
-function toGCal(dataISO: string, hhmm: string): string {
+// "2026-12-12" + "19:00" → "20261212T190000"
+function toCalDate(dataISO: string, hhmm: string): string {
   const d = dataISO.replace(/-/g, "");
   const t = (hhmm || "19:00").replace(":", "") + "00";
   return `${d}T${t}`;
 }
 
+// Remove complementos (apto, bloco, etc.) que atrapalham a navegação no mapa
+function enderecoParaMapa(addr: string): string {
+  let s = addr.replace(/—?\s*n[ºo°]?\s*e\s*complemento:?/gi, ", ");
+  s = s.replace(/\b(apto|apartamento|ap|bloco|bl|andar|sala|conj(unto)?|fundos|complemento|torre)\b\.?\s*[\wºª°-]*/gi, "");
+  s = s.replace(/\s*,\s*(,\s*)+/g, ", ").replace(/\s{2,}/g, " ").replace(/^[\s,]+|[\s,]+$/g, "").trim();
+  return s;
+}
+
 // Monta os links do convite a partir do briefing (sem nada armazenado — só URLs)
-function buildLinks(state: FormState, c: InvitationContent): ConviteLinks {
+function buildLinks(state: FormState, c: InvitationContent, origin: string): ConviteLinks {
   const links: ConviteLinks = {};
   const refOk = !c.tipoFrase.includes("[") && !c.nome.includes("[");
   const ref = refOk ? `${c.tipoFrase}${c.conector}${c.nome}` : "no seu evento";
@@ -29,20 +38,28 @@ function buildLinks(state: FormState, c: InvitationContent): ConviteLinks {
     links.confirmar = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
   }
 
-  // Como chegar → Google Maps
+  // Navegação (Maps + Waze) — usa o endereço limpo, sem apto/bloco
   if (!c.local.includes("[")) {
-    links.mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.local)}`;
+    const mapAddr = enderecoParaMapa(c.local);
+    links.mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapAddr)}`;
+    links.waze = `https://waze.com/ul?q=${encodeURIComponent(mapAddr)}&navigate=yes`;
   }
 
-  // Adicionar à agenda → Google Agenda (data/horário/local já preenchidos)
+  // Adicionar à agenda → arquivo .ics (calendário NATIVO do celular).
+  // Fallback para Google Agenda se o domínio não estiver disponível.
   if (state.data && !c.local.includes("[") && !c.horario.includes("[")) {
-    const start = toGCal(state.data, c.horario);
-    const end = toGCal(state.data, state.horaFim || "23:00");
+    const start = toCalDate(state.data, c.horario);
+    const end = toCalDate(state.data, state.horaFim || "23:00");
     const title = refOk ? `${c.tipoFrase}${c.conector}${c.nome}`.replace(/^./, (m) => m.toUpperCase()) : "Evento";
-    links.agenda =
-      `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-      `&text=${encodeURIComponent(title)}&dates=${start}/${end}` +
-      `&location=${encodeURIComponent(c.local)}`;
+    if (origin) {
+      links.agenda =
+        `${origin}/api/ics?title=${encodeURIComponent(title)}` +
+        `&start=${start}&end=${end}&loc=${encodeURIComponent(c.local)}`;
+    } else {
+      links.agenda =
+        `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+        `&text=${encodeURIComponent(title)}&dates=${start}/${end}&location=${encodeURIComponent(c.local)}`;
+    }
   }
   return links;
 }
@@ -183,7 +200,7 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
   centered(c.assinatura, "Cardo", "bold", L.assinatura, NAVY, 1.1, 0.3);
 
   // ── Botões interativos (links clicáveis) ──────────────────────────────────
-  const temLinks = links.confirmar || links.agenda || links.mapa;
+  const temLinks = links.confirmar || links.agenda || links.mapa || links.waze;
   if (temLinks) {
     y += 5 * L.scale;
     if (draw) {
@@ -208,8 +225,9 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
       y += linkSize * 0.3528 * 1.7;
     };
     addLink("Confirmar presença pelo WhatsApp", links.confirmar);
-    addLink("Adicionar à agenda", links.agenda);
-    addLink("Como chegar ao local", links.mapa);
+    addLink("Adicionar à agenda do celular", links.agenda);
+    addLink("Como chegar (Google Maps)", links.mapa);
+    addLink("Abrir rota no Waze", links.waze);
   }
 
   return y;
@@ -232,7 +250,8 @@ export async function generateInvitationPDF(state: FormState): Promise<Blob> {
   doc.addFileToVFS("GreatVibes-Regular.ttf", vibes);
   doc.addFont("GreatVibes-Regular.ttf", "GreatVibes", "normal");
 
-  const links = buildLinks(state, c);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const links = buildLinks(state, c, origin);
 
   // 1) Mede com escala cheia e reduz até caber no espaço disponível (sem estourar)
   const disponivel = BOTTOM - TOP;

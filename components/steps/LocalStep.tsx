@@ -26,7 +26,7 @@ export default function LocalStep({ state, onChange }: Props) {
       // Monta o endereço com o que veio do CEP, deixando número/apto para o cliente
       const partes = [data.logradouro, data.bairro, `${data.localidade}/${data.uf}`].filter(Boolean);
       const base = partes.join(", ");
-      onChange({ endereco: base ? `${base} — nº e complemento: ` : state.endereco });
+      onChange({ endereco: base ? `${base}, ` : state.endereco });
     } catch {
       setErroCep(true);
     } finally {
