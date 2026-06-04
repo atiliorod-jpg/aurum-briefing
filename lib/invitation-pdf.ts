@@ -114,7 +114,7 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
 
   const convite =
     `Com grande alegria, convidamos vocês para celebrar conosco ${c.tipoFrase}${c.conector}${c.nome}. ` +
-    `Será um encontro preparado com carinho para reunir as pessoas que amamos e tornar esta data ainda mais especial.`;
+    `Será um encontro preparado com todo cuidado para reunir as pessoas que amamos e tornar esta data inesquecível.`;
   centered(convite, "Cardo", "normal", L.corpo, NAVY, L.gapCorpo);
   y += L.gapBloco;
 
@@ -124,12 +124,12 @@ function render(doc: jsPDF, c: InvitationContent, L: Layout, draw: boolean, ySta
   y += L.gapBloco;
 
   const cardapioFrase =
-    `Para este momento, preparamos uma seleção especial — ${c.cardapio} — assinada pela ` +
-    `Aurum Serviços Gastronômicos, pensada para oferecer uma experiência elegante, acolhedora e especial.`;
+    `Para este momento, preparamos uma seleção cuidadosa — ${c.cardapio} — assinada pela ` +
+    `Aurum Serviços Gastronômicos, para oferecer uma experiência elegante e acolhedora.`;
   centered(cardapioFrase, "Cardo", "normal", L.corpo, NAVY, L.gapCorpo);
   y += 3 * L.scale;
 
-  const rsvp = `Pedimos, com carinho, a confirmação de presença até ${c.dataLimite}, pelo contato ${c.contato}.`;
+  const rsvp = `Pedimos, por gentileza, a confirmação de presença até ${c.dataLimite}, pelo contato ${c.contato}.`;
   centered(rsvp, "Cardo", "normal", L.corpo, NAVY, L.gapCorpo);
   y += L.gapBloco;
 

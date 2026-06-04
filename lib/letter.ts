@@ -37,12 +37,19 @@ export async function generateLetterDOCX(state: FormState): Promise<Blob> {
   // Evita a repetição "cardápio ... Cardápio Aurum" — reescreve a frase do cardápio
   xml = xml.replace(
     "Para este momento, será servido o cardápio ",
-    "Para este momento, preparamos uma seleção especial — ",
+    "Para este momento, preparamos uma seleção cuidadosa — ",
   );
   xml = xml.replace(
     ", preparado pela Aurum Serviços Gastronômicos, com uma seleção pensada para oferecer uma experiência elegante, acolhedora e especial.",
-    " — assinada pela Aurum Serviços Gastronômicos, pensada para oferecer uma experiência elegante, acolhedora e especial.",
+    " — assinada pela Aurum Serviços Gastronômicos, para oferecer uma experiência elegante e acolhedora.",
   );
+
+  // Reduz a repetição de "especial" e "carinho" no corpo e no pedido de confirmação
+  xml = xml.replace(
+    "preparado com carinho para reunir as pessoas que amamos e tornar esta data ainda mais especial",
+    "preparado com todo cuidado para reunir as pessoas que amamos e tornar esta data inesquecível",
+  );
+  xml = xml.replace("Pedimos, com carinho,", "Pedimos, por gentileza,");
 
   // Substituições dos campos. null = mantém placeholder do template.
   const replacements: Array<[string, string | null]> = [

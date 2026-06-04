@@ -17,7 +17,7 @@ export function getTipoFrase(tipo: string | null, tipoOutro = ""): string {
   switch (tipo) {
     case "Aniversário": return "a celebração do aniversário";
     case "Casamento": return "a celebração do casamento";
-    case "Confraternização / Corporativo": return "a confraternização especial";
+    case "Confraternização / Corporativo": return "a confraternização";
     case "Almoço ou Jantar Privado": return "a ocasião especial";
     case "Outro": {
       const t = tipoOutro.trim();

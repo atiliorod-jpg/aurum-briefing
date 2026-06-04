@@ -43,7 +43,7 @@ export default function CartaPreview({ state }: { state: FormState }) {
       <p style={{ fontSize: 13, lineHeight: 1.5, margin: "0 0 10px" }}>
         Com grande alegria, convidamos vocês para celebrar conosco{" "}
         <em><Texto>{`${c.tipoFrase}${c.conector}${c.nome}`}</Texto></em>. Será um encontro preparado com
-        carinho para reunir as pessoas que amamos e tornar esta data ainda mais especial.
+        todo cuidado para reunir as pessoas que amamos e tornar esta data inesquecível.
       </p>
 
       <div style={{ fontSize: 13, lineHeight: 1.7, margin: "8px 0" }}>
@@ -53,12 +53,12 @@ export default function CartaPreview({ state }: { state: FormState }) {
       </div>
 
       <p style={{ fontSize: 13, lineHeight: 1.5, margin: "8px 0" }}>
-        Para este momento, preparamos uma seleção especial — <em><Texto>{c.cardapio}</Texto></em> — assinada
-        pela Aurum Serviços Gastronômicos, pensada para oferecer uma experiência elegante, acolhedora e especial.
+        Para este momento, preparamos uma seleção cuidadosa — <em><Texto>{c.cardapio}</Texto></em> — assinada
+        pela Aurum Serviços Gastronômicos, para oferecer uma experiência elegante e acolhedora.
       </p>
 
       <p style={{ fontSize: 13, lineHeight: 1.5, margin: "8px 0" }}>
-        Pedimos, com carinho, a confirmação de presença até <em><Texto>{c.dataLimite}</Texto></em>, pelo
+        Pedimos, por gentileza, a confirmação de presença até <em><Texto>{c.dataLimite}</Texto></em>, pelo
         contato <Texto>{c.contato}</Texto>.
       </p>
 
