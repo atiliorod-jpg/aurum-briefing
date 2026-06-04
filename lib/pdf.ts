@@ -111,38 +111,37 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   addRow("Convidados", `${state.adultos} adultos${criancas}`);
   if (state.restricoes?.trim()) addRow("Restrições", state.restricoes);
 
-  // ── Cardápio ──────────────────────────────────────────────────────────────
-  const isCoffee = state.estilo.includes("Coffee Break");
-  const isFeijoada = !isCoffee && state.estilo.includes("Feijoada Completa");
+  // ── Cardápio (mostra tudo que foi selecionado, em qualquer combinação) ─────
+  const isCoffeeOnly = state.estilo.length > 0 && state.estilo.every((x) => x === "Coffee Break");
 
   addSection("Estilo de serviço");
   addRow("Estilo", state.estilo.join(", "));
 
-  if (isCoffee) {
-    addSection("Coffee Break");
-    if (state.coffeeBreak) addRow("Cardápio", state.coffeeBreak);
-    if (state.coffeeBreakObs?.trim()) addRow("Alterações", state.coffeeBreakObs);
-  } else if (isFeijoada) {
-    addSection("Feijoada");
-    if (state.feijoada) addRow("Formato", state.feijoada);
-    if (state.sobremesas.length) addRow("Sobremesas", state.sobremesas.join(", "));
-    if (state.sugestaoSobremesas?.trim()) addRow("Sugestão sobr.", state.sugestaoSobremesas);
-  } else {
-    addSection("Cardápio");
-    if (state.entradas.length) addRow("Entradas", state.entradas.join(", "));
-    if (state.sugestaoEntradas?.trim()) addRow("Sugestão entr.", state.sugestaoEntradas);
-    if (state.principais.length) addRow("Principais", state.principais.join(", "));
-    if (state.sugestaoPrincipais?.trim()) addRow("Sugestão princ.", state.sugestaoPrincipais);
-    if (state.tacho.length) addRow("Tacho/Paellera", state.tacho.join(", "));
-    if (state.sobremesas.length) addRow("Sobremesas", state.sobremesas.join(", "));
-    if (state.sugestaoSobremesas?.trim()) addRow("Sugestão sobr.", state.sugestaoSobremesas);
+  addSection("Cardápio");
+  if (state.entradas.length) addRow("Entradas", state.entradas.join(", "));
+  if (state.sugestaoEntradas?.trim()) addRow("Sugestão de entrada", state.sugestaoEntradas);
+  if (state.principais.length) addRow("Pratos principais", state.principais.join(", "));
+  if (state.sugestaoPrincipais?.trim()) addRow("Sugestão de principal", state.sugestaoPrincipais);
+  if (state.tacho.length) addRow("Tacho/Paellera", state.tacho.join(", "));
+  if (state.feijoada) addRow("Feijoada", state.feijoada);
+  if (state.coffeeBreak) addRow("Coffee Break", state.coffeeBreak);
+  if (state.coffeeBreakObs?.trim()) addRow("Alterações no coffee", state.coffeeBreakObs);
+  if (state.sobremesas.length) addRow("Sobremesas", state.sobremesas.join(", "));
+  if (state.sugestaoSobremesas?.trim()) addRow("Sugestão de sobremesa", state.sugestaoSobremesas);
+
+  // Direcionamento de cardápio sob medida (Sugestão da Aurum)
+  if (state.estilo.includes("Sugestão da Aurum")) {
+    addSection("Cardápio sob medida");
+    if (state.cardapioPerfil.length) addRow("Perfil desejado", state.cardapioPerfil.join(", "));
+    if (state.cardapioNaoPodeFaltar?.trim()) addRow("Não pode faltar", state.cardapioNaoPodeFaltar);
+    if (state.cardapioEvitar?.trim()) addRow("Evitar", state.cardapioEvitar);
   }
 
   // ── Estrutura ─────────────────────────────────────────────────────────────
   addSection("Estrutura");
-  if (state.cozinha) addRow("Cozinha", state.cozinha);
+  if (state.cozinha) addRow("Cozinha no local", state.cozinha);
   if (state.mesas) addRow("Louças e talheres", state.mesas);
-  if (!isCoffee && state.bebidas) addRow("Bebidas", state.bebidas);
+  if (!isCoffeeOnly && state.bebidas) addRow("Bebidas", state.bebidas);
 
   // ── Contato ───────────────────────────────────────────────────────────────
   addSection("Contato");

@@ -40,8 +40,8 @@ export default function WelcomeStep() {
       <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-5 text-left text-sm text-gray-600 leading-relaxed space-y-2">
         <p className="font-semibold text-[#1B2A41]">🎁 Dois brindes ao final, gratuitos:</p>
         <p>
-          💌 <strong className="text-[#1B2A41]">Carta-convite pronta</strong> (Word) — com o seu cardápio,
-          para você personalizar e enviar aos convidados do evento.
+          💌 <strong className="text-[#1B2A41]">Carta-convite pronta</strong> (PDF ou Word) — com o seu
+          cardápio, para você personalizar e enviar aos convidados do evento.
         </p>
         <p>
           📄 <strong className="text-[#1B2A41]">Resumo em PDF</strong> — com papel timbrado, ideal para
