@@ -22,7 +22,7 @@ export default function ContatoStep({ state, onChange }: Props) {
         return (
         <div key={key} className="mb-4">
           <label htmlFor={`ct-${key}`} className="block text-sm font-semibold text-[#1B2A41] mb-1.5">
-            {label} {req ? <span className="text-[#9A7B2E]">• obrigatório</span> : <span className="font-normal text-gray-400">(opcional)</span>}
+            {label} {req ? <span className="text-[#9A7B2E]">• obrigatório</span> : <span className="font-normal text-gray-500">(opcional)</span>}
           </label>
           <input id={`ct-${key}`} type={type} placeholder={placeholder} inputMode={key === "whatsapp" ? "numeric" : undefined}
             value={state[key as keyof FormState] as string}
@@ -36,9 +36,9 @@ export default function ContatoStep({ state, onChange }: Props) {
 
       <div className="mb-4">
         <label htmlFor="ct-prazo" className="block text-sm font-semibold text-[#1B2A41] mb-0.5">
-          Para quando você precisa da proposta? <span className="font-normal text-gray-400">(opcional)</span>
+          Para quando você precisa da proposta? <span className="font-normal text-gray-500">(opcional)</span>
         </label>
-        <p className="text-xs text-gray-400 mb-1.5">
+        <p className="text-xs text-gray-500 mb-1.5">
           Data limite para você receber nosso orçamento — não pode ser no passado{state.data ? " nem após a data do evento" : ""}.
         </p>
         <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export default function ContatoStep({ state, onChange }: Props) {
       </div>
 
       <div className="mb-4">
-        <label htmlFor="ct-obs" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações <span className="font-normal text-gray-400">(opcional)</span></label>
+        <label htmlFor="ct-obs" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações <span className="font-normal text-gray-500">(opcional)</span></label>
         <textarea id="ct-obs" rows={3} placeholder="Referências, fotos do local, ideias..."
           value={state.obs} onChange={e => onChange({ obs: e.target.value })}
           className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B] resize-none" />

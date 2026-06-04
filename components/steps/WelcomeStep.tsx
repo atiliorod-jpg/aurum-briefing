@@ -53,6 +53,11 @@ export default function WelcomeStep() {
           como ficará impressa — no modo de edição do celular o layout pode parecer desalinhado.
         </p>
       </div>
+
+      <p className="text-[11px] text-gray-500 leading-relaxed mt-4 px-2">
+        🔒 Suas respostas ficam salvas apenas neste aparelho (para você continuar de onde parou) e são
+        apagadas automaticamente após 7 dias. Nada é enviado sem o seu comando.
+      </p>
     </div>
   );
 }

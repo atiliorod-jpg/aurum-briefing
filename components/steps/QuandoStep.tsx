@@ -54,9 +54,9 @@ export default function QuandoStep({ state, onChange }: Props) {
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B]" />
         </div>
       </div>
-      <p className="text-xs text-gray-400 italic mb-5">Duração padrão: 4 horas de serviço. Horários em intervalos de 30 minutos (ex: 19:00 ou 19:30). O término é ajustado automaticamente ao informar o início.</p>
+      <p className="text-xs text-gray-500 italic mb-5">Duração padrão: 4 horas de serviço. Horários em intervalos de 30 minutos (ex: 19:00 ou 19:30). O término é ajustado automaticamente ao informar o início.</p>
       <div>
-        <label htmlFor="ev-obshorario" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações sobre o horário <span className="font-normal text-gray-400">(opcional)</span></label>
+        <label htmlFor="ev-obshorario" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações sobre o horário <span className="font-normal text-gray-500">(opcional)</span></label>
         <input id="ev-obshorario" type="text" placeholder="Ex: evento pode se estender até meia-noite"
           value={state.obsHorario || ""}
           onChange={e => onChange({ obsHorario: e.target.value })}

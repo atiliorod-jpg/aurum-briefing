@@ -81,7 +81,7 @@ export default function CoffeeBreakStep({ state, onChange }: Props) {
 
         <div className="mt-5">
           <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">
-            Quer alterar ou trocar algum item? <span className="font-normal text-gray-400">(opcional)</span>
+            Quer alterar ou trocar algum item? <span className="font-normal text-gray-500">(opcional)</span>
           </label>
           <textarea
             rows={3}

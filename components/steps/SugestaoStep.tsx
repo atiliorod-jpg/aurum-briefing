@@ -33,7 +33,7 @@ export default function SugestaoStep({ state, onChange }: Props) {
       </p>
 
       <label className="block text-sm font-semibold text-[#1B2A41] mb-2">
-        Qual o clima do cardápio? <span className="font-normal text-gray-400">(pode marcar mais de um)</span>
+        Qual o clima do cardápio? <span className="font-normal text-gray-500">(pode marcar mais de um)</span>
       </label>
       <div className="flex flex-col gap-2.5 mb-5">
         {PERFIS.map((o) => (
@@ -50,7 +50,7 @@ export default function SugestaoStep({ state, onChange }: Props) {
 
       <div className="mb-4">
         <label className="block text-sm font-semibold text-[#1B2A41] mb-0.5">O que não pode faltar?</label>
-        <p className="text-xs text-gray-400 mb-1.5">Pratos, ingredientes ou referências que você adoraria ver. (opcional)</p>
+        <p className="text-xs text-gray-500 mb-1.5">Pratos, ingredientes ou referências que você adoraria ver. (opcional)</p>
         <textarea rows={2} placeholder="Ex: um prato com camarão, uma boa carne, doces nordestinos..."
           value={state.cardapioNaoPodeFaltar} onChange={(e) => onChange({ cardapioNaoPodeFaltar: e.target.value })}
           className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B] resize-none" />
@@ -58,7 +58,7 @@ export default function SugestaoStep({ state, onChange }: Props) {
 
       <div>
         <label className="block text-sm font-semibold text-[#1B2A41] mb-0.5">Algo que devemos evitar?</label>
-        <p className="text-xs text-gray-400 mb-1.5">Ingredientes, sabores ou pratos que você não quer. (opcional)</p>
+        <p className="text-xs text-gray-500 mb-1.5">Ingredientes, sabores ou pratos que você não quer. (opcional)</p>
         <textarea rows={2} placeholder="Ex: evitar frutos do mar, nada muito apimentado..."
           value={state.cardapioEvitar} onChange={(e) => onChange({ cardapioEvitar: e.target.value })}
           className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B] resize-none" />

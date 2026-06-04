@@ -29,7 +29,7 @@ export default function CartaStep({ state, onChange }: Props) {
   ) => (
     <div className="mb-4">
       <label className="block text-sm font-semibold text-[#1B2A41] mb-0.5">{label}</label>
-      <p className="text-xs text-gray-400 mb-1.5 leading-snug">{desc}</p>
+      <p className="text-xs text-gray-500 mb-1.5 leading-snug">{desc}</p>
       <input
         type="text"
         placeholder={placeholder}
@@ -58,7 +58,7 @@ export default function CartaStep({ state, onChange }: Props) {
           {/* Data limite (RSVP) com sugestão automática (50% do tempo até o evento) */}
           <div className="mb-4">
             <label className="block text-sm font-semibold text-[#1B2A41] mb-0.5">Até quando confirmar presença?</label>
-            <p className="text-xs text-gray-400 mb-1.5">Prazo para os convidados avisarem se vão. Aparece no final do convite.</p>
+            <p className="text-xs text-gray-500 mb-1.5">Prazo para os convidados avisarem se vão. Aparece no final do convite.</p>
             <input
               type="text"
               placeholder={sugestao ? `Ex: ${sugestao}` : "Ex: 10 de junho"}
@@ -86,9 +86,9 @@ export default function CartaStep({ state, onChange }: Props) {
         </div>
 
         <div className="lg:flex-1 lg:sticky lg:top-24 lg:self-start mt-2 lg:mt-0">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">📄 Prévia da carta</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">📄 Prévia da carta</p>
           <CartaPreview state={state} />
-          <p className="text-[11px] text-gray-400 italic mt-2 text-center">
+          <p className="text-[11px] text-gray-500 italic mt-2 text-center">
             Os trechos em <span className="text-[#C9A24B] font-semibold">dourado</span> ainda
             estão em branco. Preencha para completá-los.
           </p>

@@ -179,7 +179,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
 
       {onEdit && (
         <div className="mb-4">
-          <p className="text-xs text-gray-400 mb-2">Precisa corrigir algo? Toque para editar sem recomeçar:</p>
+          <p className="text-xs text-gray-500 mb-2">Precisa corrigir algo? Toque para editar sem recomeçar:</p>
           <div className="flex flex-wrap gap-2 justify-center">
             {([
               ["Evento", "tipo"],
@@ -237,7 +237,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
                 className="w-full mt-2 border-2 border-[#C9A24B] text-[#1B2A41] py-3 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50">
                 {busy === "docx" ? "Gerando…" : "📝  Ou baixar em Word (editável)"}
               </button>
-              <p className="text-xs text-gray-400 italic mt-2">
+              <p className="text-xs text-gray-500 italic mt-2">
                 Carta completa com os dados que você preencheu — pronta para enviar aos convidados.
               </p>
             </>
@@ -247,7 +247,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
                 className="w-full border-2 border-[#C9A24B] text-[#1B2A41] py-3.5 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50">
                 {busy === "docx" ? "Gerando…" : "📝  Baixar carta-convite (Word)"}
               </button>
-              <p className="text-xs text-gray-400 italic mt-2">
+              <p className="text-xs text-gray-500 italic mt-2">
                 Carta editável — alguns campos ficarão em branco para você preencher.
                 💡 Volte ao passo <strong>“Carta-convite”</strong> e preencha os 3 dados para
                 receber o <strong>convite pronto em PDF</strong>.
@@ -261,7 +261,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
           {copied ? "✓ Copiado!" : "Copiar resumo em texto"}
         </button>
 
-        <button onClick={onRestart} className="text-gray-400 text-sm underline py-1">Preencher novamente</button>
+        <button onClick={onRestart} className="text-gray-500 text-sm underline py-1">Preencher novamente</button>
       </div>
     </div>
   );

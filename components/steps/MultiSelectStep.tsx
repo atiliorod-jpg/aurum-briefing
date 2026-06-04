@@ -63,9 +63,9 @@ export default function MultiSelectStep({
       </div>
       <div className="flex items-center justify-between mt-3 text-xs italic">
         {priceNote && max > 1 ? (
-          <span className="text-gray-400">Mais opções podem alterar o valor final da proposta.</span>
+          <span className="text-gray-500">Mais opções podem alterar o valor final da proposta.</span>
         ) : <span />}
-        <span className={selected.length === max ? "text-[#C9A24B] font-semibold not-italic" : "text-gray-400"}>
+        <span className={selected.length === max ? "text-[#C9A24B] font-semibold not-italic" : "text-gray-500"}>
           {selected.length} de {max} selecionados
         </span>
       </div>
@@ -73,7 +73,7 @@ export default function MultiSelectStep({
       {onSuggestionChange && (
         <div className="mt-5">
           <label className="block text-sm font-semibold text-[#1B2A41] mb-1.5">
-            Tem uma sugestão fora do cardápio? <span className="font-normal text-gray-400">(opcional)</span>
+            Tem uma sugestão fora do cardápio? <span className="font-normal text-gray-500">(opcional)</span>
           </label>
           <textarea
             rows={2}

@@ -108,6 +108,7 @@ function requiredHint(step: StepName, state: FormState): string | null {
 }
 
 const STORAGE_KEY = "aurum-briefing-v1";
+const STORAGE_TTL = 7 * 24 * 60 * 60 * 1000; // dados expiram em 7 dias (privacidade)
 
 export default function BriefingWizard() {
   const [state, setState] = useState<FormState>(initialState);
@@ -121,8 +122,11 @@ export default function BriefingWizard() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const saved = JSON.parse(raw) as { state?: Partial<FormState>; idx?: number };
-        if (saved.state) {
+        const saved = JSON.parse(raw) as { state?: Partial<FormState>; idx?: number; savedAt?: number };
+        // Descarta dados antigos (expiração de privacidade)
+        if (saved.savedAt && Date.now() - saved.savedAt > STORAGE_TTL) {
+          localStorage.removeItem(STORAGE_KEY);
+        } else if (saved.state) {
           const restored = { ...initialState, ...saved.state };
           setState(restored);
           const flow = resolveFluxo(restored);
@@ -140,7 +144,7 @@ export default function BriefingWizard() {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ state, idx }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ state, idx, savedAt: Date.now() }));
     } catch {
       // ignora (modo privado / cota cheia)
     }

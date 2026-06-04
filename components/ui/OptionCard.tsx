@@ -26,7 +26,7 @@ export default function OptionCard({ label, description, selected, onClick, vari
         )}
         <span className="block font-medium text-[#1B2A41] leading-snug pr-4">{label}</span>
         {description && (
-          <span className="block text-xs text-gray-400 mt-1 leading-snug font-normal">{description}</span>
+          <span className="block text-xs text-gray-500 mt-1 leading-snug font-normal">{description}</span>
         )}
       </button>
     );

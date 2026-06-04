@@ -29,7 +29,7 @@ export default function BottomNav({ onBack, onNext, canGoBack, canAdvance, isLas
       )}
       {isSkippable && (
         <div className="text-center pt-2">
-          <button onClick={onSkip} className="text-gray-400 text-sm underline">Pular este passo</button>
+          <button onClick={onSkip} className="text-gray-500 text-sm underline">Pular este passo</button>
         </div>
       )}
       <div className="max-w-2xl mx-auto flex gap-3 px-5 py-3">
