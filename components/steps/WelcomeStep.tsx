@@ -32,29 +32,15 @@ export default function WelcomeStep() {
       </p>
 
       <div className="bg-white rounded-xl p-5 text-left shadow-sm text-sm text-gray-500 leading-relaxed space-y-1.5 mb-4">
-        <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 7 minutos.</strong></p>
-        <p>📱 Otimizado para o celular — basta tocar nas opções.</p>
-        <p>💬 Ao final, você gera o resumo em PDF e nos envia pelo WhatsApp.</p>
-      </div>
-
-      <div className="bg-white rounded-xl p-5 text-left shadow-sm text-sm text-gray-500 leading-relaxed space-y-1.5 mb-4">
-        <p className="font-semibold text-[#1B2A41]">📄 Ao final, gere o resumo em PDF</p>
-        <p>
-          Com papel timbrado e a estimativa parcial. <strong className="text-[#1B2A41]">Envie-o para a
-          nossa equipe pelo WhatsApp</strong> para recebermos seu briefing e prepararmos a proposta.
-        </p>
+        <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 7 minutos</strong> — otimizado para o celular.</p>
+        <p>📄 Ao final, você gera o <strong className="text-[#1B2A41]">resumo em PDF</strong> e nos envia pelo WhatsApp.</p>
       </div>
 
       <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-5 text-left text-sm text-gray-600 leading-relaxed space-y-2">
-        <p className="font-semibold text-[#1B2A41]">🎁 Brinde ao final, gratuito:</p>
+        <p className="font-semibold text-[#1B2A41]">🎁 Brinde gratuito ao final:</p>
         <p>
-          💌 <strong className="text-[#1B2A41]">Carta-convite pronta</strong> (PDF ou Word) — com o seu
-          cardápio, para você personalizar e enviar aos convidados do evento.
-        </p>
-        <p className="text-xs text-gray-500 pt-1 border-t border-[#C9A24B]/20">
-          📲 <strong>No celular?</strong> Ao abrir a carta no Word, ative o
-          <strong> modo de leitura / visualização de impressão</strong>. Assim ela aparece exatamente
-          como ficará impressa — no modo de edição do celular o layout pode parecer desalinhado.
+          💌 <strong className="text-[#1B2A41]">Carta-convite pronta</strong> (PDF ou Word) com o seu
+          cardápio, para enviar aos convidados.
         </p>
       </div>
 

@@ -16,7 +16,7 @@ export interface MenuOption {
 
 // ── Feijoada ────────────────────────────────────────────────────────────────
 export const FEIJOADA_OPTIONS: MenuOption[] = [
-  { value: "Tradicional", label: "Feijoada Tradicional", desc: "Feijão preto encorpado com cortes selecionados — costelinha, paio, linguiças, bacon e carne seca — servidos no tacho, como a tradição manda.", preco: 90 },
+  { value: "Tradicional", label: "Feijoada Tradicional", desc: "Feijão preto encorpado com cortes selecionados — costelinha, paio, linguiças, bacon, carne seca, pé de porco e lombo suíno — como a tradição manda.", preco: 80 },
   { value: "Premium", label: "Feijoada Premium", desc: "Cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato.", preco: 110 },
 ];
 
