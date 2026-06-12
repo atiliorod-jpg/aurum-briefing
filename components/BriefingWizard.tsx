@@ -16,6 +16,7 @@ import ResumoStep from "@/components/steps/ResumoStep";
 import CoffeeBreakStep from "@/components/steps/CoffeeBreakStep";
 import CartaStep from "@/components/steps/CartaStep";
 import SugestaoStep from "@/components/steps/SugestaoStep";
+import TachoDistribuicao from "@/components/steps/TachoDistribuicao";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 import {
   ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS, FEIJOADA_OPTIONS,
@@ -68,7 +69,15 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "estilo": return state.estilo.length > 0;
     case "entradas": return state.entradas.length > 0;
     case "principais": return state.principais.length > 0;
-    case "tacho": return state.tacho.length > 0;
+    case "tacho": {
+      if (state.tacho.length === 0) return false;
+      if (state.tacho.length === 2) {
+        const total = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
+        const soma = state.tacho.reduce((s, v) => s + (Number(state.tachoPessoas[v]) || 0), 0);
+        if (total > 0 && soma !== total) return false;
+      }
+      return true;
+    }
     case "sobremesas": return state.sobremesas.length > 0;
     case "sugestao": return true; // direcionamento opcional
     case "feijoada": return !!state.feijoada;
@@ -96,7 +105,9 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "estilo": return "Escolha ao menos um estilo de serviço.";
     case "entradas": return "Selecione uma opção (ou “Sem entradas”) para continuar.";
     case "principais": return "Selecione ao menos um prato principal.";
-    case "tacho": return "Selecione ao menos um prato de tacho/paellera.";
+    case "tacho":
+      if (state.tacho.length === 0) return "Selecione ao menos um prato de tacho/paellera.";
+      return "Distribua todos os convidados entre os dois tachos (a soma precisa bater).";
     case "sobremesas": return "Selecione uma opção (ou “Sem sobremesa”) para continuar.";
     case "feijoada": return "Escolha o formato da feijoada.";
     case "estrutura": return "Selecione uma opção para continuar.";
@@ -107,6 +118,28 @@ function requiredHint(step: StepName, state: FormState): string | null {
       return "Preencha o nome e um WhatsApp completo (com DDD).";
     default: return "Preencha os campos obrigatórios para continuar.";
   }
+}
+
+// Distribui o total de convidados entre os tachos selecionados, preservando o que o
+// cliente já informou quando possível. Com 1 tacho, todos os convidados vão para ele.
+// Com 2, divide ao meio (ou mantém o que já estava, se a soma já bate).
+function balancearTacho(
+  tacho: string[],
+  total: number,
+  atual: Record<string, string>,
+): Record<string, string> {
+  if (tacho.length === 0) return {};
+  if (tacho.length === 1) return { [tacho[0]]: String(total) };
+
+  const [a, b] = tacho;
+  const va = Number(atual[a]);
+  const vb = Number(atual[b]);
+  const ambosValidos = Number.isFinite(va) && Number.isFinite(vb) && va >= 0 && vb >= 0;
+  if (ambosValidos && va + vb === total) return { [a]: String(va), [b]: String(vb) };
+  // Se um dos valores anteriores ainda cabe no novo total, preserva e ajusta o outro
+  if (Number.isFinite(va) && va >= 0 && va <= total) return { [a]: String(va), [b]: String(total - va) };
+  const metade = Math.floor(total / 2);
+  return { [a]: String(metade), [b]: String(total - metade) };
 }
 
 const STORAGE_KEY = "aurum-briefing-v1";
@@ -156,12 +189,23 @@ export default function BriefingWizard() {
 
   // Ao alterar convidados, se cair para 40 ou menos, reduz o tacho para no máximo 1
   // (a 2ª opção de tacho só vale para eventos com mais de 40 convidados).
+  // Também re-equilibra a distribuição entre os dois tachos quando o total muda.
   const patchConvidados = useCallback((p: Partial<FormState>) => {
     setState((s) => {
       const next = { ...s, ...p };
       const total = (Number(next.adultos) || 0) + (Number(next.criancas) || 0);
       if (total <= 40 && next.tacho.length > 1) next.tacho = next.tacho.slice(0, 1);
+      next.tachoPessoas = balancearTacho(next.tacho, total, next.tachoPessoas);
       return next;
+    });
+  }, []);
+
+  // Mantém tachoPessoas em dia com a seleção atual e re-equilibra ao ganhar/perder
+  // um tacho. Preserva o que o cliente já distribuiu sempre que possível.
+  const setTacho = useCallback((tacho: string[]) => {
+    setState((s) => {
+      const total = (Number(s.adultos) || 0) + (Number(s.criancas) || 0);
+      return { ...s, tacho, tachoPessoas: balancearTacho(tacho, total, s.tachoPessoas) };
     });
   }, []);
 
@@ -173,7 +217,7 @@ export default function BriefingWizard() {
       const has = (v: string) => estilo.includes(v);
       const hasPicker = estilo.some((x) => ESTILOS_PICKER.includes(x));
       if (!has("Sugestão da Aurum")) { next.cardapioPerfil = []; next.cardapioNaoPodeFaltar = ""; next.cardapioEvitar = ""; }
-      if (!has("Tacho / Paellera")) next.tacho = [];
+      if (!has("Tacho / Paellera")) { next.tacho = []; next.tachoPessoas = {}; }
       if (!has("Feijoada Completa")) next.feijoada = null;
       if (!has("Coffee Break")) { next.coffeeBreak = null; next.coffeeBreakObs = ""; }
       if (!hasPicker) { next.principais = []; next.sugestaoPrincipais = ""; }
@@ -278,13 +322,18 @@ export default function BriefingWizard() {
             stepNumber="TACHO / PAELLERA"
             title="Tacho / Paellera."
             hint={podeDois
-              ? "Pratos servidos diretamente do tacho, ao centro da mesa. Selecione até 2."
+              ? "Pratos servidos diretamente do tacho, ao centro da mesa. Selecione até 2 — você distribui os convidados entre eles."
               : "Pratos servidos diretamente do tacho, ao centro da mesa. Selecione 1 (a 2ª opção fica disponível para eventos com mais de 40 convidados)."}
             options={TACHO_OPTIONS}
             selected={state.tacho}
             max={podeDois ? 2 : 1}
-            onChange={v => patch({ tacho: v })}
-            footer={<EstimativaCard state={state} />}
+            onChange={setTacho}
+            footer={
+              <div className="space-y-4">
+                <TachoDistribuicao state={state} onChange={patch} />
+                <EstimativaCard state={state} />
+              </div>
+            }
           />
         );
       }

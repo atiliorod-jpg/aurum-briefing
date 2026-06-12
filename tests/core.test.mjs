@@ -15,7 +15,7 @@ const base = {
   tipo: "Aniversário", tipoOutro: "", data: "2026-12-12", horaInicio: "19:00", horaFim: "23:00",
   obsHorario: "", endereco: "Rua 51", adultos: "50", criancas: "0", restricoes: "",
   estilo: ["Serviço à americana (buffet)"], entradas: [], sugestaoEntradas: "", principais: [],
-  sugestaoPrincipais: "", tacho: [], sobremesas: [], sugestaoSobremesas: "",
+  sugestaoPrincipais: "", tacho: [], tachoPessoas: {}, sobremesas: [], sugestaoSobremesas: "",
   cardapioPerfil: [], cardapioNaoPodeFaltar: "", cardapioEvitar: "",
   feijoada: null, coffeeBreak: null, coffeeBreakObs: "", cozinha: "Sim, completa",
   mesas: "Local fornece", bebidas: "Bar do local", faixa: null,
@@ -112,6 +112,30 @@ test("estimar soma adicional de louças (Incluir Aurum)", () => {
   assert.equal(e.porPessoa, 45 + 10); // prato + louças
   assert.ok(e.incluiLoucas);
   assert.equal(e.total, 1100);
+});
+test("estimar 2 tachos com distribuicao por convidados", () => {
+  // 70 convidados, Galinhada (R$45) para 30 + Arroz de Costela (R$55) para 40
+  // Total esperado: 45×30 + 55×40 = 1350 + 2200 = 3550
+  const e = estimar({
+    ...base, adultos: "70", criancas: "0", mesas: "Local fornece",
+    tacho: ["Galinhada", "Arroz de Costela Caldoso"],
+    tachoPessoas: { "Galinhada": "30", "Arroz de Costela Caldoso": "40" },
+  });
+  assert.equal(e.pessoas, 70);
+  assert.equal(e.total, 3550);
+  assert.equal(e.porPessoa, 0); // tacho dividido não entra em porPessoa
+});
+test("estimar 2 tachos + loucas (cardapio + soma por tacho)", () => {
+  // 70 convidados, mesma divisão acima, agora com louças (R$10/pessoa = 700)
+  // Cardápio: 10×70 = 700 ; tacho = 3550 ; total = 4250
+  const e = estimar({
+    ...base, adultos: "70", criancas: "0", mesas: "Incluir Aurum",
+    tacho: ["Galinhada", "Arroz de Costela Caldoso"],
+    tachoPessoas: { "Galinhada": "30", "Arroz de Costela Caldoso": "40" },
+  });
+  assert.equal(e.total, 700 + 3550); // 4250
+  assert.equal(e.porPessoa, 10); // só louças
+  assert.ok(e.incluiLoucas);
 });
 
 console.log(`\n${passed} testes passaram.`);

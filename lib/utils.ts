@@ -102,7 +102,17 @@ export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean
   if (!compact && state.sugestaoEntradas?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradas}`);
   if (state.principais.length) lines.push(`• Pratos principais: ${state.principais.join(", ")}`);
   if (!compact && state.sugestaoPrincipais?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipais}`);
-  if (state.tacho.length) lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
+  if (state.tacho.length) {
+    if (state.tacho.length === 2) {
+      const parts = state.tacho.map((v) => {
+        const n = Number(state.tachoPessoas?.[v]) || 0;
+        return `${v} (${n} pessoas)`;
+      });
+      lines.push(`• Tacho/Paellera: ${parts.join("; ")}`);
+    } else {
+      lines.push(`• Tacho/Paellera: ${state.tacho.join(", ")}`);
+    }
+  }
   if (state.feijoada) lines.push(`• Feijoada: ${state.feijoada}`);
   if (state.coffeeBreak) lines.push(`• Coffee Break: ${state.coffeeBreak}`);
   if (!compact && state.coffeeBreakObs?.trim()) lines.push(`• Alterações no coffee: ${state.coffeeBreakObs}`);

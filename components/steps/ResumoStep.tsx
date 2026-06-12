@@ -120,7 +120,12 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     ...(state.sugestaoEntradas ? [{ label: "Sugestão entrada", value: state.sugestaoEntradas }] : []),
     ...(state.principais.length ? [{ label: "Principais", value: state.principais.join(", ") }] : []),
     ...(state.sugestaoPrincipais ? [{ label: "Sugestão principal", value: state.sugestaoPrincipais }] : []),
-    ...(state.tacho.length ? [{ label: "Tacho", value: state.tacho.join(", ") }] : []),
+    ...(state.tacho.length ? [{
+      label: "Tacho",
+      value: state.tacho.length === 2
+        ? state.tacho.map((v) => `${v} (${Number(state.tachoPessoas[v]) || 0} pessoas)`).join(" • ")
+        : state.tacho.join(", "),
+    }] : []),
     ...(state.feijoada ? [{ label: "Feijoada", value: state.feijoada }] : []),
     ...(state.coffeeBreak ? [{ label: "Coffee Break", value: state.coffeeBreak }] : []),
     ...(state.sobremesas.length ? [{ label: "Sobremesas", value: state.sobremesas.join(", ") }] : []),

@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { formatDate } from "./utils";
 import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS } from "./menu";
-import { estimar, formatBRL } from "./orcamento";
+import { estimar, formatBRL, precoDe, pessoasDoTacho } from "./orcamento";
 
 // Quebra "item a; item b." em itens limpos (mesma lógica da tela de coffee break)
 function splitItens(texto: string): string[] {
@@ -167,7 +167,15 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (state.sugestaoEntradas?.trim()) addRow("Sugestão de entrada", state.sugestaoEntradas);
   addDishList("Pratos principais", state.principais);
   if (state.sugestaoPrincipais?.trim()) addRow("Sugestão de principal", state.sugestaoPrincipais);
-  addDishList("Tacho / Paellera", state.tacho);
+  if (state.tacho.length) {
+    addDishLabel("Tacho / Paellera");
+    for (const v of state.tacho) {
+      const n = state.tacho.length === 2 ? pessoasDoTacho(state, v) : 0;
+      const nome = n > 0 ? `${v}  (${n} convidados)` : v;
+      addDishItem(nome, getDescricao(v));
+    }
+    y += 1;
+  }
   if (state.feijoada) {
     addDishLabel("Feijoada");
     addDishItem(getFeijoadaLabel(state.feijoada), getDescricao(state.feijoada));
@@ -215,18 +223,30 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
 
   // ── Estimativa parcial ────────────────────────────────────────────────────
   const est = estimar(state);
-  if (est.porPessoa > 0 && est.pessoas > 0) {
+  if (est.total > 0 && est.pessoas > 0) {
     addSection("Estimativa parcial");
 
-    const ADICIONAL = "Louças e talheres (básico)";
-    const comida = est.itens.filter((i) => i.nome !== ADICIONAL).reduce((s, i) => s + i.preco, 0);
-    const loucas = est.itens.filter((i) => i.nome === ADICIONAL).reduce((s, i) => s + i.preco, 0);
+    const cardapioPorPessoa = est.porPessoa; // já inclui louças (quando incluso) e tacho-único
+    const cardapioTotal = cardapioPorPessoa * est.pessoas;
 
-    if (comida > 0) addRow("Cardápio", `${formatBRL(comida)} por pessoa × ${est.pessoas} = ${formatBRL(comida * est.pessoas)}`);
-    if (loucas > 0) addRow("Louças e talheres", `${formatBRL(loucas)} por pessoa × ${est.pessoas} = ${formatBRL(loucas * est.pessoas)}`);
-    addRow("Total estimado", `${formatBRL(est.porPessoa)} por pessoa × ${est.pessoas} = ${formatBRL(est.total)}`);
+    if (cardapioTotal > 0) {
+      addRow("Cardápio", `${formatBRL(cardapioPorPessoa)} por pessoa × ${est.pessoas} = ${formatBRL(cardapioTotal)}`);
+    }
+
+    // 2 tachos: cada tacho aparece em linha própria com sua quantidade de convidados
+    if (state.tacho.length === 2) {
+      for (const v of state.tacho) {
+        const p = precoDe(v);
+        if (p == null) continue;
+        const n = pessoasDoTacho(state, v);
+        addRow(`Tacho (${v})`, `${formatBRL(p)} × ${n} = ${formatBRL(p * n)}`);
+      }
+    }
+
+    addRow("Total estimado", formatBRL(est.total));
 
     if (est.temItemSemPreco) addRow("Observação", "Há itens selecionados ainda sem valor — o total pode aumentar.");
+    if (est.incluiLoucas) addRow("Obs.", "Inclui adicional básico de louças e talheres (R$ 10/pessoa) — pode variar conforme os pratos.");
     addRow("", "Valor de referência. Não é a proposta final — a Aurum confirma o orçamento.");
   }
 

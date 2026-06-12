@@ -33,10 +33,20 @@ export interface Estimativa {
 
 export const ESTILO_EMPRATADO = "Serviço franco-americano (empratado)";
 
+// Quantas pessoas comem de cada tacho. Com 1 tacho, todos comem dele; com 2, usa a
+// distribuição informada pelo cliente (default: divide o total entre os dois).
+export function pessoasDoTacho(state: FormState, value: string): number {
+  const total = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
+  if (!state.tacho.includes(value)) return 0;
+  if (state.tacho.length === 1) return total;
+  const informado = Number(state.tachoPessoas[value]);
+  return Number.isFinite(informado) && informado >= 0 ? informado : 0;
+}
+
 export function estimar(state: FormState): Estimativa {
   const pessoas = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
   // Por ora, os valores de entradas/principais/sobremesas valem só no empratado.
-  // Tacho e Feijoada têm preço próprio e contam sempre.
+  // Feijoada tem preço próprio e conta para todos os convidados.
   const empratado = state.estilo.includes(ESTILO_EMPRATADO);
 
   let porPessoa = 0;
@@ -59,17 +69,33 @@ export function estimar(state: FormState): Estimativa {
   somar(state.entradas, empratado);
   somar(state.principais, empratado);
   somar(state.sobremesas, empratado);
-  somar(state.tacho, true);
   if (state.feijoada) somar([state.feijoada], true);
 
-  // Louças e talheres na proposta Aurum: adicional por pessoa
+  // Tacho:
+  // • 1 tacho → todos os convidados comem dele, entra em porPessoa (igual à feijoada)
+  // • 2 tachos → o cliente distribui os convidados; cada tacho tem seu subtotal próprio
+  let tachoSubtotal = 0;
+  if (state.tacho.length === 1) {
+    somar(state.tacho, true);
+  } else if (state.tacho.length >= 2) {
+    for (const v of state.tacho) {
+      if (IGNORAR.has(v)) continue;
+      const p = precoDe(v);
+      if (p == null) { temItemSemPreco = true; continue; }
+      tachoSubtotal += p * pessoasDoTacho(state, v);
+      itens.push({ nome: v, preco: p });
+    }
+  }
+
+  // Louças e talheres na proposta Aurum: adicional por pessoa (vale se há comida).
   const incluiLoucas = state.mesas === "Incluir Aurum";
-  if (incluiLoucas && porPessoa > 0) {
+  if (incluiLoucas && (porPessoa > 0 || tachoSubtotal > 0)) {
     porPessoa += ADICIONAL_LOUCAS;
     itens.push({ nome: "Louças e talheres (básico)", preco: ADICIONAL_LOUCAS });
   }
 
-  return { pessoas, porPessoa, total: porPessoa * pessoas, itens, temItemSemPreco, incluiLoucas };
+  const total = porPessoa * pessoas + tachoSubtotal;
+  return { pessoas, porPessoa, total, itens, temItemSemPreco, incluiLoucas };
 }
 
 // Mostra o preço dos itens do cardápio (entradas/principais/sobremesas) só no empratado

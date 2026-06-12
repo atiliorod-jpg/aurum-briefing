@@ -16,6 +16,8 @@ export interface FormState {
   principais: string[];
   sugestaoPrincipais: string;
   tacho: string[];
+  // Quando há 2 tachos, distribui os convidados entre eles. Chave = value do tacho.
+  tachoPessoas: Record<string, string>;
   sobremesas: string[];
   sugestaoSobremesas: string;
   // Direcionamento para cardápio sob medida (estilo "Sugestão da Aurum")
@@ -58,6 +60,7 @@ export const initialState: FormState = {
   principais: [],
   sugestaoPrincipais: "",
   tacho: [],
+  tachoPessoas: {},
   sobremesas: [],
   sugestaoSobremesas: "",
   cardapioPerfil: [],
