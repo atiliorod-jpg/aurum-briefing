@@ -356,7 +356,7 @@ export default function BriefingWizard() {
         <MultiSelectStep
           stepNumber="ENTRADAS"
           title="Entradas."
-          hint="Seleção especial para buffet e volante — até 2 opções."
+          hint="Seleção especial para buffet e volante — até 2 opções. No buffet, o valor por pessoa considera a média dos pratos escolhidos."
           options={ENTRADAS_BUFFET_OPTIONS}
           selected={state.entradasBuffet}
           max={2}
@@ -373,7 +373,7 @@ export default function BriefingWizard() {
         <MultiSelectStep
           stepNumber="PRATO PRINCIPAL"
           title="Prato principal."
-          hint="Seleção especial para buffet e volante — até 2 opções."
+          hint="Seleção especial para buffet e volante — até 2 opções. No buffet, o valor por pessoa considera a média dos pratos escolhidos."
           options={PRINCIPAIS_BUFFET_OPTIONS}
           selected={state.principaisBuffet}
           max={2}
@@ -390,7 +390,7 @@ export default function BriefingWizard() {
         <MultiSelectStep
           stepNumber="SOBREMESAS"
           title="Sobremesas."
-          hint="Seleção especial para buffet e volante — até 2 opções."
+          hint="Seleção especial para buffet e volante — até 2 opções. No buffet, o valor por pessoa considera a média dos pratos escolhidos."
           options={SOBREMESAS_BUFFET_OPTIONS}
           selected={state.sobremesasBuffet}
           max={2}
