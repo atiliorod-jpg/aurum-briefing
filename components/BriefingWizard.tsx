@@ -26,7 +26,8 @@ import {
   ENTRADAS_BUFFET_OPTIONS, PRINCIPAIS_BUFFET_OPTIONS, SOBREMESAS_BUFFET_OPTIONS,
   SOBREMESAS_REGIONAIS_OPTIONS,
 } from "@/lib/menu";
-import { mostrarPrecoCardapio } from "@/lib/orcamento";
+import { mostrarPrecoCardapio, loadOverrides } from "@/lib/orcamento";
+import { aplicarPrecosMenu, comOverride } from "@/lib/overrides";
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
 // Apenas Empratado usa o picker clássico (entradas/principais/sobremesas europeias).
@@ -191,6 +192,12 @@ export default function BriefingWizard() {
   const [reviewMode, setReviewMode] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [direcao, setDirecao] = useState<"fwd" | "back">("fwd");
+  // Incrementa quando os preços do Supabase carregam, forçando recálculo da estimativa
+  const [, setPrecosVersao] = useState(0);
+
+  useEffect(() => {
+    loadOverrides().then(() => setPrecosVersao((v) => v + 1)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     try {
@@ -299,7 +306,7 @@ export default function BriefingWizard() {
 
   const empratado = mostrarPrecoCardapio(state);
   const comPreco = (opts: typeof ENTRADAS_OPTIONS, mostrar: boolean) =>
-    mostrar ? opts : opts.map((o) => ({ ...o, preco: undefined }));
+    mostrar ? aplicarPrecosMenu(opts) : opts.map((o) => ({ ...o, preco: undefined }));
 
   const renderStep = () => {
     switch (currentStep) {
@@ -361,7 +368,7 @@ export default function BriefingWizard() {
           stepNumber="ENTRADAS"
           title="Entradas."
           hint="Seleção especial para buffet e volante — até 2 opções. No buffet, o valor por pessoa considera a média dos pratos escolhidos."
-          options={ENTRADAS_BUFFET_OPTIONS}
+          options={aplicarPrecosMenu(ENTRADAS_BUFFET_OPTIONS)}
           selected={state.entradasBuffet}
           max={2}
           onChange={v => patch({ entradasBuffet: v })}
@@ -378,7 +385,7 @@ export default function BriefingWizard() {
           stepNumber="PRATO PRINCIPAL"
           title="Prato principal."
           hint="Seleção especial para buffet e volante — até 2 opções. No buffet, o valor por pessoa considera a média dos pratos escolhidos."
-          options={PRINCIPAIS_BUFFET_OPTIONS}
+          options={aplicarPrecosMenu(PRINCIPAIS_BUFFET_OPTIONS)}
           selected={state.principaisBuffet}
           max={2}
           onChange={v => patch({ principaisBuffet: v })}
@@ -395,7 +402,7 @@ export default function BriefingWizard() {
           stepNumber="SOBREMESAS"
           title="Sobremesas."
           hint="Seleção especial para buffet e volante — até 2 opções. No buffet, o valor por pessoa considera a média dos pratos escolhidos."
-          options={SOBREMESAS_BUFFET_OPTIONS}
+          options={aplicarPrecosMenu(SOBREMESAS_BUFFET_OPTIONS)}
           selected={state.sobremesasBuffet}
           max={2}
           onChange={v => patch({ sobremesasBuffet: v })}
@@ -412,7 +419,7 @@ export default function BriefingWizard() {
           stepNumber="SOBREMESAS"
           title="Sobremesas."
           hint="Selecione até 2 opções — sabores regionais nordestinos."
-          options={SOBREMESAS_REGIONAIS_OPTIONS}
+          options={aplicarPrecosMenu(SOBREMESAS_REGIONAIS_OPTIONS)}
           selected={state.sobremesasRegionais}
           max={2}
           onChange={v => patch({ sobremesasRegionais: v })}
@@ -434,7 +441,7 @@ export default function BriefingWizard() {
             hint={podeDois
               ? "Pratos servidos diretamente do tacho, ao centro da mesa. Selecione até 2 — você distribui os convidados entre eles."
               : "Pratos servidos diretamente do tacho, ao centro da mesa. Selecione 1 (a 2ª opção fica disponível para eventos com mais de 40 convidados)."}
-            options={TACHO_OPTIONS}
+            options={aplicarPrecosMenu(TACHO_OPTIONS)}
             selected={state.tacho}
             max={podeDois ? 2 : 1}
             onChange={setTacho}
@@ -470,7 +477,7 @@ export default function BriefingWizard() {
           stepNumber="FEIJOADA"
           title="Formato da Feijoada."
           hint="Ambas as opções incluem todos os acompanhamentos clássicos: arroz, couve refogada, farofa de manteiga, laranja, abacaxi e vinagrete."
-          options={FEIJOADA_OPTIONS}
+          options={aplicarPrecosMenu(FEIJOADA_OPTIONS)}
           selected={state.feijoada}
           onChange={v => patch({ feijoada: v })}
           footer={<EstimativaCard state={state} />}
@@ -558,7 +565,7 @@ export default function BriefingWizard() {
                         <p className="text-xs text-gray-500 mt-0.5">{kit.desc}</p>
                       </div>
                       <span className="text-sm font-bold text-[#C9A24B] ml-3 flex-shrink-0">
-                        R$ {kit.preco}/pessoa
+                        R$ {comOverride("kit:" + kit.value, kit.preco)}/pessoa
                       </span>
                     </div>
                   </button>

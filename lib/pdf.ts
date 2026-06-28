@@ -3,6 +3,7 @@ import { FormState } from "./types";
 import { formatDate } from "./utils";
 import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS, BEBIDAS_KITS } from "./menu";
 import { estimar, formatBRL, precoDe, pessoasDoTacho } from "./orcamento";
+import { comOverride } from "./overrides";
 
 // Quebra "item a; item b." em itens limpos (mesma lógica da tela de coffee break)
 function splitItens(texto: string): string[] {
@@ -243,7 +244,7 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (!isCoffeeOnly && state.bebidas) {
     if (state.bebidas === "Incluir Aurum" && state.bebidasKit) {
       const kit = BEBIDAS_KITS.find((k) => k.value === state.bebidasKit);
-      const kitDesc = kit ? ` — ${kit.label}: ${kit.desc} (${formatBRL(kit.preco)}/pessoa)` : "";
+      const kitDesc = kit ? ` — ${kit.label}: ${kit.desc} (${formatBRL(comOverride("kit:" + kit.value, kit.preco))}/pessoa)` : "";
       addRow("Bebidas", `Incluir Aurum${kitDesc}`);
     } else {
       addRow("Bebidas", state.bebidas);

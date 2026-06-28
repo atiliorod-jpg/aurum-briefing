@@ -1,5 +1,6 @@
 import { FormState } from "./types";
 import { BEBIDAS_KITS } from "./menu";
+import { comOverride } from "./overrides";
 
 export function formatDate(iso: string): string {
   if (!iso) return "";
@@ -146,7 +147,7 @@ export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean
       ? BEBIDAS_KITS.find((k) => k.value === state.bebidasKit)
       : undefined;
     const bebidasTxt = kit
-      ? `Incluir Aurum — ${kit.label}: ${kit.desc} (R$ ${kit.preco}/pessoa)`
+      ? `Incluir Aurum — ${kit.label}: ${kit.desc} (R$ ${comOverride("kit:" + kit.value, kit.preco)}/pessoa)`
       : state.bebidas;
     lines.push(`• Bebidas: ${bebidasTxt}`);
   }
