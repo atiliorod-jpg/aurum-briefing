@@ -102,6 +102,10 @@ export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean
   if (!compact && state.sugestaoEntradas?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradas}`);
   if (state.principais.length) lines.push(`• Pratos principais: ${state.principais.join(", ")}`);
   if (!compact && state.sugestaoPrincipais?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipais}`);
+  if (state.entradasBuffet?.length) lines.push(`• Entradas (buffet): ${state.entradasBuffet.join(", ")}`);
+  if (!compact && state.sugestaoEntradasBuffet?.trim()) lines.push(`• Sugestão de entrada: ${state.sugestaoEntradasBuffet}`);
+  if (state.principaisBuffet?.length) lines.push(`• Principais (buffet): ${state.principaisBuffet.join(", ")}`);
+  if (!compact && state.sugestaoPrincipaisBuffet?.trim()) lines.push(`• Sugestão de principal: ${state.sugestaoPrincipaisBuffet}`);
   if (state.tacho.length) {
     if (state.tacho.length === 2) {
       const parts = state.tacho.map((v) => {
@@ -118,6 +122,10 @@ export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean
   if (!compact && state.coffeeBreakObs?.trim()) lines.push(`• Alterações no coffee: ${state.coffeeBreakObs}`);
   if (state.sobremesas.length) lines.push(`• Sobremesas: ${state.sobremesas.join(", ")}`);
   if (!compact && state.sugestaoSobremesas?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesas}`);
+  if (state.sobremesasBuffet?.length) lines.push(`• Sobremesas (buffet): ${state.sobremesasBuffet.join(", ")}`);
+  if (!compact && state.sugestaoSobremesasBuffet?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesasBuffet}`);
+  if (state.sobremesasRegionais?.length) lines.push(`• Sobremesas regionais: ${state.sobremesasRegionais.join(", ")}`);
+  if (!compact && state.sugestaoSobremesasRegionais?.trim()) lines.push(`• Sugestão de sobremesa: ${state.sugestaoSobremesasRegionais}`);
 
   // Direcionamento de cardápio sob medida (Sugestão da Aurum)
   if (state.estilo.includes("Sugestão da Aurum")) {

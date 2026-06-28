@@ -163,10 +163,16 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   addRow("Estilo", state.estilo.join(", "));
 
   addSection("Cardápio");
+  // Cardápio clássico (empratado + tacho)
   addDishList("Entradas", state.entradas);
   if (state.sugestaoEntradas?.trim()) addRow("Sugestão de entrada", state.sugestaoEntradas);
   addDishList("Pratos principais", state.principais);
   if (state.sugestaoPrincipais?.trim()) addRow("Sugestão de principal", state.sugestaoPrincipais);
+  // Cardápio buffet / volante
+  addDishList("Entradas (Buffet / Volante)", state.entradasBuffet ?? []);
+  if (state.sugestaoEntradasBuffet?.trim()) addRow("Sugestão de entrada", state.sugestaoEntradasBuffet);
+  addDishList("Pratos principais (Buffet / Volante)", state.principaisBuffet ?? []);
+  if (state.sugestaoPrincipaisBuffet?.trim()) addRow("Sugestão de principal", state.sugestaoPrincipaisBuffet);
   if (state.tacho.length) {
     addDishLabel("Tacho / Paellera");
     for (const v of state.tacho) {
@@ -198,6 +204,10 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (state.coffeeBreakObs?.trim()) addRow("Alterações no coffee", state.coffeeBreakObs);
   addDishList("Sobremesas", state.sobremesas);
   if (state.sugestaoSobremesas?.trim()) addRow("Sugestão de sobremesa", state.sugestaoSobremesas);
+  addDishList("Sobremesas (Buffet / Volante)", state.sobremesasBuffet ?? []);
+  if (state.sugestaoSobremesasBuffet?.trim()) addRow("Sugestão de sobremesa", state.sugestaoSobremesasBuffet);
+  addDishList("Sobremesas regionais", state.sobremesasRegionais ?? []);
+  if (state.sugestaoSobremesasRegionais?.trim()) addRow("Sugestão de sobremesa", state.sugestaoSobremesasRegionais);
 
   // Direcionamento de cardápio sob medida (Sugestão da Aurum)
   if (state.estilo.includes("Sugestão da Aurum")) {
