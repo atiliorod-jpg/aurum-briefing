@@ -16,11 +16,11 @@ export const LOGISTICA_MIN_KM         = 5;     // distâncias abaixo disso não 
 
 // ── Fórmula de headcount (ajuste de preço por número de convidados) ──────────
 export const FORMULA_BASE_PESSOAS    = 25;     // abaixo disso o preço sobe, acima permanece ou cai
-export const FORMULA_TAXA_ACRESCIMO  = 0.03;   // +3% por pessoa abaixo da base
-export const FORMULA_CAP_ACRESCIMO   = 0.50;   // máximo de acréscimo: +50%
+export const FORMULA_TAXA_ACRESCIMO  = 0.02;   // +2% por pessoa abaixo da base
+export const FORMULA_CAP_ACRESCIMO   = 0.30;   // máximo de acréscimo: +30%
 export const FORMULA_INICIO_DESCONTO = 70;     // a partir daqui o preço começa a cair
-export const FORMULA_TAXA_DESCONTO   = 0.005;  // 0,5% por pessoa acima de 70
-export const FORMULA_CAP_DESCONTO    = 0.20;   // máximo de desconto: -20%
+export const FORMULA_TAXA_DESCONTO   = 0.002;  // 0,2% por pessoa acima de 70
+export const FORMULA_CAP_DESCONTO    = 0.12;   // máximo de desconto: -12%
 
 // ── Custo operacional (equipe adicional de apoio) ─────────────────────────────
 export const CUSTO_OP_POR_BLOCO  = 200; // R$ adicionado a cada bloco

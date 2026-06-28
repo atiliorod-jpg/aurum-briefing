@@ -14,15 +14,27 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-async function fetchCoordenadas(cep: string): Promise<{ lat: number; lng: number } | null> {
+async function fetchCoordenadas(cep: string, cidade?: string, uf?: string): Promise<{ lat: number; lng: number } | null> {
+  const HEADERS = { "User-Agent": "AurumBriefingForm/1.0 aurumbuffet.eventos@gmail.com" };
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?postalcode=${cep}&country=Brazil&format=json&limit=1`,
-      { headers: { "User-Agent": "AurumBriefingForm/1.0 aurumbuffet.eventos@gmail.com" } },
+      { headers: HEADERS },
     );
     const data = await res.json();
-    if (!data[0]) return null;
-    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+
+    // Fallback: busca pela cidade — mais confiável que CEP no Nominatim
+    if (cidade && uf) {
+      const q = encodeURIComponent(`${cidade}, ${uf}, Brasil`);
+      const res2 = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
+        { headers: HEADERS },
+      );
+      const data2 = await res2.json();
+      if (data2[0]) return { lat: parseFloat(data2[0].lat), lng: parseFloat(data2[0].lon) };
+    }
+    return null;
   } catch {
     return null;
   }
@@ -45,20 +57,23 @@ export default function LocalStep({ state, onChange }: Props) {
       setBuscando(true);
       setErroCep(false);
 
-      // Lookups em paralelo: endereço (ViaCEP) + coordenadas (Nominatim)
-      const [viaCepRes, coords] = await Promise.all([
-        fetch(`https://viacep.com.br/ws/${digits}/json/`).then((r) => r.json()),
-        fetchCoordenadas(digits),
-      ]);
+      // 1. ViaCEP primeiro (para endereço + cidade como fallback do Nominatim)
+      const viaCepRes = await fetch(`https://viacep.com.br/ws/${digits}/json/`).then((r) => r.json());
+      let cidade: string | undefined;
+      let uf: string | undefined;
 
       if (viaCepRes.erro) {
         setErroCep(true);
       } else {
+        cidade = viaCepRes.localidade;
+        uf = viaCepRes.uf;
         const partes = [viaCepRes.logradouro, viaCepRes.bairro, `${viaCepRes.localidade}/${viaCepRes.uf}`].filter(Boolean);
         const base = partes.join(", ");
         onChange({ endereco: base ? `${base}, ` : state.endereco });
       }
 
+      // 2. Coordenadas: tenta CEP, se não achar usa a cidade (muito mais confiável)
+      const coords = await fetchCoordenadas(digits, cidade, uf);
       if (coords) {
         const dist = haversineKm(AURUM_LAT, AURUM_LNG, coords.lat, coords.lng);
         onChange({ distanciaKm: Math.round(dist * 10) / 10 });

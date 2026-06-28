@@ -26,6 +26,7 @@ export default function MultiSelectStep({
   suggestion, onSuggestionChange, priceNote, exclusiveValues = [], footer,
 }: MultiSelectStepProps) {
   const isExclusive = (v: string) => exclusiveValues.includes(v);
+  const hasExclusiveSelected = selected.some((v) => isExclusive(v));
 
   const toggle = (value: string) => {
     const has = selected.includes(value);
@@ -63,6 +64,7 @@ export default function MultiSelectStep({
             selected={selected.includes(o.value)}
             onClick={() => toggle(o.value)}
             variant="multi"
+            disabled={hasExclusiveSelected && !selected.includes(o.value)}
           />
         ))}
       </div>

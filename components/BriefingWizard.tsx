@@ -23,35 +23,58 @@ import EstimativaCard from "@/components/ui/EstimativaCard";
 import {
   ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS,
   FEIJOADA_OPTIONS, BEBIDAS_KITS,
+  ENTRADAS_BUFFET_OPTIONS, PRINCIPAIS_BUFFET_OPTIONS, SOBREMESAS_BUFFET_OPTIONS,
+  SOBREMESAS_REGIONAIS_OPTIONS,
 } from "@/lib/menu";
 import { mostrarPrecoCardapio } from "@/lib/orcamento";
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
-// Estilos cujo cardápio é escolhido item a item (entradas/principais/sobremesas).
-// Jantar Harmonizado e Jantar Temático têm steps próprios — não usam o picker.
-const ESTILOS_PICKER = [
-  "Serviço à americana (buffet)", "Volante", "Serviço franco-americano (empratado)",
-];
+// Apenas Empratado usa o picker clássico (entradas/principais/sobremesas europeias).
+// Buffet e Volante têm cardápio próprio (entradasBuffet/principaisBuffet/sobremesasBuffet).
+// Tacho e Feijoada usam sobremesasRegionais em vez das sobremesas europeias.
+const ESTILOS_PICKER = ["Serviço franco-americano (empratado)"];
+const ESTILOS_BUFFET_VOLANTE = ["Serviço à americana (buffet)", "Volante"];
 
 function resolveFluxo(state: FormState): StepName[] {
   const e = state.estilo;
-  const hasPicker      = e.some((x) => ESTILOS_PICKER.includes(x));
-  const hasTacho       = e.includes("Tacho / Paellera");
-  const hasFeijoada    = e.includes("Feijoada Completa");
-  const hasCoffee      = e.includes("Coffee Break");
-  const hasSugestao    = e.includes("Sugestão da Aurum");
-  const hasHarmonizado = e.includes("Jantar Harmonizado");
-  const hasTematico    = e.includes("Jantar Temático");
+  const hasEmpratado     = e.includes("Serviço franco-americano (empratado)");
+  const hasBuffetVolante = e.some((x) => ESTILOS_BUFFET_VOLANTE.includes(x));
+  const hasTacho         = e.includes("Tacho / Paellera");
+  const hasFeijoada      = e.includes("Feijoada Completa");
+  const hasCoffee        = e.includes("Coffee Break");
+  const hasSugestao      = e.includes("Sugestão da Aurum");
+  const hasHarmonizado   = e.includes("Jantar Harmonizado");
+  const hasTematico      = e.includes("Jantar Temático");
 
   const inicio: StepName[] = ["welcome", "tipo", "quando", "local", "convidados", "estilo"];
 
   const menu: StepName[] = [];
-  if (hasPicker || hasTacho) menu.push("entradas");
-  if (hasPicker) menu.push("principais");
+
+  // Entradas e principais clássicos (empratado + tacho)
+  if (hasEmpratado || hasTacho) menu.push("entradas");
+  if (hasEmpratado) menu.push("principais");
+
+  // Cardápio exclusivo buffet / volante
+  if (hasBuffetVolante) menu.push("entradasBuffet");
+  if (hasBuffetVolante) menu.push("principaisBuffet");
+
+  // Tacho e Feijoada
   if (hasTacho) menu.push("tacho");
   if (hasFeijoada) menu.push("feijoada");
+
+  // Coffee Break
   if (hasCoffee) menu.push("coffeeBreak");
-  if (hasPicker || hasTacho || hasFeijoada) menu.push("sobremesas");
+
+  // Sobremesas: um único step por evento (prioridade: empratado > buffet > regional)
+  if (hasEmpratado) {
+    menu.push("sobremesas");              // europeias/refinadas
+  } else if (hasBuffetVolante) {
+    menu.push("sobremesasBuffet");        // visuais/elaboradas
+  } else if (hasTacho || hasFeijoada) {
+    menu.push("sobremesasRegionais");     // regionais nordestinas
+  }
+
+  // Estilos exclusivos
   if (hasSugestao) menu.push("sugestao");
   if (hasHarmonizado) menu.push("harmonizado");
   if (hasTematico) menu.push("temaJantar");
@@ -75,6 +98,10 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "estilo": return state.estilo.length > 0;
     case "entradas": return state.entradas.length > 0;
     case "principais": return state.principais.length > 0;
+    case "entradasBuffet": return state.entradasBuffet.length > 0;
+    case "principaisBuffet": return state.principaisBuffet.length > 0;
+    case "sobremesasBuffet": return state.sobremesasBuffet.length > 0;
+    case "sobremesasRegionais": return state.sobremesasRegionais.length > 0;
     case "tacho": {
       if (state.tacho.length === 0) return false;
       if (state.tacho.length === 2) {
@@ -112,6 +139,10 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "estilo": return "Escolha ao menos um estilo de serviço.";
     case "entradas": return 'Selecione uma opção (ou "Sem entradas") para continuar.';
     case "principais": return "Selecione ao menos um prato principal.";
+    case "entradasBuffet": return 'Selecione uma opção (ou "Sem entradas") para continuar.';
+    case "principaisBuffet": return "Selecione ao menos um prato principal.";
+    case "sobremesasBuffet": return 'Selecione uma opção (ou "Sem sobremesa") para continuar.';
+    case "sobremesasRegionais": return "Selecione uma sobremesa para continuar.";
     case "tacho":
       if (state.tacho.length === 0) return "Selecione ao menos um prato de tacho/paellera.";
       return "Distribua todos os convidados entre os dois tachos (a soma precisa bater).";
@@ -204,16 +235,34 @@ export default function BriefingWizard() {
     setState((s) => {
       const next: FormState = { ...s, estilo };
       const has = (v: string) => estilo.includes(v);
-      const hasPicker = estilo.some((x) => ESTILOS_PICKER.includes(x));
+      const hasEmpratado     = has("Serviço franco-americano (empratado)");
+      const hasBuffetVolante = estilo.some((x) => ESTILOS_BUFFET_VOLANTE.includes(x));
+      const hasTacho         = has("Tacho / Paellera");
+      const hasFeijoada      = has("Feijoada Completa");
+
       if (!has("Sugestão da Aurum")) { next.cardapioPerfil = []; next.cardapioNaoPodeFaltar = ""; next.cardapioEvitar = ""; }
-      if (!has("Tacho / Paellera")) { next.tacho = []; next.tachoPessoas = {}; }
-      if (!has("Feijoada Completa")) next.feijoada = null;
+      if (!hasTacho) { next.tacho = []; next.tachoPessoas = {}; }
+      if (!hasFeijoada) next.feijoada = null;
       if (!has("Coffee Break")) { next.coffeeBreak = null; next.coffeeBreakObs = ""; }
       if (!has("Jantar Harmonizado")) { next.harmonizadoCursos = null; next.harmonizadoVinhos = null; next.harmonizadoObs = ""; }
       if (!has("Jantar Temático")) { next.temaJantar = null; next.temaJantarProbs = []; next.temaJantarNaoPodeFaltar = ""; next.temaJantarEvitar = ""; }
-      if (!hasPicker) { next.principais = []; next.sugestaoPrincipais = ""; }
-      if (!hasPicker && !has("Tacho / Paellera")) { next.entradas = []; next.sugestaoEntradas = ""; }
-      if (!hasPicker && !has("Tacho / Paellera") && !has("Feijoada Completa")) { next.sobremesas = []; next.sugestaoSobremesas = ""; }
+
+      // Cardápio clássico (empratado)
+      if (!hasEmpratado) { next.principais = []; next.sugestaoPrincipais = ""; next.sobremesas = []; next.sugestaoSobremesas = ""; }
+      if (!hasEmpratado && !hasTacho) { next.entradas = []; next.sugestaoEntradas = ""; }
+
+      // Cardápio buffet / volante
+      if (!hasBuffetVolante) {
+        next.entradasBuffet = []; next.sugestaoEntradasBuffet = "";
+        next.principaisBuffet = []; next.sugestaoPrincipaisBuffet = "";
+        next.sobremesasBuffet = []; next.sugestaoSobremesasBuffet = "";
+      }
+
+      // Sobremesas regionais (só quando Tacho ou Feijoada presentes e sem Empratado/Buffet)
+      if (hasEmpratado || hasBuffetVolante || (!hasTacho && !hasFeijoada)) {
+        next.sobremesasRegionais = []; next.sugestaoSobremesasRegionais = "";
+      }
+
       return next;
     });
   }, []);
@@ -296,6 +345,73 @@ export default function BriefingWizard() {
           suggestion={state.sugestaoPrincipais}
           onSuggestionChange={v => patch({ sugestaoPrincipais: v })}
           exclusiveValues={["Sugestão do chef"]}
+          priceNote
+          footer={<EstimativaCard state={state} />}
+        />
+      );
+
+      case "entradasBuffet": return (
+        <MultiSelectStep
+          stepNumber="ENTRADAS"
+          title="Entradas."
+          hint="Seleção especial para buffet e volante — até 2 opções."
+          options={ENTRADAS_BUFFET_OPTIONS}
+          selected={state.entradasBuffet}
+          max={2}
+          onChange={v => patch({ entradasBuffet: v })}
+          suggestion={state.sugestaoEntradasBuffet}
+          onSuggestionChange={v => patch({ sugestaoEntradasBuffet: v })}
+          exclusiveValues={["Sem entradas buffet"]}
+          priceNote
+          footer={<EstimativaCard state={state} />}
+        />
+      );
+
+      case "principaisBuffet": return (
+        <MultiSelectStep
+          stepNumber="PRATO PRINCIPAL"
+          title="Prato principal."
+          hint="Seleção especial para buffet e volante — até 2 opções."
+          options={PRINCIPAIS_BUFFET_OPTIONS}
+          selected={state.principaisBuffet}
+          max={2}
+          onChange={v => patch({ principaisBuffet: v })}
+          suggestion={state.sugestaoPrincipaisBuffet}
+          onSuggestionChange={v => patch({ sugestaoPrincipaisBuffet: v })}
+          exclusiveValues={["Sugestão do chef buffet"]}
+          priceNote
+          footer={<EstimativaCard state={state} />}
+        />
+      );
+
+      case "sobremesasBuffet": return (
+        <MultiSelectStep
+          stepNumber="SOBREMESAS"
+          title="Sobremesas."
+          hint="Seleção especial para buffet e volante — até 2 opções."
+          options={SOBREMESAS_BUFFET_OPTIONS}
+          selected={state.sobremesasBuffet}
+          max={2}
+          onChange={v => patch({ sobremesasBuffet: v })}
+          suggestion={state.sugestaoSobremesasBuffet}
+          onSuggestionChange={v => patch({ sugestaoSobremesasBuffet: v })}
+          exclusiveValues={["Sem sobremesa buffet"]}
+          priceNote
+          footer={<EstimativaCard state={state} />}
+        />
+      );
+
+      case "sobremesasRegionais": return (
+        <MultiSelectStep
+          stepNumber="SOBREMESAS"
+          title="Sobremesas."
+          hint="Selecione até 2 opções — sabores regionais nordestinos."
+          options={SOBREMESAS_REGIONAIS_OPTIONS}
+          selected={state.sobremesasRegionais}
+          max={2}
+          onChange={v => patch({ sobremesasRegionais: v })}
+          suggestion={state.sugestaoSobremesasRegionais}
+          onSuggestionChange={v => patch({ sugestaoSobremesasRegionais: v })}
           priceNote
           footer={<EstimativaCard state={state} />}
         />

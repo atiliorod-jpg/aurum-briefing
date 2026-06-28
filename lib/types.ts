@@ -35,6 +35,16 @@ export interface FormState {
   temaJantarProbs: string[];
   temaJantarNaoPodeFaltar: string;
   temaJantarEvitar: string;
+  // Cardápio Buffet / Volante
+  entradasBuffet: string[];
+  sugestaoEntradasBuffet: string;
+  principaisBuffet: string[];
+  sugestaoPrincipaisBuffet: string;
+  sobremesasBuffet: string[];
+  sugestaoSobremesasBuffet: string;
+  // Sobremesas Regionais (Feijoada + Tacho)
+  sobremesasRegionais: string[];
+  sugestaoSobremesasRegionais: string;
   cozinha: string | null;
   mesas: string | null;
   bebidas: string | null;
@@ -85,6 +95,14 @@ export const initialState: FormState = {
   temaJantarProbs: [],
   temaJantarNaoPodeFaltar: "",
   temaJantarEvitar: "",
+  entradasBuffet: [],
+  sugestaoEntradasBuffet: "",
+  principaisBuffet: [],
+  sugestaoPrincipaisBuffet: "",
+  sobremesasBuffet: [],
+  sugestaoSobremesasBuffet: "",
+  sobremesasRegionais: [],
+  sugestaoSobremesasRegionais: "",
   cozinha: null,
   mesas: null,
   bebidas: null,
@@ -109,6 +127,10 @@ export type StepName =
   | "estilo"
   | "entradas"
   | "principais"
+  | "entradasBuffet"
+  | "principaisBuffet"
+  | "sobremesasBuffet"
+  | "sobremesasRegionais"
   | "tacho"
   | "sobremesas"
   | "sugestao"

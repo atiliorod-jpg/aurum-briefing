@@ -76,10 +76,14 @@ export const TEMAS_JANTAR: TemaJantar[] = [
     classicos: ["Bruschetta al pomodoro", "Risotto ai Funghi Porcini",
                 "Pappardelle al Ragù", "Saltimbocca alla Romana",
                 "Piccata di Vitello", "Tiramisù", "Panna Cotta"] },
-  { value: "Argentina", label: "Culinária Argentina", bandeira: "🇦🇷",
-    classicos: ["Empanadas (carne/frango/queijo)", "Costela bovina na brasa (Asado)",
-                "Chorizo parrillero", "Provoleta grelhada com ervas",
-                "Mollejas grelhadas", "Chimichurri", "Alfajores com dulce de leche"] },
+  { value: "Argentina", label: "Argentina — Churrasco & Parrilla", bandeira: "🇦🇷",
+    classicos: [
+      "Empanadas (carne / frango / queijo)", "Costela bovina na brasa (Asado)",
+      "Bife de Chorizo na parrilla", "Chorizo parrillero", "Provoleta grelhada",
+      "Mollejas", "Vacío (corte argentino)", "Morcilla",
+      "Chimichurri", "Papas bravas argentinas",
+      "Alfajores com dulce de leche", "Panqueque de dulce de leche",
+    ] },
   { value: "Espanhola", label: "Culinária Espanhola", bandeira: "🇪🇸",
     classicos: ["Tapas sortidas (croquetas, patatas bravas, pan con tomate)",
                 "Paella de frutos do mar", "Gazpacho andaluz",
@@ -180,9 +184,56 @@ export const SOBREMESAS_OPTIONS: MenuOption[] = [
   { value: "Sem sobremesa", label: "Sem sobremesa", desc: "" },
 ];
 
+// ── Cardápio Buffet / Volante ────────────────────────────────────────────────
+// Entradas exclusivas para os serviços de buffet e volante
+export const ENTRADAS_BUFFET_OPTIONS: MenuOption[] = [
+  { value: "Tábua de Queijo Coalho",                label: "Tábua de Queijo Coalho",                desc: "Queijo coalho grelhado na hora com mel, ervas e frutas secas.",                                  preco: 35 },
+  { value: "Bolinho de Aratu",                       label: "Bolinho de Aratu",                       desc: "Bolinho crocante de aratu temperado com coentro, servido com molho de coentro.",                 preco: 40 },
+  { value: "Salada de Polvo com Vinagrete de Maracujá", label: "Salada de Polvo com Vinagrete de Maracujá", desc: "Polvo cozido no limão com vinagrete de maracujá, cebola roxa e ervas.",                preco: 48 },
+  { value: "Carpaccio de Abobrinha com Burrata",    label: "Carpaccio de Abobrinha com Burrata",    desc: "Finas lâminas de abobrinha grelhada com burrata cremosa e azeite trufado.",                      preco: 38 },
+  { value: "Mini Coxinha de Carne de Sol",           label: "Mini Coxinha de Carne de Sol",           desc: "Coxinha artesanal recheada com carne de sol desfiada e requeijão.",                            preco: 32 },
+  { value: "Bruschetta de Goiabada",                 label: "Bruschetta de Goiabada",                 desc: "Torrada artesanal com goiabada cremosa, queijo brie e folhas de manjericão.",                   preco: 28 },
+  { value: "Ceviche de Camarão em Colher",           label: "Ceviche de Camarão em Colher",           desc: "Camarão marinado em limão, leite de coco, coentro e pimenta. Servido em colher.",              preco: 42 },
+  { value: "Sem entradas buffet",                    label: "Sem entradas / Sugestão do chef",        desc: "" },
+];
+
+// Pratos principais exclusivos para buffet e volante
+export const PRINCIPAIS_BUFFET_OPTIONS: MenuOption[] = [
+  { value: "Picanha na Brasa com Farofa de Rapadura", label: "Picanha na Brasa com Farofa de Rapadura", desc: "Picanha grelhada na brasa com farofa crocante de rapadura e manteiga de garrafa.",          preco: 58 },
+  { value: "Frango Caipira ao Coco e Dendê",         label: "Frango Caipira ao Coco e Dendê",         desc: "Frango caipira cozido em molho cremoso de coco e dendê com temperos nordestinos.",           preco: 42 },
+  { value: "Lombo Suíno com Crosta de Castanha",     label: "Lombo Suíno com Crosta de Castanha",     desc: "Lombo assado com crosta crocante de castanha-de-caju e mel de engenho.",                     preco: 48 },
+  { value: "Camarão na Moranga em Mini Porções",     label: "Camarão na Moranga em Mini Porções",     desc: "Camarões cremosos ao molho de moranga servidos em miniabóboras individuais.",                 preco: 60 },
+  { value: "Risoto de Queijo Coalho com Carne de Sol", label: "Risoto de Queijo Coalho com Carne de Sol", desc: "Risoto cremoso de queijo coalho com carne de sol desfiada e crispy.",                  preco: 50 },
+  { value: "Filé de Peixe Branco ao Molho de Maracujá", label: "Filé de Peixe Branco ao Molho de Maracujá", desc: "Filé grelhado com molho agridoce de maracujá e alcaparras.",                       preco: 52 },
+  { value: "Costelinha de Porco ao Mel e Limão Galego", label: "Costelinha de Porco ao Mel e Limão Galego", desc: "Costelinha assada e finalizada na brasa com glaze de mel e limão galego.",            preco: 50 },
+  { value: "Sugestão do chef buffet",                label: "✨ Deixar a sugestão com o chef",        desc: "O chef seleciona o prato principal ideal conforme o perfil e estilo do seu evento." },
+];
+
+// Sobremesas exclusivas para buffet e volante
+export const SOBREMESAS_BUFFET_OPTIONS: MenuOption[] = [
+  { value: "Mini Bolo de Rolo com Chantilly",        label: "Mini Bolo de Rolo com Chantilly",        desc: "Fatias individuais do clássico bolo de rolo pernambucano com chantilly artesanal.",           preco: 22 },
+  { value: "Brigadeiro Gourmet de Rapadura",         label: "Brigadeiro Gourmet de Rapadura",         desc: "Brigadeiro cremoso de chocolate com calda de rapadura e granulado artesanal.",               preco: 18 },
+  { value: "Mousse de Goiabada com Queijo",          label: "Mousse de Goiabada com Queijo",          desc: "Mousse leve de goiabada com camada de creme de queijo coalho.",                              preco: 24 },
+  { value: "Pavê de Limão Galego",                   label: "Pavê de Limão Galego",                   desc: "Sobremesa cremosa de limão galego com biscoito artesanal e raspas cítricas.",               preco: 25 },
+  { value: "Cocadinha Cremosa em Colher",            label: "Cocadinha Cremosa em Colher",            desc: "Cocada mole com coco fresco ralado, servida em colher individual.",                          preco: 20 },
+  { value: "Sem sobremesa buffet",                   label: "Sem sobremesa / Sugestão do chef",       desc: "" },
+];
+
+// ── Sobremesas Regionais (Feijoada + Tacho) ──────────────────────────────────
+export const SOBREMESAS_REGIONAIS_OPTIONS: MenuOption[] = [
+  { value: "Bolo de Rolo Tradicional",               label: "Bolo de Rolo Tradicional",               desc: "Clássico pernambucano de massa fininha enrolada com goiabada.",                              preco: 22 },
+  { value: "Cartola",                                label: "Cartola",                                desc: "Banana frita na manteiga com queijo coalho derretido e canela — puro Nordeste.",             preco: 24 },
+  { value: "Mungunzá Cremoso",                       label: "Mungunzá Cremoso",                       desc: "Milho cozido em leite de coco, canela e cravo — sobremesa de festa nordestina.",            preco: 18 },
+  { value: "Cocada Assada",                          label: "Cocada Assada",                          desc: "Cocada dourada no forno com coco fresco ralado e leite condensado.",                        preco: 20 },
+  { value: "Doce de Banana com Queijo Coalho",       label: "Doce de Banana com Queijo Coalho",       desc: "Fatias de banana caramelizada com queijo coalho grelhado e mel.",                           preco: 22 },
+  { value: "Pudim de Tapioca com Coco",              label: "Pudim de Tapioca com Coco",              desc: "Pudim delicado de tapioca com leite de coco e calda de caramelo.",                          preco: 25 },
+];
+
 // Busca a descrição de uma preparação pelo seu "value" (em qualquer categoria).
 const TODAS_OPCOES: MenuOption[] = [
   ...ENTRADAS_OPTIONS, ...PRINCIPAIS_OPTIONS, ...TACHO_OPTIONS, ...SOBREMESAS_OPTIONS, ...FEIJOADA_OPTIONS,
+  ...ENTRADAS_BUFFET_OPTIONS, ...PRINCIPAIS_BUFFET_OPTIONS, ...SOBREMESAS_BUFFET_OPTIONS,
+  ...SOBREMESAS_REGIONAIS_OPTIONS,
 ];
 export function getDescricao(value: string): string {
   return TODAS_OPCOES.find((o) => o.value === value)?.desc || "";

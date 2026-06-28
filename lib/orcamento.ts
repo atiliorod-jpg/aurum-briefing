@@ -1,6 +1,8 @@
 import { FormState } from "./types";
 import {
   ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS, FEIJOADA_OPTIONS,
+  ENTRADAS_BUFFET_OPTIONS, PRINCIPAIS_BUFFET_OPTIONS, SOBREMESAS_BUFFET_OPTIONS,
+  SOBREMESAS_REGIONAIS_OPTIONS,
   BEBIDAS_KITS, COFFEE_PRECOS, MenuOption,
 } from "./menu";
 import {
@@ -19,6 +21,8 @@ export function formatBRL(n: number): string {
 
 const TABELA: MenuOption[] = [
   ...ENTRADAS_OPTIONS, ...PRINCIPAIS_OPTIONS, ...TACHO_OPTIONS, ...SOBREMESAS_OPTIONS, ...FEIJOADA_OPTIONS,
+  ...ENTRADAS_BUFFET_OPTIONS, ...PRINCIPAIS_BUFFET_OPTIONS, ...SOBREMESAS_BUFFET_OPTIONS,
+  ...SOBREMESAS_REGIONAIS_OPTIONS,
 ];
 
 export function precoDe(value: string): number | undefined {
@@ -26,7 +30,10 @@ export function precoDe(value: string): number | undefined {
 }
 
 // Itens "neutros" que não entram no cálculo
-const IGNORAR = new Set(["Sem entradas", "Sem sobremesa", "Sem tacho", "Sugestão do chef"]);
+const IGNORAR = new Set([
+  "Sem entradas", "Sem sobremesa", "Sem tacho", "Sugestão do chef",
+  "Sem entradas buffet", "Sugestão do chef buffet", "Sem sobremesa buffet",
+]);
 
 export interface Estimativa {
   pessoas: number;
@@ -83,6 +90,9 @@ export function calcCustoLogistica(distanciaKm: number | null): number {
 export function estimar(state: FormState): Estimativa {
   const pessoas = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
   const empratado = state.estilo.includes(ESTILO_EMPRATADO);
+  const hasBuffetVolante = state.estilo.some((x) =>
+    ["Serviço à americana (buffet)", "Volante"].includes(x),
+  );
 
   let porPessoa = 0;
   const itens: { nome: string; preco: number }[] = [];
@@ -101,10 +111,19 @@ export function estimar(state: FormState): Estimativa {
     }
   };
 
+  // Cardápio clássico (empratado + tacho)
   somar(state.entradas, empratado);
   somar(state.principais, empratado);
   somar(state.sobremesas, empratado);
   if (state.feijoada) somar([state.feijoada], true);
+
+  // Cardápio buffet / volante (sempre precificado)
+  somar(state.entradasBuffet ?? [], hasBuffetVolante);
+  somar(state.principaisBuffet ?? [], hasBuffetVolante);
+  somar(state.sobremesasBuffet ?? [], hasBuffetVolante);
+
+  // Sobremesas regionais (Feijoada + Tacho — sempre precificadas)
+  somar(state.sobremesasRegionais ?? [], true);
 
   // Coffee Break
   if (state.coffeeBreak && COFFEE_PRECOS[state.coffeeBreak] != null) {

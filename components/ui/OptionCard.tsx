@@ -7,19 +7,24 @@ interface OptionCardProps {
   onClick: () => void;
   variant?: "single" | "multi";
   price?: string; // ex.: "R$ 45,00 / pessoa"
+  disabled?: boolean;
 }
 
-export default function OptionCard({ label, description, selected, onClick, variant = "single", price }: OptionCardProps) {
+export default function OptionCard({ label, description, selected, onClick, variant = "single", price, disabled = false }: OptionCardProps) {
   if (variant === "multi") {
     return (
       <button
-        onClick={onClick}
+        onClick={disabled ? undefined : onClick}
         role="checkbox"
         aria-checked={selected}
-        className={`relative rounded-xl border-2 px-3 py-3 text-sm text-left min-h-[64px] flex flex-col justify-center transition-all active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A24B] focus-visible:ring-offset-1 ${
-          selected
-            ? "border-[#C9A24B] bg-[#FBF7EE] font-semibold shadow-sm"
-            : "border-gray-200 bg-white"
+        aria-disabled={disabled}
+        aria-label={`${label}${price ? `, ${price} por pessoa` : ""}${selected ? " — selecionado" : ""}`}
+        className={`relative rounded-xl border-2 px-3 py-3 text-sm text-left min-h-[64px] flex flex-col justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A24B] focus-visible:ring-offset-1 ${
+          disabled
+            ? "border-gray-100 bg-gray-50 opacity-40 cursor-not-allowed"
+            : selected
+              ? "border-[#C9A24B] bg-[#FBF7EE] font-semibold shadow-sm active:scale-[0.97]"
+              : "border-gray-200 bg-white active:scale-[0.97]"
         }`}
       >
         {selected && (
