@@ -14,10 +14,13 @@ export const LOGISTICA_CONSUMO_KM_L   = 10;    // km por litro (van/furgão)
 export const LOGISTICA_COMBUSTIVEL_RL = 6.50;  // R$ por litro (atualize quando necessário)
 export const LOGISTICA_MIN_KM         = 5;     // distâncias abaixo disso não têm cobrança
 
-// ── Fórmula de headcount (ajuste de preço por número de convidados) ──────────
-export const FORMULA_BASE_PESSOAS    = 25;     // abaixo disso o preço sobe, acima permanece ou cai
-export const FORMULA_TAXA_ACRESCIMO  = 0.02;   // +2% por pessoa abaixo da base
-export const FORMULA_CAP_ACRESCIMO   = 0.30;   // máximo de acréscimo: +30%
+// ── Grupos pequenos: faturamento mínimo ──────────────────────────────────────
+// Abaixo deste número de convidados, o cardápio é cobrado COMO SE fossem este
+// total de pessoas. Cobre os custos fixos da operação e faz o valor por pessoa
+// subir naturalmente em eventos pequenos (sem percentuais confusos).
+export const MINIMO_FATURAVEL_PESSOAS = 20;
+
+// ── Fórmula de headcount (desconto para grupos grandes) ──────────────────────
 export const FORMULA_INICIO_DESCONTO = 70;     // a partir daqui o preço começa a cair
 export const FORMULA_TAXA_DESCONTO   = 0.002;  // 0,2% por pessoa acima de 70
 export const FORMULA_CAP_DESCONTO    = 0.12;   // máximo de desconto: -12%

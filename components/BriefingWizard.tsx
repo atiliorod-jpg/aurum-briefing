@@ -93,7 +93,7 @@ function canAdvance(step: StepName, state: FormState): boolean {
   switch (step) {
     case "tipo": return !!state.tipo && (state.tipo !== "Outro" || state.tipoOutro.trim().length > 0);
     case "quando": return !!state.data;
-    case "local": return state.endereco.trim().length > 3;
+    case "local": return state.cep.replace(/\D/g, "").length === 8 && state.endereco.trim().length > 3;
     case "convidados": return Number(state.adultos) >= 1;
     case "estilo": return state.estilo.length > 0;
     case "entradas": return state.entradas.length > 0;
@@ -134,7 +134,9 @@ function requiredHint(step: StepName, state: FormState): string | null {
   switch (step) {
     case "tipo": return "Escolha o tipo de evento para continuar.";
     case "quando": return "Selecione a data do evento para continuar.";
-    case "local": return "Informe o endereço do evento para continuar.";
+    case "local":
+      if (state.cep.replace(/\D/g, "").length !== 8) return "Informe o CEP do evento (8 dígitos) para continuar.";
+      return "Informe o endereço do evento para continuar.";
     case "convidados": return "Informe ao menos 1 adulto para continuar.";
     case "estilo": return "Escolha ao menos um estilo de serviço.";
     case "entradas": return 'Selecione uma opção (ou "Sem entradas") para continuar.';
@@ -412,6 +414,7 @@ export default function BriefingWizard() {
           onChange={v => patch({ sobremesasRegionais: v })}
           suggestion={state.sugestaoSobremesasRegionais}
           onSuggestionChange={v => patch({ sugestaoSobremesasRegionais: v })}
+          exclusiveValues={["Sem sobremesa regional"]}
           priceNote
           footer={<EstimativaCard state={state} />}
         />
@@ -479,15 +482,24 @@ export default function BriefingWizard() {
         <SingleSelectStep
           stepNumber="ESTRUTURA"
           title="Estrutura no local."
-          hint="O local conta com cozinha equipada para produção?"
+          hint="O local conta com cozinha equipada para a produção? Isso define o que a Aurum precisa levar."
           options={[
-            { value: "Sim, completa", label: "Sim, cozinha completa", desc: "Fogão, forno, geladeira e bancadas disponíveis." },
-            { value: "Parcial", label: "Parcialmente equipada", desc: "Alguns equipamentos disponíveis." },
-            { value: "Não tem", label: "Sem cozinha — levaremos toda a estrutura", desc: "A Aurum providencia toda a infraestrutura necessária." },
-            { value: "Não sei", label: "Não tenho certeza", desc: "Verificamos juntos antes do evento." },
+            { value: "Sim, completa", label: "Sim, cozinha completa", desc: "Fogão/cooktop, forno, geladeira, pia e bancadas prontos para uso." },
+            { value: "Parcial", label: "Parcialmente equipada", desc: "Tem alguns itens (ex.: só bancada e pia), mas faltam equipamentos." },
+            { value: "Não tem", label: "Sem cozinha — a Aurum leva tudo", desc: "Levamos fogões, bancadas, refrigeração e apoio. A estrutura é dimensionada e orçada à parte, conforme o local." },
+            { value: "Não sei", label: "Não tenho certeza", desc: "Sem problema — confirmamos juntos os detalhes antes do evento." },
           ]}
           selected={state.cozinha}
           onChange={v => patch({ cozinha: v })}
+          footer={
+            (state.cozinha === "Não tem" || state.cozinha === "Parcial") ? (
+              <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-4 text-xs text-gray-600 leading-relaxed">
+                ℹ️ Quando o local não tem cozinha completa, a montagem da estrutura é
+                avaliada caso a caso (espaço, acesso, energia e água) e entra na
+                proposta final — não está incluída na estimativa parcial.
+              </div>
+            ) : undefined
+          }
         />
       );
 
@@ -542,7 +554,7 @@ export default function BriefingWizard() {
                         <p className="text-xs text-gray-500 mt-0.5">{kit.desc}</p>
                       </div>
                       <span className="text-sm font-bold text-[#C9A24B] ml-3 flex-shrink-0">
-                        R$ {kit.preco}/pax
+                        R$ {kit.preco}/pessoa
                       </span>
                     </div>
                   </button>

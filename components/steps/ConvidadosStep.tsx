@@ -36,10 +36,11 @@ export default function ConvidadosStep({ state, onChange }: Props) {
         className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B] resize-none" />
 
       <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-4 text-xs text-gray-600 leading-relaxed mt-3">
-        ℹ️ <strong className="text-[#1B2A41]">Sobre grupos menores:</strong> alguns serviços têm um número
-        mínimo de <strong>20 a 25 convidados</strong> para manter o valor por pessoa. Abaixo disso, os custos
-        fixos da operação (equipe, deslocamento e estrutura) continuam os mesmos e são divididos entre menos
-        pessoas — o que pode elevar o valor individual. Nesses casos, ajustamos a proposta junto com você.
+        ℹ️ <strong className="text-[#1B2A41]">Sobre grupos menores:</strong> eventos com menos de{" "}
+        <strong>20 convidados</strong> têm o cardápio calculado pelo mínimo de 20 pessoas. Os custos fixos da
+        operação (equipe, deslocamento e estrutura) são os mesmos independentemente do número de convidados,
+        então em grupos pequenos o valor por pessoa fica um pouco mais alto. A estimativa já mostra isso de
+        forma transparente.
       </div>
     </div>
   );

@@ -67,7 +67,17 @@ export const BEBIDAS_KITS: BebidasKit[] = [
 ];
 
 // ── Jantar Temático — 9 culinárias temáticas ─────────────────────────────────
-export interface TemaJantar { value: string; label: string; bandeira: string; classicos: string[]; }
+// `classicos` é a lista simples de pratos. Para temas que pedem organização por
+// seção (ex.: Argentina, com pratos de mesa + área de churrasco/parrilla), use
+// `grupos` — a tela e os documentos passam a exibir os pratos agrupados.
+export interface TemaJantarGrupo { titulo: string; itens: string[]; }
+export interface TemaJantar {
+  value: string;
+  label: string;
+  bandeira: string;
+  classicos: string[];
+  grupos?: TemaJantarGrupo[];
+}
 export const TEMAS_JANTAR: TemaJantar[] = [
   { value: "Francesa", label: "Culinária Francesa", bandeira: "🇫🇷",
     classicos: ["Soupe à l'oignon au gratin", "Coq au Vin", "Boeuf Bourguignon",
@@ -83,6 +93,18 @@ export const TEMAS_JANTAR: TemaJantar[] = [
       "Mollejas", "Vacío (corte argentino)", "Morcilla",
       "Chimichurri", "Papas bravas argentinas",
       "Alfajores com dulce de leche", "Panqueque de dulce de leche",
+    ],
+    grupos: [
+      { titulo: "Clássicos argentinos", itens: [
+        "Empanadas (carne / frango / queijo)", "Provoleta grelhada",
+        "Papas bravas argentinas", "Chimichurri",
+        "Alfajores com dulce de leche", "Panqueque de dulce de leche",
+      ] },
+      { titulo: "Área de churrasco / Parrilla", itens: [
+        "Costela bovina na brasa (Asado)", "Bife de Chorizo na parrilla",
+        "Chorizo parrillero", "Vacío (corte argentino)",
+        "Mollejas", "Morcilla",
+      ] },
     ] },
   { value: "Espanhola", label: "Culinária Espanhola", bandeira: "🇪🇸",
     classicos: ["Tapas sortidas (croquetas, patatas bravas, pan con tomate)",
@@ -227,6 +249,7 @@ export const SOBREMESAS_REGIONAIS_OPTIONS: MenuOption[] = [
   { value: "Cocada Assada",                          label: "Cocada Assada",                          desc: "Cocada dourada no forno com coco fresco ralado e leite condensado.",                        preco: 20 },
   { value: "Doce de Banana com Queijo Coalho",       label: "Doce de Banana com Queijo Coalho",       desc: "Fatias de banana caramelizada com queijo coalho grelhado e mel.",                           preco: 22 },
   { value: "Pudim de Tapioca com Coco",              label: "Pudim de Tapioca com Coco",              desc: "Pudim delicado de tapioca com leite de coco e calda de caramelo.",                          preco: 25 },
+  { value: "Sem sobremesa regional",                 label: "Sem sobremesa",                          desc: "" },
 ];
 
 // Busca a descrição de uma preparação pelo seu "value" (em qualquer categoria).

@@ -7,9 +7,8 @@ export default function EstimativaCard({ state }: { state: FormState }) {
   if (e.foodTotal <= 0 && e.custoOperacional <= 0 && e.custoLogistica <= 0) return null;
   if (e.pessoas <= 0) return null;
 
-  const cardapioTotal = e.porPessoa * e.pessoas;
+  const cardapioTotal = e.porPessoa * e.pessoasFaturaveis;
   const ajuste = Math.round(e.foodTotal * e.multiplicador) - e.foodTotal;
-  const pct = Math.round((e.multiplicador - 1) * 100);
 
   const tachoLinhas = state.tacho.length === 2
     ? state.tacho.map((v) => {
@@ -25,8 +24,17 @@ export default function EstimativaCard({ state }: { state: FormState }) {
 
       {cardapioTotal > 0 && (
         <p className="text-sm text-[#1B2A41] leading-relaxed">
-          <strong>Cardápio:</strong> {formatBRL(e.porPessoa)} × {e.pessoas} ={" "}
+          <strong>Cardápio:</strong> {formatBRL(e.porPessoa)} × {e.pessoasFaturaveis} ={" "}
           <strong>{formatBRL(cardapioTotal)}</strong>
+        </p>
+      )}
+
+      {/* Faturamento mínimo (grupos pequenos) */}
+      {e.aplicouMinimo && (
+        <p className="text-xs text-amber-700 leading-relaxed mt-0.5">
+          Grupo de <strong>{e.pessoas}</strong> convidados: o cardápio é calculado pelo
+          mínimo de <strong>{e.pessoasFaturaveis} pessoas</strong> (custos fixos da
+          operação). O valor por convidado fica mais alto em eventos menores.
         </p>
       )}
 
@@ -44,27 +52,24 @@ export default function EstimativaCard({ state }: { state: FormState }) {
         </p>
       )}
 
-      {/* Ajuste de headcount */}
-      {e.multiplicador !== 1 && e.foodTotal > 0 && (
-        <p className={`text-sm leading-relaxed ${pct > 0 ? "text-amber-700" : "text-green-700"}`}>
-          <strong>Ajuste {e.pessoas} pax:</strong>{" "}
-          {pct > 0 ? "+" : ""}{pct}% = {pct > 0 ? "+" : ""}{formatBRL(Math.abs(ajuste))}
+      {/* Desconto para grupos grandes */}
+      {e.multiplicador < 1 && e.foodTotal > 0 && (
+        <p className="text-sm leading-relaxed text-green-700">
+          <strong>Desconto grupo grande:</strong> −{formatBRL(Math.abs(ajuste))}
         </p>
       )}
 
       {/* Custo operacional */}
       {e.custoOperacional > 0 && (
         <p className="text-sm text-[#1B2A41] leading-relaxed">
-          <strong>Equipe adicional:</strong> {formatBRL(e.custoOperacional)}{" "}
-          <span className="text-xs text-gray-500">({Math.floor(e.pessoas / 30)} bloco{Math.floor(e.pessoas / 30) > 1 ? "s" : ""} de 30 pax)</span>
+          <strong>Equipe de apoio:</strong> {formatBRL(e.custoOperacional)}
         </p>
       )}
 
       {/* Logística */}
       {e.custoLogistica > 0 && state.distanciaKm != null && (
         <p className="text-sm text-[#1B2A41] leading-relaxed">
-          <strong>Logística:</strong> {formatBRL(e.custoLogistica)}{" "}
-          <span className="text-xs text-gray-500">(~{state.distanciaKm} km ida e volta)</span>
+          <strong>Deslocamento até o local:</strong> {formatBRL(e.custoLogistica)}
         </p>
       )}
 

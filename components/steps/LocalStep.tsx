@@ -89,11 +89,14 @@ export default function LocalStep({ state, onChange }: Props) {
     <div>
       <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">LOCAL</div>
       <h1 className="text-xl font-bold text-[#1B2A41] mb-1">Onde acontece?</h1>
-      <p className="text-gray-500 text-sm mb-5">Digite o CEP para preencher o endereço automaticamente.</p>
+      <p className="text-gray-500 text-sm mb-5">
+        Digite o CEP para preencher o endereço automaticamente. Ele também define o
+        <strong> custo de deslocamento</strong> da equipe até o local.
+      </p>
 
       <div className="mb-4">
         <label htmlFor="ev-cep" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">
-          CEP <span className="font-normal text-gray-400">(preenche o resto sozinho)</span>
+          CEP <span className="text-[#9A7B2E]">• obrigatório</span>
         </label>
         <div className="flex gap-2">
           <input
@@ -111,7 +114,8 @@ export default function LocalStep({ state, onChange }: Props) {
         {erroCep && <p className="text-xs text-red-500 mt-1">CEP não encontrado — preencha o endereço manualmente abaixo.</p>}
         {state.distanciaKm != null && state.distanciaKm >= 5 && (
           <p className="text-xs text-[#9A7B2E] mt-1">
-            Distância estimada da Aurum: ~{state.distanciaKm} km (em linha reta)
+            Local a ~{state.distanciaKm} km da base da Aurum — isso entra na estimativa como
+            custo de deslocamento da equipe.
           </p>
         )}
       </div>

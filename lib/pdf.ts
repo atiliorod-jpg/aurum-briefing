@@ -263,10 +263,17 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (est.total > 0 && est.pessoas > 0) {
     addSection("Estimativa parcial");
 
-    const cardapioTotal = est.porPessoa * est.pessoas;
+    const cardapioTotal = est.porPessoa * est.pessoasFaturaveis;
 
     if (cardapioTotal > 0) {
-      addRow("Cardápio", `${formatBRL(est.porPessoa)}/pessoa × ${est.pessoas} = ${formatBRL(cardapioTotal)}`);
+      addRow("Cardápio", `${formatBRL(est.porPessoa)}/pessoa × ${est.pessoasFaturaveis} = ${formatBRL(cardapioTotal)}`);
+    }
+
+    if (est.aplicouMinimo) {
+      addRow(
+        "Grupo pequeno",
+        `Evento com ${est.pessoas} convidados — cardápio calculado pelo mínimo de ${est.pessoasFaturaveis} pessoas (custos fixos da operação). O valor por convidado fica mais alto em eventos menores.`,
+      );
     }
 
     // 2 tachos: cada tacho em linha própria com sua distribuição de convidados
@@ -279,24 +286,19 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
       }
     }
 
-    // Subtotal cardápio (antes do ajuste de headcount)
-    if (est.multiplicador !== 1 && est.foodTotal > 0) {
-      addRow("Subtotal cardápio", formatBRL(est.foodTotal));
-      const pct = Math.round((est.multiplicador - 1) * 100);
+    // Desconto para grupos grandes (acima de 70 convidados)
+    if (est.multiplicador < 1 && est.foodTotal > 0) {
+      addRow("Subtotal do cardápio", formatBRL(est.foodTotal));
       const ajuste = Math.round(est.foodTotal * est.multiplicador) - est.foodTotal;
-      addRow(
-        `Ajuste headcount (${est.pessoas} pax)`,
-        `${pct > 0 ? "+" : ""}${pct}% = ${pct > 0 ? "+" : ""}${formatBRL(Math.abs(ajuste))}`,
-      );
+      addRow("Desconto grupo grande", `− ${formatBRL(Math.abs(ajuste))}`);
     }
 
     if (est.custoOperacional > 0) {
-      const blocos = Math.floor(est.pessoas / 30);
-      addRow("Equipe adicional", `${formatBRL(est.custoOperacional)} (${blocos} bloco${blocos > 1 ? "s" : ""} de 30 pax)`);
+      addRow("Equipe de apoio", formatBRL(est.custoOperacional));
     }
 
     if (est.custoLogistica > 0 && state.distanciaKm != null) {
-      addRow("Logística", `${formatBRL(est.custoLogistica)} (~${state.distanciaKm} km, ida e volta)`);
+      addRow("Deslocamento até o local", formatBRL(est.custoLogistica));
     }
 
     addRow("Total estimado", formatBRL(est.total));

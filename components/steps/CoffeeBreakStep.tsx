@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { FormState } from "@/lib/types";
 import { COFFEE_DETAILS, COFFEE_PRECOS } from "@/lib/menu";
+import EstimativaCard from "@/components/ui/EstimativaCard";
 
 interface Props {
   state: FormState;
@@ -82,6 +83,10 @@ export default function CoffeeBreakStep({ state, onChange }: Props) {
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B] resize-none"
           />
         </div>
+
+        <div className="mt-5">
+          <EstimativaCard state={state} />
+        </div>
       </div>
     );
   }
@@ -114,7 +119,7 @@ export default function CoffeeBreakStep({ state, onChange }: Props) {
               </div>
               <div className="flex flex-col items-end flex-shrink-0 gap-0.5">
                 {o.preco && (
-                  <span className="text-sm font-bold text-[#C9A24B]">R$ {o.preco}/pax</span>
+                  <span className="text-sm font-bold text-[#C9A24B]">R$ {o.preco}/pessoa</span>
                 )}
                 <span className="text-[#C9A24B] text-xs font-bold">Ver →</span>
               </div>

@@ -6,6 +6,7 @@ import { buildWhatsAppMessage, buildWhatsAppLinkText, formatDate } from "@/lib/u
 import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
 import { AURUM_WHATSAPP } from "@/lib/config";
+import { BEBIDAS_KITS } from "@/lib/menu";
 import { StepName } from "@/lib/types";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 
@@ -114,12 +115,20 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
 
   const isCoffeeOnly = state.estilo.length > 0 && state.estilo.every((x) => x === "Coffee Break");
 
+  const kitBebidas = state.bebidas === "Incluir Aurum" && state.bebidasKit
+    ? BEBIDAS_KITS.find((k) => k.value === state.bebidasKit)
+    : undefined;
+
   const cardapioRows: Array<{ label: string; value: string }> = [
     { label: "Estilo", value: state.estilo.join(", ") },
     ...(state.entradas.length ? [{ label: "Entradas", value: state.entradas.join(", ") }] : []),
     ...(state.sugestaoEntradas ? [{ label: "Sugestão entrada", value: state.sugestaoEntradas }] : []),
     ...(state.principais.length ? [{ label: "Principais", value: state.principais.join(", ") }] : []),
     ...(state.sugestaoPrincipais ? [{ label: "Sugestão principal", value: state.sugestaoPrincipais }] : []),
+    ...(state.entradasBuffet?.length ? [{ label: "Entradas (buffet)", value: state.entradasBuffet.join(", ") }] : []),
+    ...(state.sugestaoEntradasBuffet ? [{ label: "Sugestão entrada", value: state.sugestaoEntradasBuffet }] : []),
+    ...(state.principaisBuffet?.length ? [{ label: "Principais (buffet)", value: state.principaisBuffet.join(", ") }] : []),
+    ...(state.sugestaoPrincipaisBuffet ? [{ label: "Sugestão principal", value: state.sugestaoPrincipaisBuffet }] : []),
     ...(state.tacho.length ? [{
       label: "Tacho",
       value: state.tacho.length === 2
@@ -128,9 +137,16 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     }] : []),
     ...(state.feijoada ? [{ label: "Feijoada", value: state.feijoada }] : []),
     ...(state.coffeeBreak ? [{ label: "Coffee Break", value: state.coffeeBreak }] : []),
+    ...(state.coffeeBreakObs ? [{ label: "Alterações no coffee", value: state.coffeeBreakObs }] : []),
     ...(state.sobremesas.length ? [{ label: "Sobremesas", value: state.sobremesas.join(", ") }] : []),
     ...(state.sugestaoSobremesas ? [{ label: "Sugestão sobremesa", value: state.sugestaoSobremesas }] : []),
+    ...(state.sobremesasBuffet?.length ? [{ label: "Sobremesas (buffet)", value: state.sobremesasBuffet.join(", ") }] : []),
+    ...(state.sugestaoSobremesasBuffet ? [{ label: "Sugestão sobremesa", value: state.sugestaoSobremesasBuffet }] : []),
+    ...(state.sobremesasRegionais?.length ? [{ label: "Sobremesas regionais", value: state.sobremesasRegionais.join(", ") }] : []),
+    ...(state.sugestaoSobremesasRegionais ? [{ label: "Sugestão sobremesa", value: state.sugestaoSobremesasRegionais }] : []),
     ...(state.cardapioPerfil.length ? [{ label: "Cardápio sob medida", value: state.cardapioPerfil.join(", ") }] : []),
+    ...(state.temaJantar ? [{ label: "Jantar temático", value: state.temaJantar }] : []),
+    ...(state.temaJantarProbs?.length ? [{ label: "Pratos de interesse", value: state.temaJantarProbs.join(", ") }] : []),
   ];
 
   type Row = { label: string; value: string };
@@ -140,9 +156,12 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     { label: "Local", value: state.endereco },
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
   ];
+  const bebidasValue = kitBebidas
+    ? `Incluir Aurum — ${kitBebidas.label}: ${kitBebidas.desc} (R$ ${kitBebidas.preco}/pessoa)`
+    : state.bebidas || "";
   const estruturaRows: Row[] = [
     { label: "Cozinha", value: state.cozinha || "" },
-    ...(isCoffeeOnly ? [] : [{ label: "Bebidas", value: state.bebidas || "" }]),
+    ...(isCoffeeOnly ? [] : [{ label: "Bebidas", value: bebidasValue }]),
     { label: "Louças e talheres", value: state.mesas || "" },
     { label: "Contato", value: `${state.nome} • ${state.whatsapp}${state.email ? " • " + state.email : ""}` },
   ];

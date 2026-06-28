@@ -48,36 +48,50 @@ export default function TemaJantarStep({ state, onChange }: Props) {
       </div>
 
       {/* Pratos clássicos do tema selecionado */}
-      {temaSelecionado && (
-        <div>
-          <p className="text-sm font-semibold text-[#1B2A41] mb-1">
-            Pratos clássicos da <strong>{temaSelecionado.label}</strong>
-          </p>
-          <p className="text-xs text-gray-500 mb-3">Marque os que te interessam (opcional — dá para deixar tudo com o chef).</p>
-          <div className="space-y-2">
-            {temaSelecionado.classicos.map((prato) => {
-              const sel = state.temaJantarProbs.includes(prato);
-              return (
-                <button
-                  key={prato}
-                  type="button"
-                  onClick={() => togglePrato(prato)}
-                  className={`w-full text-left flex items-center gap-3 border-2 rounded-xl px-4 py-2.5 transition-all ${
-                    sel ? "border-[#C9A24B] bg-[#FBF7EE]" : "border-gray-200 bg-white hover:border-[#C9A24B]/40"
-                  }`}
-                >
-                  <span className={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center text-xs transition-colors ${
-                    sel ? "border-[#C9A24B] bg-[#C9A24B] text-white" : "border-gray-300"
-                  }`}>
-                    {sel && "✓"}
-                  </span>
-                  <span className="text-sm text-[#1B2A41]">{prato}</span>
-                </button>
-              );
-            })}
+      {temaSelecionado && (() => {
+        const renderPrato = (prato: string) => {
+          const sel = state.temaJantarProbs.includes(prato);
+          return (
+            <button
+              key={prato}
+              type="button"
+              onClick={() => togglePrato(prato)}
+              className={`w-full text-left flex items-center gap-3 border-2 rounded-xl px-4 py-2.5 transition-all ${
+                sel ? "border-[#C9A24B] bg-[#FBF7EE]" : "border-gray-200 bg-white hover:border-[#C9A24B]/40"
+              }`}
+            >
+              <span className={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center text-xs transition-colors ${
+                sel ? "border-[#C9A24B] bg-[#C9A24B] text-white" : "border-gray-300"
+              }`}>
+                {sel && "✓"}
+              </span>
+              <span className="text-sm text-[#1B2A41]">{prato}</span>
+            </button>
+          );
+        };
+
+        return (
+          <div>
+            <p className="text-sm font-semibold text-[#1B2A41] mb-1">
+              Pratos clássicos da <strong>{temaSelecionado.label}</strong>
+            </p>
+            <p className="text-xs text-gray-500 mb-3">Marque os que te interessam (opcional — dá para deixar tudo com o chef).</p>
+
+            {temaSelecionado.grupos ? (
+              <div className="space-y-5">
+                {temaSelecionado.grupos.map((grupo) => (
+                  <div key={grupo.titulo}>
+                    <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2">{grupo.titulo}</h3>
+                    <div className="space-y-2">{grupo.itens.map(renderPrato)}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">{temaSelecionado.classicos.map(renderPrato)}</div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Campos livres */}
       <div>
