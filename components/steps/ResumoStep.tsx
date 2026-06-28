@@ -41,6 +41,43 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     window.open(`https://wa.me/${AURUM_WHATSAPP}?text=${text}`, "_blank");
   };
 
+  // Gera o PDF e abre a folha de compartilhamento do celular já com o arquivo
+  // anexado — o cliente escolhe WhatsApp → Aurum e só toca em enviar.
+  // No desktop (sem suporte a anexo), baixa o PDF e abre o WhatsApp com o texto.
+  const handleSharePDF = async () => {
+    try {
+      setBusy("share");
+      const generateBriefingPDF = await loadBriefingPDF();
+      const blob = await generateBriefingPDF(state);
+      const file = new File([blob], `Briefing Aurum - ${nomeBriefing()}.pdf`, { type: "application/pdf" });
+
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "Briefing Aurum",
+          text: "Segue o meu briefing para a Aurum.",
+        });
+        track("compartilhar_pdf");
+      } else {
+        // Fallback (desktop): baixa o arquivo e abre o WhatsApp com o texto
+        downloadBlob(blob, file.name);
+        handleWhatsApp();
+        setFeedback({
+          kind: "ok",
+          msg: "Seu dispositivo não permite anexar o PDF automaticamente. Baixamos o arquivo e abrimos o WhatsApp — é só anexar o PDF (está na pasta de Downloads) e enviar.",
+        });
+      }
+    } catch (e) {
+      // Usuário cancelou a folha de compartilhamento → não é erro
+      if ((e as Error)?.name !== "AbortError") {
+        console.error(e);
+        setFeedback({ kind: "err", msg: "Não foi possível abrir o compartilhamento do PDF." });
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const handleCopy = async () => {
     const text = buildWhatsAppMessage(state);
     let ok = false;
@@ -244,20 +281,26 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
       )}
 
       <div className="flex flex-col gap-3">
-        {/* 1) Copiar resumo — ação principal */}
-        <button onClick={handleCopy}
-          className="bg-[#1B2A41] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all">
-          {copied ? "✓  Copiado! Agora cole e envie para a Aurum" : "📋  Copiar resumo e enviar para a Aurum"}
-        </button>
-
-        {/* 2) Baixar briefing em PDF */}
-        <button onClick={handleDownloadPDF} disabled={!!busy}
-          className="border-2 border-[#1B2A41] text-[#1B2A41] py-4 rounded-xl font-semibold text-base active:scale-[0.97] transition-all disabled:opacity-50">
-          {busy === "pdf" ? "Gerando…" : "📄  Baixar briefing em PDF"}
+        {/* 1) Enviar PDF pelo WhatsApp — ação principal (anexa o PDF no celular) */}
+        <button onClick={handleSharePDF} disabled={!!busy}
+          className="bg-[#1d9e4f] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all disabled:opacity-50">
+          {busy === "share" ? "Preparando o PDF…" : "📲  Enviar briefing em PDF pelo WhatsApp"}
         </button>
         <p className="text-xs text-gray-500 -mt-1 text-center">
-          Se preferir, <strong>envie o PDF</strong> para a gente em vez do texto.
+          No celular, abre o WhatsApp já com o <strong>PDF anexado</strong> — é só escolher a Aurum e enviar.
         </p>
+
+        {/* 2) Copiar resumo (texto) */}
+        <button onClick={handleCopy}
+          className="bg-[#1B2A41] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all">
+          {copied ? "✓  Copiado! Agora cole e envie para a Aurum" : "📋  Copiar resumo em texto"}
+        </button>
+
+        {/* 3) Baixar briefing em PDF */}
+        <button onClick={handleDownloadPDF} disabled={!!busy}
+          className="border-2 border-[#1B2A41] text-[#1B2A41] py-4 rounded-xl font-semibold text-base active:scale-[0.97] transition-all disabled:opacity-50">
+          {busy === "pdf" ? "Gerando…" : "📄  Só baixar o PDF"}
+        </button>
 
         {/* ── Convite para os convidados (card em destaque) ── */}
         <div className="mt-1 rounded-2xl border-2 border-[#C9A24B] bg-[#FBF7EE] p-4 text-left shadow-md">
