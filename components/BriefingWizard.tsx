@@ -93,7 +93,10 @@ function canAdvance(step: StepName, state: FormState): boolean {
   switch (step) {
     case "tipo": return !!state.tipo && (state.tipo !== "Outro" || state.tipoOutro.trim().length > 0);
     case "quando": return !!state.data;
-    case "local": return state.cep.replace(/\D/g, "").length === 8 && state.endereco.trim().length > 3;
+    case "local": {
+      const cepOk = state.cep.replace(/\D/g, "").length === 8 || state.cepDesconhecido;
+      return cepOk && state.endereco.trim().length > 3;
+    }
     case "convidados": return Number(state.adultos) >= 1;
     case "estilo": return state.estilo.length > 0;
     case "entradas": return state.entradas.length > 0;
@@ -135,7 +138,8 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "tipo": return "Escolha o tipo de evento para continuar.";
     case "quando": return "Selecione a data do evento para continuar.";
     case "local":
-      if (state.cep.replace(/\D/g, "").length !== 8) return "Informe o CEP do evento (8 dígitos) para continuar.";
+      if (state.cep.replace(/\D/g, "").length !== 8 && !state.cepDesconhecido)
+        return 'Informe o CEP (8 dígitos) ou marque "Não sei o CEP" para continuar.';
       return "Informe o endereço do evento para continuar.";
     case "convidados": return "Informe ao menos 1 adulto para continuar.";
     case "estilo": return "Escolha ao menos um estilo de serviço.";
@@ -414,7 +418,7 @@ export default function BriefingWizard() {
           onChange={v => patch({ sobremesasRegionais: v })}
           suggestion={state.sugestaoSobremesasRegionais}
           onSuggestionChange={v => patch({ sugestaoSobremesasRegionais: v })}
-          exclusiveValues={["Sem sobremesa regional"]}
+          exclusiveValues={["Sem sobremesa"]}
           priceNote
           footer={<EstimativaCard state={state} />}
         />

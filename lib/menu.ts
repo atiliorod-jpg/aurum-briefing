@@ -249,7 +249,7 @@ export const SOBREMESAS_REGIONAIS_OPTIONS: MenuOption[] = [
   { value: "Cocada Assada",                          label: "Cocada Assada",                          desc: "Cocada dourada no forno com coco fresco ralado e leite condensado.",                        preco: 20 },
   { value: "Doce de Banana com Queijo Coalho",       label: "Doce de Banana com Queijo Coalho",       desc: "Fatias de banana caramelizada com queijo coalho grelhado e mel.",                           preco: 22 },
   { value: "Pudim de Tapioca com Coco",              label: "Pudim de Tapioca com Coco",              desc: "Pudim delicado de tapioca com leite de coco e calda de caramelo.",                          preco: 25 },
-  { value: "Sem sobremesa regional",                 label: "Sem sobremesa",                          desc: "" },
+  { value: "Sem sobremesa",                           label: "Sem sobremesa",                          desc: "" },
 ];
 
 // Busca a descrição de uma preparação pelo seu "value" (em qualquer categoria).

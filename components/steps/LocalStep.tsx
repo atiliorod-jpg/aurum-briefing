@@ -112,6 +112,19 @@ export default function LocalStep({ state, onChange }: Props) {
           {buscando && <span className="self-center text-sm text-gray-400">buscando…</span>}
         </div>
         {erroCep && <p className="text-xs text-red-500 mt-1">CEP não encontrado — preencha o endereço manualmente abaixo.</p>}
+
+        <label className="flex items-center gap-2 mt-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={state.cepDesconhecido}
+            onChange={e => onChange({ cepDesconhecido: e.target.checked })}
+            className="w-4 h-4 accent-[#C9A24B]"
+          />
+          <span className="text-xs text-gray-600">
+            Não sei o CEP — vou preencher só o endereço
+            <span className="block text-gray-400">O custo de deslocamento será confirmado pela Aurum.</span>
+          </span>
+        </label>
         {state.distanciaKm != null && state.distanciaKm >= 5 && (
           <p className="text-xs text-[#9A7B2E] mt-1">
             Local a ~{state.distanciaKm} km da base da Aurum — isso entra na estimativa como

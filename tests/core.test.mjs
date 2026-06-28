@@ -13,7 +13,7 @@ function test(name, fn) {
 
 const base = {
   tipo: "Aniversário", tipoOutro: "", data: "2026-12-12", horaInicio: "19:00", horaFim: "23:00",
-  obsHorario: "", cep: "", endereco: "Rua 51", distanciaKm: null,
+  obsHorario: "", cep: "", cepDesconhecido: false, endereco: "Rua 51", distanciaKm: null,
   adultos: "50", criancas: "0", restricoes: "",
   estilo: ["Serviço à americana (buffet)"], entradas: [], sugestaoEntradas: "", principais: [],
   sugestaoPrincipais: "", tacho: [], tachoPessoas: {}, sobremesas: [], sugestaoSobremesas: "",
@@ -26,7 +26,7 @@ const base = {
   sobremesasBuffet: [], sugestaoSobremesasBuffet: "",
   sobremesasRegionais: [], sugestaoSobremesasRegionais: "",
   cozinha: "Sim, completa", mesas: "Local fornece", bebidas: "Bar do local",
-  bebidasKit: null, faixa: null,
+  bebidasKit: null,
   nome: "João", whatsapp: "(81)99818-4489", email: "", prazo: "", obs: "",
   cartaHomenageado: "", cartaDataLimite: "", cartaAssinatura: "",
 };

@@ -6,6 +6,7 @@ export interface FormState {
   horaFim: string;
   obsHorario: string;
   cep: string;
+  cepDesconhecido: boolean; // cliente marcou "não sei o CEP" — libera só com endereço
   endereco: string;
   distanciaKm: number | null; // preenchido automaticamente pelo LocalStep via Nominatim
   adultos: string;
@@ -49,7 +50,6 @@ export interface FormState {
   mesas: string | null;
   bebidas: string | null;
   bebidasKit: string | null; // kit escolhido quando bebidas === "Incluir Aurum"
-  faixa: string | null;
   nome: string;
   whatsapp: string;
   email: string;
@@ -68,6 +68,7 @@ export const initialState: FormState = {
   horaFim: "",
   obsHorario: "",
   cep: "",
+  cepDesconhecido: false,
   endereco: "",
   distanciaKm: null,
   adultos: "",
@@ -107,7 +108,6 @@ export const initialState: FormState = {
   mesas: null,
   bebidas: null,
   bebidasKit: null,
-  faixa: null,
   nome: "",
   whatsapp: "",
   email: "",
@@ -141,33 +141,9 @@ export type StepName =
   | "estrutura"
   | "mesas"
   | "bebidas"
-  | "faixa"
   | "contato"
   | "carta"
   | "final";
 
-export const FLUXO_PADRAO: StepName[] = [
-  "welcome","tipo","quando","local","convidados","faixa",
-  "estilo","entradas","principais","tacho","sobremesas",
-  "estrutura","mesas","bebidas","contato","final",
-];
-
-export const FLUXO_SEM_PRINCIPAIS: StepName[] = [
-  "welcome","tipo","quando","local","convidados","faixa",
-  "estilo","entradas","tacho","sobremesas",
-  "estrutura","mesas","bebidas","contato","final",
-];
-
-// Feijoada: sem entradas (a feijoada já é completa)
-export const FLUXO_FEIJOADA: StepName[] = [
-  "welcome","tipo","quando","local","convidados","faixa",
-  "estilo","feijoada","sobremesas",
-  "estrutura","mesas","bebidas","contato","final",
-];
-
-// Coffee Break: sem entradas/principais/tacho/sobremesas e sem bebidas
-export const FLUXO_COFFEE: StepName[] = [
-  "welcome","tipo","quando","local","convidados","faixa",
-  "estilo","coffeeBreak",
-  "estrutura","mesas","contato","final",
-];
+// O fluxo real de passos é montado dinamicamente por resolveFluxo() em
+// components/BriefingWizard.tsx, conforme os estilos de serviço escolhidos.

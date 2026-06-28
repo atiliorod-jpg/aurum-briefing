@@ -34,7 +34,6 @@ export function precoDe(value: string): number | undefined {
 const IGNORAR = new Set([
   "Sem entradas", "Sem sobremesa", "Sem tacho", "Sugestão do chef",
   "Sem entradas buffet", "Sugestão do chef buffet", "Sem sobremesa buffet",
-  "Sem sobremesa regional",
 ]);
 
 export interface Estimativa {
