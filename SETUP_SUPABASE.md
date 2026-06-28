@@ -28,12 +28,26 @@ No **`.env.local`** (já preenchido localmente) e na **Vercel**
 > ⚠️ A `service_role` e a `ADMIN_PASSWORD` **nunca** levam o prefixo `NEXT_PUBLIC`
 > e **nunca** vão para o navegador — ficam só no servidor.
 
-## Passo 3 — Ativar o painel `/admin`
+## Passo 3 — Acessar o painel `/admin`
 
-O painel de edição (próxima entrega) lê e grava em `aurum_precos`. Assim que as
-tabelas existirem e a `SUPABASE_SERVICE_ROLE_KEY` + `ADMIN_PASSWORD` estiverem na
-Vercel, o `/admin` funciona: você edita qualquer preço/parâmetro, salva, e o
-formulário público passa a usar o novo valor (com fallback para o padrão).
+O painel **já está pronto**. Depois do Passo 1 (SQL) e do Passo 2 (variáveis),
+abra no navegador:
+
+```
+https://aurum-briefing-vn2v.vercel.app/admin
+```
+
+- Digite a **senha** (`ADMIN_PASSWORD`).
+- Edite qualquer preço/parâmetro e clique **Salvar** — o formulário público passa
+  a usar o novo valor (com fallback para o padrão).
+- Campo **em branco** = volta ao preço padrão do código.
+
+**Para virar um "ícone":** no celular, abra o `/admin` no navegador → menu →
+**"Adicionar à tela de início"**. No PC, salve como **favorito**. A página tem
+`noindex`, então não aparece no Google.
+
+> Enquanto faltar `SUPABASE_SERVICE_ROLE_KEY` ou `ADMIN_PASSWORD` na Vercel, o
+> painel avisa na tela e o salvar fica desativado — nada quebra no formulário público.
 
 ## Como funciona a segurança
 
