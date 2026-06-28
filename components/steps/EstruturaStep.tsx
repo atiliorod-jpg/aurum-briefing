@@ -2,7 +2,7 @@
 import { FormState } from "@/lib/types";
 import OptionCard from "@/components/ui/OptionCard";
 import EstimativaCard from "@/components/ui/EstimativaCard";
-import { BEBIDAS_KITS } from "@/lib/menu";
+import { BEBIDAS_ITEMS } from "@/lib/menu";
 
 interface Props {
   state: FormState;
@@ -12,7 +12,7 @@ interface Props {
 
 const COZINHA_OPTS = [
   { value: "Sim, completa", label: "Sim, cozinha completa", desc: "Fogão/cooktop, forno, geladeira, pia e bancadas prontos para uso." },
-  { value: "Parcial", label: "Parcialmente equipada", desc: "Tem alguns itens (ex.: só bancada e pia), mas faltam equipamentos." },
+  { value: "Parcial", label: "Parcialmente equipada", desc: "Tem alguns itens, mas faltam equipamentos — descreva abaixo." },
   { value: "Não tem", label: "Sem cozinha — a Aurum leva tudo", desc: "Levamos fogões, bancadas, refrigeração e apoio. Orçado à parte, conforme o local." },
   { value: "Não sei", label: "Não tenho certeza", desc: "Sem problema — confirmamos juntos antes do evento." },
 ];
@@ -29,7 +29,6 @@ const BEBIDAS_OPTS = [
   { value: "Incluir Aurum", label: "Incluir na proposta Aurum" },
 ];
 
-// Subtítulo de cada bloco dentro da tela combinada
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section>
@@ -40,6 +39,14 @@ function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode
 }
 
 export default function EstruturaStep({ state, onChange, mostrarBebidas }: Props) {
+  const toggleBebidaItem = (value: string) => {
+    const atual = state.bebidasItens ?? [];
+    const next = atual.includes(value)
+      ? atual.filter((v) => v !== value)
+      : [...atual, value];
+    onChange({ bebidasItens: next });
+  };
+
   return (
     <div className="space-y-7">
       <div>
@@ -53,7 +60,16 @@ export default function EstruturaStep({ state, onChange, mostrarBebidas }: Props
           <OptionCard key={o.value} label={o.label} description={o.desc}
             selected={state.cozinha === o.value} onClick={() => onChange({ cozinha: o.value })} />
         ))}
-        {(state.cozinha === "Não tem" || state.cozinha === "Parcial") && (
+        {state.cozinha === "Parcial" && (
+          <textarea
+            placeholder="Descreva o que tem disponível (ex.: bancada, geladeira, fogão 4 bocas…)"
+            value={state.cozinhaDesc ?? ""}
+            onChange={(e) => onChange({ cozinhaDesc: e.target.value })}
+            rows={2}
+            className="w-full border-2 border-[#C9A24B]/50 rounded-xl px-4 py-3 text-sm text-[#1B2A41] bg-white resize-none focus:outline-none focus:border-[#C9A24B]"
+          />
+        )}
+        {(state.cozinha === "Não tem") && (
           <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-3.5 text-xs text-gray-600 leading-relaxed">
             ℹ️ Sem cozinha completa, a estrutura é avaliada caso a caso e entra na proposta final
             (não está na estimativa parcial).
@@ -72,29 +88,38 @@ export default function EstruturaStep({ state, onChange, mostrarBebidas }: Props
         <Bloco titulo="Bebidas">
           {BEBIDAS_OPTS.map((o) => (
             <OptionCard key={o.value} label={o.label}
-              selected={state.bebidas === o.value} onClick={() => onChange({ bebidas: o.value, bebidasKit: null })} />
+              selected={state.bebidas === o.value}
+              onClick={() => onChange({ bebidas: o.value, bebidasItens: [] })} />
           ))}
+
           {state.bebidas === "Incluir Aurum" && (
-            <div className="mt-1">
-              <p className="text-sm font-semibold text-[#1B2A41] mb-2">Escolha o kit de bebidas:</p>
-              <div className="space-y-2">
-                {BEBIDAS_KITS.map((kit) => (
-                  <button key={kit.value} type="button" onClick={() => onChange({ bebidasKit: kit.value })}
-                    className={`w-full text-left border-2 rounded-xl px-4 py-3 transition-all ${
-                      state.bebidasKit === kit.value
-                        ? "border-[#C9A24B] bg-[#FBF7EE]"
-                        : "border-gray-200 bg-white hover:border-[#C9A24B]/50"
-                    }`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-[#1B2A41] text-sm">{kit.label}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{kit.desc}</p>
-                      </div>
-                      <span className="text-sm font-bold text-[#C9A24B] ml-3 flex-shrink-0">R$ {kit.preco}/pessoa</span>
-                    </div>
-                  </button>
-                ))}
+            <div className="mt-1 space-y-2">
+              <p className="text-xs font-semibold text-[#1B2A41]">Selecione o que deseja incluir:</p>
+              <div className="flex flex-wrap gap-2">
+                {BEBIDAS_ITEMS.map((item) => {
+                  const sel = (state.bebidasItens ?? []).includes(item.value);
+                  return (
+                    <button key={item.value} type="button"
+                      onClick={() => toggleBebidaItem(item.value)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all active:scale-[0.97] ${
+                        sel
+                          ? "border-[#C9A24B] bg-[#FBF7EE] text-[#1B2A41]"
+                          : "border-gray-200 bg-white text-gray-600 hover:border-[#C9A24B]/50"
+                      }`}>
+                      {sel && <span className="text-[#C9A24B]">✓</span>}
+                      <span>{item.label}</span>
+                      <span className="text-xs text-gray-400">R$ {item.preco}/p</span>
+                    </button>
+                  );
+                })}
               </div>
+              {(state.bebidasItens ?? []).length > 0 && (
+                <p className="text-xs text-gray-500">
+                  Selecionado: {(state.bebidasItens ?? [])
+                    .map((v) => BEBIDAS_ITEMS.find((b) => b.value === v)?.label)
+                    .filter(Boolean).join(", ")}
+                </p>
+              )}
             </div>
           )}
         </Bloco>

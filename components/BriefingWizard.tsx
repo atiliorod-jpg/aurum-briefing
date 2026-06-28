@@ -18,6 +18,7 @@ import CartaStep from "@/components/steps/CartaStep";
 import SugestaoStep from "@/components/steps/SugestaoStep";
 import TachoDistribuicao from "@/components/steps/TachoDistribuicao";
 import EstruturaStep from "@/components/steps/EstruturaStep";
+import EntradasDistribuicao, { balancearEntradasInit } from "@/components/steps/EntradasDistribuicao";
 import HarmonizadoStep from "@/components/steps/HarmonizadoStep";
 import TemaJantarStep from "@/components/steps/TemaJantarStep";
 import EstimativaCard from "@/components/ui/EstimativaCard";
@@ -101,7 +102,21 @@ function canAdvance(step: StepName, state: FormState): boolean {
     }
     case "convidados": return Number(state.adultos) >= 1;
     case "estilo": return state.estilo.length > 0;
-    case "entradas": return state.entradas.length > 0;
+    case "entradas": {
+      if (state.entradas.length === 0) return false;
+      const EXCL_E = new Set(["Sem entradas", "Sugestão do chef"]);
+      const entradasReais = state.entradas.filter((v) => !EXCL_E.has(v));
+      const isEmpratado = state.estilo.includes("Serviço franco-americano (empratado)");
+      if (isEmpratado && entradasReais.length >= 2) {
+        const total = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
+        if (total <= 0) return true;
+        const minP = Math.ceil(total * 0.2);
+        const soma = entradasReais.reduce((s, v) => s + (Number(state.entradasPessoas?.[v]) || 0), 0);
+        if (soma !== total) return false;
+        if (entradasReais.some((v) => (Number(state.entradasPessoas?.[v]) || 0) < minP)) return false;
+      }
+      return true;
+    }
     case "principais": return state.principais.length > 0;
     case "entradasBuffet": return state.entradasBuffet.length > 0;
     case "principaisBuffet": return state.principaisBuffet.length > 0;
@@ -144,7 +159,19 @@ function requiredHint(step: StepName, state: FormState): string | null {
       return "Informe o endereço do evento para continuar.";
     case "convidados": return "Informe ao menos 1 adulto para continuar.";
     case "estilo": return "Escolha ao menos um estilo de serviço.";
-    case "entradas": return 'Selecione uma opção (ou "Sem entradas") para continuar.';
+    case "entradas": {
+      if (state.entradas.length === 0) return 'Selecione uma opção (ou "Sem entradas") para continuar.';
+      const EXCL_E2 = new Set(["Sem entradas", "Sugestão do chef"]);
+      const entradasReais2 = state.entradas.filter((v) => !EXCL_E2.has(v));
+      const total2 = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
+      const soma2 = entradasReais2.reduce((s, v) => s + (Number(state.entradasPessoas?.[v]) || 0), 0);
+      if (soma2 < total2) return `Distribua os ${total2 - soma2} convidados restantes entre as entradas.`;
+      if (soma2 > total2) return "Soma ultrapassou o total de convidados — ajuste os valores.";
+      const minP2 = Math.ceil(total2 * 0.2);
+      if (entradasReais2.some((v) => (Number(state.entradasPessoas?.[v]) || 0) < minP2))
+        return `Cada entrada precisa de ao menos ${minP2} convidados (20% do evento).`;
+      return null;
+    }
     case "principais": return "Selecione ao menos um prato principal.";
     case "entradasBuffet": return 'Selecione uma opção (ou "Sem entradas") para continuar.';
     case "principaisBuffet": return "Selecione ao menos um prato principal.";
@@ -257,7 +284,8 @@ export default function BriefingWizard() {
 
       // Cardápio clássico (empratado)
       if (!hasEmpratado) { next.principais = []; next.sugestaoPrincipais = ""; next.sobremesas = []; next.sugestaoSobremesas = ""; }
-      if (!hasEmpratado && !hasTacho) { next.entradas = []; next.sugestaoEntradas = ""; }
+      if (!hasEmpratado && !hasTacho) { next.entradas = []; next.sugestaoEntradas = ""; next.entradasPessoas = {}; }
+      if (!hasEmpratado) next.entradasPessoas = {};
 
       // Cardápio buffet / volante
       if (!hasBuffetVolante) {
@@ -328,16 +356,31 @@ export default function BriefingWizard() {
         <MultiSelectStep
           stepNumber="ENTRADAS"
           title="Entradas."
-          hint={empratado ? "No serviço empratado, selecione até 2 opções." : "Selecione até 3 opções."}
+          hint={empratado ? "No serviço empratado, selecione até 2 opções. Com 2 opções, você distribui os convidados entre elas." : "Selecione até 3 opções."}
           options={comPreco(ENTRADAS_OPTIONS, empratado)}
           selected={state.entradas}
           max={empratado ? 2 : 3}
-          onChange={v => patch({ entradas: v })}
+          onChange={(v) => {
+            const total = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
+            const EXCL_E = new Set(["Sem entradas", "Sugestão do chef"]);
+            const reais = v.filter((x) => !EXCL_E.has(x));
+            patch({
+              entradas: v,
+              entradasPessoas: reais.length >= 2
+                ? balancearEntradasInit(reais, total, state.entradasPessoas ?? {})
+                : {},
+            });
+          }}
           suggestion={state.sugestaoEntradas}
           onSuggestionChange={v => patch({ sugestaoEntradas: v })}
           exclusiveValues={["Sem entradas", "Sugestão do chef"]}
           priceNote
-          footer={<EstimativaCard state={state} colapsavel />}
+          footer={
+            <div className="space-y-4">
+              <EntradasDistribuicao state={state} onChange={patch} />
+              <EstimativaCard state={state} colapsavel />
+            </div>
+          }
         />
       );
 

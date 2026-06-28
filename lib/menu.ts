@@ -51,7 +51,21 @@ export const COFFEE_PRECOS: Record<string, number> = {
   "Coffee Break Premium":     75,
 };
 
-// ── Bebidas em kits ──────────────────────────────────────────────────────────
+// ── Bebidas individuais (seleção por item) ────────────────────────────────────
+// Cliente escolhe os itens que quer incluir na proposta. O preço é por pessoa.
+export interface BebidasItem { value: string; label: string; desc: string; preco: number; }
+export const BEBIDAS_ITEMS: BebidasItem[] = [
+  { value: "agua",       label: "Água mineral",     desc: "com e sem gás",                   preco: 3  },
+  { value: "suco",       label: "Suco de polpa",    desc: "1 sabor à escolha",               preco: 5  },
+  { value: "refri",      label: "Refrigerante",     desc: "Coca-Cola, Guaraná ou Soda",      preco: 5  },
+  { value: "cerveja",    label: "Cerveja",           desc: "long neck gelada",                preco: 8  },
+  { value: "chopp",      label: "Chopp artesanal",  desc: "chope fresco",                    preco: 12 },
+  { value: "vinho",      label: "Vinho nacional",   desc: "tinto ou branco",                 preco: 14 },
+  { value: "espumante",  label: "Espumante",        desc: "Brut, garrafa compartilhada",     preco: 18 },
+  { value: "destilados", label: "Destilados",       desc: "vodka ou gin + mixers + gelo",    preco: 25 },
+];
+
+// ── Bebidas em kits (mantido — não usado na UI, apenas para compatibilidade) ──
 export interface BebidasKit { value: string; label: string; desc: string; preco: number; }
 export const BEBIDAS_KITS: BebidasKit[] = [
   { value: "hidratacao",    label: "Kit Hidratação",    desc: "Água mineral (com e sem gás)",                            preco: 4  },

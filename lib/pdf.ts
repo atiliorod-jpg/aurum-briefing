@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { formatDate, enderecoLimpo } from "./utils";
-import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS, BEBIDAS_KITS } from "./menu";
+import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS, BEBIDAS_ITEMS } from "./menu";
 import { estimar, formatBRL, precoDe, pessoasDoTacho } from "./orcamento";
 
 // Quebra "item a; item b." em itens limpos (mesma lógica da tela de coffee break)
@@ -238,13 +238,14 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
 
   // ── Estrutura ─────────────────────────────────────────────────────────────
   addSection("Estrutura");
-  if (state.cozinha) addRow("Cozinha no local", state.cozinha);
+  if (state.cozinha) addRow("Cozinha no local", state.cozinha + (state.cozinhaDesc ? ` — ${state.cozinhaDesc}` : ""));
   if (state.mesas) addRow("Louças e talheres", state.mesas);
   if (!isCoffeeOnly && state.bebidas) {
-    if (state.bebidas === "Incluir Aurum" && state.bebidasKit) {
-      const kit = BEBIDAS_KITS.find((k) => k.value === state.bebidasKit);
-      const kitDesc = kit ? ` — ${kit.label}: ${kit.desc} (${formatBRL(kit.preco)}/pessoa)` : "";
-      addRow("Bebidas", `Incluir Aurum${kitDesc}`);
+    if (state.bebidas === "Incluir Aurum" && (state.bebidasItens?.length ?? 0) > 0) {
+      const nomes = (state.bebidasItens ?? [])
+        .map((v) => BEBIDAS_ITEMS.find((b) => b.value === v)?.label)
+        .filter(Boolean).join(", ");
+      addRow("Bebidas", `Incluir Aurum — ${nomes}`);
     } else {
       addRow("Bebidas", state.bebidas);
     }
@@ -263,10 +264,25 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (est.total > 0 && est.pessoas > 0) {
     addSection("Estimativa parcial");
 
-    const cardapioTotal = est.porPessoa * est.pessoasFaturaveis;
+    // Entradas distribuídas (empratado c/ 2 opções)
+    const EXCL_E = new Set(["Sem entradas", "Sugestão do chef"]);
+    const entradasReais = state.entradas.filter((v) => !EXCL_E.has(v));
+    const multiEntrada = state.estilo.includes("Serviço franco-americano (empratado)") && entradasReais.length >= 2;
+    if (multiEntrada && est.entradasSubtotal > 0) {
+      for (const v of entradasReais) {
+        const p = precoDe(v);
+        if (p == null) continue;
+        const n = Number(state.entradasPessoas?.[v]) || 0;
+        addRow(`Entrada (${v})`, `${formatBRL(p)} × ${n} = ${formatBRL(p * n)}`);
+      }
+    }
 
+    const cardapioTotal = est.porPessoa * est.pessoasFaturaveis;
     if (cardapioTotal > 0) {
       addRow("Cardápio", `${formatBRL(est.porPessoa)}/pessoa × ${est.pessoasFaturaveis} = ${formatBRL(cardapioTotal)}`);
+      if (est.itens.filter((i) => i.nome !== "Louças e talheres (básico)").length > 0) {
+        addRow("Itens", est.itens.filter((i) => i.nome !== "Louças e talheres (básico)").map((i) => i.nome).join(", "));
+      }
     }
 
     if (est.aplicouMinimo) {
@@ -293,8 +309,14 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
       addRow("Desconto grupo grande", `− ${formatBRL(Math.abs(ajuste))}`);
     }
 
+    // Bebidas (separado do cardápio)
+    if (est.custoBebidas > 0 && est.itensBebidas.length > 0) {
+      addRow("Bebidas", `${formatBRL(est.custoBebidas / est.pessoasFaturaveis)}/pessoa × ${est.pessoasFaturaveis} = ${formatBRL(est.custoBebidas)}`);
+      addRow("Itens de bebida", est.itensBebidas.map((i) => i.nome).join(", "));
+    }
+
     if (est.custoOperacional > 0) {
-      addRow("Equipe de apoio", formatBRL(est.custoOperacional));
+      addRow("Apoio de produção", formatBRL(est.custoOperacional));
     }
 
     if (est.custoLogistica > 0 && state.distanciaKm != null) {

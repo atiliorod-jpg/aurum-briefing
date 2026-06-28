@@ -1,5 +1,5 @@
 import { FormState } from "./types";
-import { BEBIDAS_KITS } from "./menu";
+import { BEBIDAS_ITEMS } from "./menu";
 
 export function formatDate(iso: string): string {
   if (!iso) return "";
@@ -145,15 +145,16 @@ export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean
 
   lines.push(``);
   lines.push(`*ESTRUTURA*`);
-  lines.push(`• Cozinha: ${state.cozinha}`);
+  lines.push(`• Cozinha: ${state.cozinha}${state.cozinhaDesc ? ` — ${state.cozinhaDesc}` : ""}`);
   lines.push(`• Louças e talheres: ${state.mesas}`);
   if (!isCoffeeOnly) {
-    const kit = state.bebidas === "Incluir Aurum" && state.bebidasKit
-      ? BEBIDAS_KITS.find((k) => k.value === state.bebidasKit)
-      : undefined;
-    const bebidasTxt = kit
-      ? `Incluir Aurum — ${kit.label}: ${kit.desc} (R$ ${kit.preco}/pessoa)`
-      : state.bebidas;
+    let bebidasTxt = state.bebidas || "";
+    if (state.bebidas === "Incluir Aurum" && (state.bebidasItens?.length ?? 0) > 0) {
+      const nomes = (state.bebidasItens ?? [])
+        .map((v) => BEBIDAS_ITEMS.find((b) => b.value === v)?.label)
+        .filter(Boolean).join(", ");
+      bebidasTxt = `Incluir Aurum — ${nomes}`;
+    }
     lines.push(`• Bebidas: ${bebidasTxt}`);
   }
 

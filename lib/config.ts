@@ -14,6 +14,7 @@ export const LOGISTICA_CONSUMO_KM_L   = 7;     // km por litro (van/furgão)
 export const LOGISTICA_COMBUSTIVEL_RL = 7.00;  // R$ por litro (atualize quando necessário)
 export const LOGISTICA_MIN_KM         = 5;     // distâncias abaixo disso não têm cobrança
 export const LOGISTICA_ARREDONDA      = 5;     // valor final sempre arredondado p/ cima em múltiplos disto
+export const LOGISTICA_ADICIONAL_PCTG = 0.50;  // adicional sobre o transporte (desgaste, seguro, outros custos do veículo)
 
 // ── Grupos pequenos: faturamento mínimo ──────────────────────────────────────
 // Abaixo deste número de convidados, o cardápio é cobrado COMO SE fossem este

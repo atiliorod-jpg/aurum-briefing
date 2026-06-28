@@ -3,13 +3,13 @@ import {
   ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS, FEIJOADA_OPTIONS,
   ENTRADAS_BUFFET_OPTIONS, PRINCIPAIS_BUFFET_OPTIONS, SOBREMESAS_BUFFET_OPTIONS,
   SOBREMESAS_REGIONAIS_OPTIONS,
-  BEBIDAS_KITS, COFFEE_PRECOS, MenuOption,
+  BEBIDAS_ITEMS, COFFEE_PRECOS, MenuOption,
 } from "./menu";
 import {
   ADICIONAL_LOUCAS, MINIMO_FATURAVEL_PESSOAS,
   FORMULA_INICIO_DESCONTO, FORMULA_TAXA_DESCONTO, FORMULA_CAP_DESCONTO,
   CUSTO_OP_POR_BLOCO, CUSTO_OP_BLOCO_QTDE,
-  LOGISTICA_CONSUMO_KM_L, LOGISTICA_COMBUSTIVEL_RL, LOGISTICA_MIN_KM, LOGISTICA_ARREDONDA,
+  LOGISTICA_CONSUMO_KM_L, LOGISTICA_COMBUSTIVEL_RL, LOGISTICA_MIN_KM, LOGISTICA_ARREDONDA, LOGISTICA_ADICIONAL_PCTG,
 } from "./config";
 
 export { MINIMO_FATURAVEL_PESSOAS } from "./config";
@@ -40,13 +40,16 @@ export interface Estimativa {
   pessoas: number;
   pessoasFaturaveis: number; // = max(pessoas, MINIMO_FATURAVEL_PESSOAS)
   aplicouMinimo: boolean;    // true quando o grupo é menor que o mínimo faturável
-  porPessoa: number;       // soma dos itens × pessoa antes do multiplicador
+  porPessoa: number;       // soma dos itens × pessoa antes do multiplicador (exceto entradas multi-distribuídas)
   multiplicador: number;   // ajuste por tamanho do grupo (1.0 = sem ajuste)
-  foodTotal: number;       // (porPessoa × pessoasFaturaveis + tachoSubtotal) — antes do multiplicador
-  total: number;           // foodTotal × multiplicador + custoOperacional + custoLogistica
+  foodTotal: number;       // (porPessoa × pessoasFaturaveis + tachoSubtotal + entradasSubtotal) — antes do multiplicador
+  entradasSubtotal: number; // subtotal de entradas quando distribuídas (empratado c/ 2 entradas)
+  custoBebidas: number;    // custo de bebidas incluídas (separado do cardápio)
+  total: number;           // foodTotal × multiplicador + custoOperacional + custoLogistica + custoBebidas
   custoOperacional: number;
   custoLogistica: number;
   itens: { nome: string; preco: number }[];
+  itensBebidas: { nome: string; preco: number }[]; // itens de bebidas selecionados
   temItemSemPreco: boolean;
   incluiLoucas: boolean;
 }
@@ -82,13 +85,17 @@ export function calcCustoOperacional(pessoas: number): number {
 }
 
 // Custo de logística por distância em linha reta (estimativa aproximada).
+// Inclui 50% de adicional sobre o transporte (desgaste, seguro e outros custos do veículo).
 // O valor final é sempre arredondado PARA CIMA em múltiplos de LOGISTICA_ARREDONDA
 // (ex.: 73 → 75) — nunca deixa valor quebrado.
 export function calcCustoLogistica(distanciaKm: number | null): number {
   if (!distanciaKm || distanciaKm < LOGISTICA_MIN_KM) return 0;
-  const bruto = (distanciaKm * 2) / LOGISTICA_CONSUMO_KM_L * LOGISTICA_COMBUSTIVEL_RL;
+  const transporte = (distanciaKm * 2) / LOGISTICA_CONSUMO_KM_L * LOGISTICA_COMBUSTIVEL_RL;
+  const bruto = transporte * (1 + LOGISTICA_ADICIONAL_PCTG);
   return Math.ceil(bruto / LOGISTICA_ARREDONDA) * LOGISTICA_ARREDONDA;
 }
+
+const EXCLUSIVAS_ENTRADAS = new Set(["Sem entradas", "Sugestão do chef"]);
 
 export function estimar(state: FormState): Estimativa {
   const pessoas = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
@@ -129,8 +136,30 @@ export function estimar(state: FormState): Estimativa {
     if (precos.length) porPessoa += precos.reduce((a, b) => a + b, 0) / precos.length;
   };
 
-  // Cardápio clássico (empratado + tacho)
-  somar(state.entradas, empratado);
+  // Entradas (empratado): quando o cliente escolhe 2 opções, cada uma tem sua
+  // distribuição de convidados → calculamos um subtotal fixo, não por-pessoa.
+  let entradasSubtotal = 0;
+  const entradasReais = state.entradas.filter((v) => !EXCLUSIVAS_ENTRADAS.has(v));
+  const multiEntradaEmpratado = empratado && entradasReais.length >= 2;
+
+  if (multiEntradaEmpratado) {
+    for (const v of entradasReais) {
+      const p = precoDe(v);
+      if (p != null) {
+        const n = Number(state.entradasPessoas?.[v]) || 0;
+        entradasSubtotal += p * n;
+        itens.push({ nome: v, preco: p });
+      } else {
+        temItemSemPreco = true;
+      }
+    }
+    // Entradas exclusivas (Sem / Sugestão) passam pelo somar normal
+    somar(state.entradas.filter((v) => EXCLUSIVAS_ENTRADAS.has(v)), false);
+  } else {
+    somar(state.entradas, empratado);
+  }
+
+  // Cardápio clássico restante (empratado + tacho)
   somar(state.principais, empratado);
   somar(state.sobremesas, empratado);
   if (state.feijoada) somar([state.feijoada], true);
@@ -150,15 +179,6 @@ export function estimar(state: FormState): Estimativa {
     itens.push({ nome: state.coffeeBreak, preco: p });
   }
 
-  // Bebidas em kit (quando "Incluir Aurum" selecionado)
-  if (state.bebidas === "Incluir Aurum" && state.bebidasKit) {
-    const kit = BEBIDAS_KITS.find((k) => k.value === state.bebidasKit);
-    if (kit) {
-      porPessoa += kit.preco;
-      itens.push({ nome: kit.label, preco: kit.preco });
-    }
-  }
-
   // Tacho
   let tachoSubtotal = 0;
   if (state.tacho.length === 1) {
@@ -175,7 +195,7 @@ export function estimar(state: FormState): Estimativa {
 
   // Louças e talheres
   const incluiLoucas = state.mesas === "Incluir Aurum";
-  if (incluiLoucas && (porPessoa > 0 || tachoSubtotal > 0)) {
+  if (incluiLoucas && (porPessoa > 0 || tachoSubtotal > 0 || entradasSubtotal > 0)) {
     porPessoa += ADICIONAL_LOUCAS;
     itens.push({ nome: "Louças e talheres (básico)", preco: ADICIONAL_LOUCAS });
   }
@@ -184,17 +204,30 @@ export function estimar(state: FormState): Estimativa {
   const pessoasFaturaveis = pessoas > 0 ? Math.max(pessoas, MINIMO_FATURAVEL_PESSOAS) : 0;
   const aplicouMinimo = pessoas > 0 && pessoas < MINIMO_FATURAVEL_PESSOAS;
 
-  const foodTotal = porPessoa * pessoasFaturaveis + tachoSubtotal;
+  // Bebidas individuais (quando "Incluir Aurum" + itens selecionados)
+  const itensBebidas: { nome: string; preco: number }[] = [];
+  let custoBebidas = 0;
+  if (state.bebidas === "Incluir Aurum" && state.bebidasItens?.length > 0 && pessoasFaturaveis > 0) {
+    for (const v of state.bebidasItens) {
+      const item = BEBIDAS_ITEMS.find((b) => b.value === v);
+      if (item) {
+        itensBebidas.push({ nome: item.label, preco: item.preco });
+        custoBebidas += item.preco * pessoasFaturaveis;
+      }
+    }
+  }
+
+  const foodTotal = porPessoa * pessoasFaturaveis + tachoSubtotal + entradasSubtotal;
   const mult = pessoas > 0 ? multiplicadorPessoas(pessoas) : 1;
   const custoOperacional = pessoas > 0 ? calcCustoOperacional(pessoas) : 0;
   const custoLogistica = calcCustoLogistica(state.distanciaKm);
-  const total = Math.round(foodTotal * mult) + custoOperacional + custoLogistica;
+  const total = Math.round(foodTotal * mult) + custoOperacional + custoLogistica + custoBebidas;
 
   return {
     pessoas, pessoasFaturaveis, aplicouMinimo,
-    porPessoa, multiplicador: mult, foodTotal,
-    total, custoOperacional, custoLogistica,
-    itens, temItemSemPreco, incluiLoucas,
+    porPessoa, multiplicador: mult, foodTotal, entradasSubtotal,
+    total, custoOperacional, custoLogistica, custoBebidas,
+    itens, itensBebidas, temItemSemPreco, incluiLoucas,
   };
 }
 

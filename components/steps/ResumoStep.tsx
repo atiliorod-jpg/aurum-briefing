@@ -6,7 +6,7 @@ import { buildWhatsAppMessage, buildWhatsAppLinkText, formatDate, enderecoLimpo 
 import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
 import { AURUM_WHATSAPP } from "@/lib/config";
-import { BEBIDAS_KITS } from "@/lib/menu";
+import { BEBIDAS_ITEMS } from "@/lib/menu";
 import { StepName } from "@/lib/types";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 
@@ -152,9 +152,9 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
 
   const isCoffeeOnly = state.estilo.length > 0 && state.estilo.every((x) => x === "Coffee Break");
 
-  const kitBebidas = state.bebidas === "Incluir Aurum" && state.bebidasKit
-    ? BEBIDAS_KITS.find((k) => k.value === state.bebidasKit)
-    : undefined;
+  const bebidasSelecionadas = state.bebidas === "Incluir Aurum" && (state.bebidasItens?.length ?? 0) > 0
+    ? (state.bebidasItens ?? []).map((v) => BEBIDAS_ITEMS.find((b) => b.value === v)?.label).filter(Boolean).join(", ")
+    : null;
 
   const cardapioRows: Array<{ label: string; value: string }> = [
     { label: "Estilo", value: state.estilo.join(", ") },
@@ -193,8 +193,8 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     { label: "Local", value: enderecoLimpo(state.endereco) },
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
   ];
-  const bebidasValue = kitBebidas
-    ? `Incluir Aurum — ${kitBebidas.label}: ${kitBebidas.desc} (R$ ${kitBebidas.preco}/pessoa)`
+  const bebidasValue = bebidasSelecionadas
+    ? `Incluir Aurum — ${bebidasSelecionadas}`
     : state.bebidas || "";
   const estruturaRows: Row[] = [
     { label: "Cozinha", value: state.cozinha || "" },
@@ -276,31 +276,6 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
           })}
 
           <EstimativaCard state={state} />
-
-          {onEdit && (
-            <div>
-              <p className="text-xs text-gray-500 mb-2">Precisa corrigir algo? Toque para editar sem recomeçar:</p>
-              <div className="flex flex-wrap gap-2">
-                {([
-                  ["Evento", "tipo"],
-                  ["Data e local", "quando"],
-                  ["Convidados", "convidados"],
-                  ["Cardápio", "estilo"],
-                  ["Estrutura", "estrutura"],
-                  ["Contato", "contato"],
-                  ["Carta-convite", "carta"],
-                ] as [string, StepName][]).map(([label, step]) => (
-                  <button
-                    key={step}
-                    onClick={() => onEdit(step)}
-                    className="text-xs font-medium text-[#1B2A41] border border-gray-200 rounded-full px-3 py-1.5 active:scale-[0.97] transition-all hover:border-[#C9A24B]"
-                  >
-                    ✏️ {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </details>
 
@@ -334,6 +309,32 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
           </>
         )}
       </div>
+
+      {/* Edição rápida — sempre visível no rodapé */}
+      {onEdit && (
+        <div className="bg-white rounded-2xl shadow-sm p-4 mb-4 text-left">
+          <p className="text-xs font-bold text-[#1B2A41] mb-3">Precisa corrigir algo?</p>
+          <div className="flex flex-wrap gap-2">
+            {([
+              ["Evento", "tipo"],
+              ["Data e local", "quando"],
+              ["Convidados", "convidados"],
+              ["Cardápio", "estilo"],
+              ["Estrutura", "estrutura"],
+              ["Contato", "contato"],
+              ["Carta-convite", "carta"],
+            ] as [string, StepName][]).map(([label, step]) => (
+              <button
+                key={step}
+                onClick={() => onEdit(step)}
+                className="text-xs font-medium text-[#1B2A41] border border-gray-200 rounded-full px-3 py-1.5 active:scale-[0.97] transition-all hover:border-[#C9A24B]"
+              >
+                ✏️ {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <button onClick={onRestart} className="text-gray-500 text-sm underline py-1">Preencher novamente</button>
     </div>

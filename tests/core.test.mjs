@@ -25,8 +25,8 @@ const base = {
   principaisBuffet: [], sugestaoPrincipaisBuffet: "",
   sobremesasBuffet: [], sugestaoSobremesasBuffet: "",
   sobremesasRegionais: [], sugestaoSobremesasRegionais: "",
-  cozinha: "Sim, completa", mesas: "Local fornece", bebidas: "Bar do local",
-  bebidasKit: null,
+  cozinha: "Sim, completa", cozinhaDesc: "", mesas: "Local fornece", bebidas: "Bar do local",
+  bebidasKit: null, bebidasItens: [], entradasPessoas: {},
   nome: "João", whatsapp: "(81)99818-4489", email: "", prazo: "", obs: "",
   cartaHomenageado: "", cartaDataLimite: "", cartaAssinatura: "",
 };
@@ -106,9 +106,9 @@ test("90 pax → R$600 (3 blocos)", () => assert.equal(calcCustoOperacional(90),
 console.log("calcCustoLogistica:");
 test("null → R$0", () => assert.equal(calcCustoLogistica(null), 0));
 test("3 km → R$0 (abaixo do mínimo de 5 km)", () => assert.equal(calcCustoLogistica(3), 0));
-test("10 km → R$20 (10×2/7×7, arredondado p/ cima em 5)", () => assert.equal(calcCustoLogistica(10), 20));
-test("20 km → R$40 (20×2/7×7, arredondado p/ cima em 5)", () => assert.equal(calcCustoLogistica(20), 40));
-test("8 km → R$20 (bruto 16, arredonda p/ cima p/ 20)", () => assert.equal(calcCustoLogistica(8), 20));
+test("10 km → R$30 (transporte 20 × 1,5 = 30, arredonda em 5)", () => assert.equal(calcCustoLogistica(10), 30));
+test("20 km → R$60 (transporte 40 × 1,5 = 60, arredonda em 5)", () => assert.equal(calcCustoLogistica(20), 60));
+test("8 km → R$25 (transporte 16 × 1,5 = 24, ceil p/ cima p/ 25)", () => assert.equal(calcCustoLogistica(8), 25));
 
 console.log("orçamento:");
 test("formatBRL", () => assert.equal(formatBRL(2250).replace(/[\s  ]/g, " "), "R$ 2.250,00"));
@@ -200,12 +200,13 @@ test("estimar Coffee Break Simples + 10 pax (faturado como 20)", () => {
   assert.equal(e.total, 1100);
 });
 
-test("estimar kit de bebidas espumante + 25 pax (mult×1.0)", () => {
-  // porPessoa=28, foodTotal=700, mult=1.0, op=0, total=700
-  const e = estimar({ ...base, adultos: "25", bebidas: "Incluir Aurum", bebidasKit: "espumante" });
-  assert.equal(e.porPessoa, 28);
+test("estimar bebidas individuais (água R$3 + suco R$5 = R$8) + 25 pax", () => {
+  // custoBebidas = (3+5) * 25 = 200; foodTotal=0, total=200
+  const e = estimar({ ...base, adultos: "25", bebidas: "Incluir Aurum", bebidasItens: ["agua", "suco"], bebidasKit: null });
+  assert.equal(e.custoBebidas, 200);
+  assert.equal(e.porPessoa, 0);
   assert.equal(e.multiplicador, 1.0);
-  assert.equal(e.total, 700);
+  assert.equal(e.total, 200);
 });
 
 test("estimar desconto grande grupo (100 pax, mult×0.94)", () => {
