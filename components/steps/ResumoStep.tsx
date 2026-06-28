@@ -7,7 +7,6 @@ import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
 import { AURUM_WHATSAPP } from "@/lib/config";
 import { BEBIDAS_KITS } from "@/lib/menu";
-import { comOverride } from "@/lib/overrides";
 import { StepName } from "@/lib/types";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 
@@ -195,7 +194,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
   ];
   const bebidasValue = kitBebidas
-    ? `Incluir Aurum — ${kitBebidas.label}: ${kitBebidas.desc} (R$ ${comOverride("kit:" + kitBebidas.value, kitBebidas.preco)}/pessoa)`
+    ? `Incluir Aurum — ${kitBebidas.label}: ${kitBebidas.desc} (R$ ${kitBebidas.preco}/pessoa)`
     : state.bebidas || "";
   const estruturaRows: Row[] = [
     { label: "Cozinha", value: state.cozinha || "" },

@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import { formatDate, formatPhone, isPhoneComplete, isEmailValid, shiftHour, sugestaoRSVP, buildWhatsAppMessage, buildWhatsAppLinkText } from "../lib/utils.ts";
 import { resolveInvitation, getConector, getTipoFrase, getCardapioName } from "../lib/invitation.ts";
 import { estimar, formatBRL, multiplicadorPessoas, calcCustoOperacional, calcCustoLogistica } from "../lib/orcamento.ts";
-import { setOverrides } from "../lib/overrides.ts";
 
 let passed = 0;
 function test(name, fn) {
@@ -258,28 +257,6 @@ test("estimar sobremesas regionais com feijoada (30 pax, mult×1.00)", () => {
   assert.equal(e.multiplicador, 1.0);
   assert.equal(e.custoOperacional, 200);
   assert.equal(e.total, Math.round(4020 * 1.0) + 200); // 4220
-});
-
-console.log("overrides (preços editáveis):");
-test("override de preço de prato reflete no cálculo", () => {
-  // Galinhada padrão R$45; override para R$60. 50 pax → 60×50=3000 + op 200 = 3200
-  setOverrides({ "Galinhada": 60 });
-  const e = estimar({ ...base, adultos: "50", criancas: "0", mesas: "Local fornece", tacho: ["Galinhada"] });
-  assert.equal(e.porPessoa, 60);
-  assert.equal(e.total, 3200);
-  setOverrides({}); // restaura padrão p/ não afetar outros testes
-});
-test("override de parâmetro (mínimo faturável) reflete no cálculo", () => {
-  setOverrides({ "cfg:MINIMO_FATURAVEL_PESSOAS": 30 });
-  const e = estimar({ ...base, adultos: "10", criancas: "0", mesas: "Local fornece", tacho: ["Galinhada"] });
-  assert.equal(e.pessoasFaturaveis, 30);
-  assert.equal(e.total, 45 * 30); // 1350
-  setOverrides({});
-});
-test("override vazio mantém padrão", () => {
-  setOverrides({});
-  const e = estimar({ ...base, adultos: "50", criancas: "0", mesas: "Local fornece", tacho: ["Galinhada"] });
-  assert.equal(e.porPessoa, 45);
 });
 
 console.log(`\n${passed} testes passaram.`);

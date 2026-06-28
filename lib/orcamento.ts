@@ -14,9 +14,6 @@ import {
 
 export { MINIMO_FATURAVEL_PESSOAS } from "./config";
 
-import { comOverride } from "./overrides";
-export { loadOverrides } from "./overrides";
-
 export { ADICIONAL_LOUCAS } from "./config";
 
 export function formatBRL(n: number): string {
@@ -30,9 +27,7 @@ const TABELA: MenuOption[] = [
 ];
 
 export function precoDe(value: string): number | undefined {
-  const base = TABELA.find((o) => o.value === value)?.preco;
-  if (base == null) return undefined; // item sem preço (ex: "Sugestão do chef") nunca é precificado
-  return comOverride(value, base);
+  return TABELA.find((o) => o.value === value)?.preco;
 }
 
 // Itens "neutros" que não entram no cálculo
@@ -71,11 +66,11 @@ export function pessoasDoTacho(state: FormState, value: string): number {
 // grupos grandes (a partir de FORMULA_INICIO_DESCONTO). Grupos pequenos são
 // tratados pelo faturamento mínimo (MINIMO_FATURAVEL_PESSOAS), não por percentual.
 export function multiplicadorPessoas(pessoas: number): number {
-  const inicio = comOverride("cfg:FORMULA_INICIO_DESCONTO", FORMULA_INICIO_DESCONTO);
-  const taxa = comOverride("cfg:FORMULA_TAXA_DESCONTO", FORMULA_TAXA_DESCONTO);
-  const cap = comOverride("cfg:FORMULA_CAP_DESCONTO", FORMULA_CAP_DESCONTO);
-  if (pessoas >= inicio) {
-    const desconto = Math.min((pessoas - inicio) * taxa, cap);
+  if (pessoas >= FORMULA_INICIO_DESCONTO) {
+    const desconto = Math.min(
+      (pessoas - FORMULA_INICIO_DESCONTO) * FORMULA_TAXA_DESCONTO,
+      FORMULA_CAP_DESCONTO,
+    );
     return 1.0 - desconto;
   }
   return 1.0;
@@ -83,18 +78,13 @@ export function multiplicadorPessoas(pessoas: number): number {
 
 // Custo operacional fixo por bloco de convidados (equipe adicional de apoio).
 export function calcCustoOperacional(pessoas: number): number {
-  const tamBloco = comOverride("cfg:CUSTO_OP_BLOCO_QTDE", CUSTO_OP_BLOCO_QTDE);
-  const valorBloco = comOverride("cfg:CUSTO_OP_POR_BLOCO", CUSTO_OP_POR_BLOCO);
-  return Math.floor(pessoas / tamBloco) * valorBloco;
+  return Math.floor(pessoas / CUSTO_OP_BLOCO_QTDE) * CUSTO_OP_POR_BLOCO;
 }
 
 // Custo de logística por distância em linha reta (estimativa aproximada).
 export function calcCustoLogistica(distanciaKm: number | null): number {
-  const minKm = comOverride("cfg:LOGISTICA_MIN_KM", LOGISTICA_MIN_KM);
-  const consumo = comOverride("cfg:LOGISTICA_CONSUMO_KM_L", LOGISTICA_CONSUMO_KM_L);
-  const combustivel = comOverride("cfg:LOGISTICA_COMBUSTIVEL_RL", LOGISTICA_COMBUSTIVEL_RL);
-  if (!distanciaKm || distanciaKm < minKm) return 0;
-  return (distanciaKm * 2) / consumo * combustivel;
+  if (!distanciaKm || distanciaKm < LOGISTICA_MIN_KM) return 0;
+  return (distanciaKm * 2) / LOGISTICA_CONSUMO_KM_L * LOGISTICA_COMBUSTIVEL_RL;
 }
 
 export function estimar(state: FormState): Estimativa {
@@ -152,7 +142,7 @@ export function estimar(state: FormState): Estimativa {
 
   // Coffee Break
   if (state.coffeeBreak && COFFEE_PRECOS[state.coffeeBreak] != null) {
-    const p = comOverride(state.coffeeBreak, COFFEE_PRECOS[state.coffeeBreak]);
+    const p = COFFEE_PRECOS[state.coffeeBreak];
     porPessoa += p;
     itens.push({ nome: state.coffeeBreak, preco: p });
   }
@@ -161,9 +151,8 @@ export function estimar(state: FormState): Estimativa {
   if (state.bebidas === "Incluir Aurum" && state.bebidasKit) {
     const kit = BEBIDAS_KITS.find((k) => k.value === state.bebidasKit);
     if (kit) {
-      const p = comOverride("kit:" + kit.value, kit.preco);
-      porPessoa += p;
-      itens.push({ nome: kit.label, preco: p });
+      porPessoa += kit.preco;
+      itens.push({ nome: kit.label, preco: kit.preco });
     }
   }
 
@@ -183,16 +172,14 @@ export function estimar(state: FormState): Estimativa {
 
   // Louças e talheres
   const incluiLoucas = state.mesas === "Incluir Aurum";
-  const precoLoucas = comOverride("cfg:ADICIONAL_LOUCAS", ADICIONAL_LOUCAS);
   if (incluiLoucas && (porPessoa > 0 || tachoSubtotal > 0)) {
-    porPessoa += precoLoucas;
-    itens.push({ nome: "Louças e talheres (básico)", preco: precoLoucas });
+    porPessoa += ADICIONAL_LOUCAS;
+    itens.push({ nome: "Louças e talheres (básico)", preco: ADICIONAL_LOUCAS });
   }
 
   // Faturamento mínimo: grupos pequenos são cobrados como o mínimo de pessoas.
-  const minimo = comOverride("cfg:MINIMO_FATURAVEL_PESSOAS", MINIMO_FATURAVEL_PESSOAS);
-  const pessoasFaturaveis = pessoas > 0 ? Math.max(pessoas, minimo) : 0;
-  const aplicouMinimo = pessoas > 0 && pessoas < minimo;
+  const pessoasFaturaveis = pessoas > 0 ? Math.max(pessoas, MINIMO_FATURAVEL_PESSOAS) : 0;
+  const aplicouMinimo = pessoas > 0 && pessoas < MINIMO_FATURAVEL_PESSOAS;
 
   const foodTotal = porPessoa * pessoasFaturaveis + tachoSubtotal;
   const mult = pessoas > 0 ? multiplicadorPessoas(pessoas) : 1;

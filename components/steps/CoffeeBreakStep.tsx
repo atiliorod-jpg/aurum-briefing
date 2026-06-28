@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { FormState } from "@/lib/types";
 import { COFFEE_DETAILS, COFFEE_PRECOS } from "@/lib/menu";
-import { comOverride } from "@/lib/overrides";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 
 interface Props {
@@ -11,7 +10,6 @@ interface Props {
 }
 
 // Fonte única: lib/menu.ts (mesmos textos usados no PDF do briefing)
-// preco resolvido em render (abaixo) para refletir overrides do painel /admin
 const OPTIONS = Object.entries(COFFEE_DETAILS).map(([value, d]) => ({
   value, label: value, preco: COFFEE_PRECOS[value], ...d,
 }));
@@ -60,7 +58,7 @@ export default function CoffeeBreakStep({ state, onChange }: Props) {
         <div className="flex items-baseline justify-between mb-2">
           <h1 className="text-xl font-bold text-[#1B2A41]">{selected.label}</h1>
           {selected.preco && (
-            <span className="text-sm font-bold text-[#C9A24B] ml-3">R$ {comOverride(selected.value, selected.preco)}/pessoa</span>
+            <span className="text-sm font-bold text-[#C9A24B] ml-3">R$ {selected.preco}/pessoa</span>
           )}
         </div>
         <p className="text-gray-500 text-sm mb-5 italic">{selected.hint}</p>
@@ -121,7 +119,7 @@ export default function CoffeeBreakStep({ state, onChange }: Props) {
               </div>
               <div className="flex flex-col items-end flex-shrink-0 gap-0.5">
                 {o.preco && (
-                  <span className="text-sm font-bold text-[#C9A24B]">R$ {comOverride(o.value, o.preco)}/pessoa</span>
+                  <span className="text-sm font-bold text-[#C9A24B]">R$ {o.preco}/pessoa</span>
                 )}
                 <span className="text-[#C9A24B] text-xs font-bold">Ver →</span>
               </div>
