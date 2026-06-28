@@ -7,6 +7,12 @@ export function formatDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+// Remove vírgulas/espaços sobrando no fim do endereço (o preenchimento via CEP
+// deixa um ", " no final para o cliente completar com número/bloco).
+export function enderecoLimpo(endereco: string): string {
+  return (endereco || "").replace(/[,\s]+$/, "").trim();
+}
+
 const MESES = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
@@ -85,7 +91,7 @@ export function buildWhatsAppMessage(state: FormState, opts: { compact?: boolean
   ].filter(Boolean).join(" ");
   lines.push(`• Data: ${formatDate(state.data)}${horario ? `  •  ${horario}` : ""}`);
   if (!compact && state.obsHorario?.trim()) lines.push(`• Observação de horário: ${state.obsHorario}`);
-  lines.push(`• Local: ${state.endereco}`);
+  lines.push(`• Local: ${enderecoLimpo(state.endereco)}`);
   const criancas = state.criancas && state.criancas !== "0" ? ` + ${state.criancas} crianças` : "";
   lines.push(`• Convidados: ${state.adultos} adultos${criancas}`);
   // Restrições/alergias são mantidas mesmo no compacto (segurança alimentar)

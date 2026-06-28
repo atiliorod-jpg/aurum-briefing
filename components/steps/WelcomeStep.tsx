@@ -28,25 +28,12 @@ export default function WelcomeStep() {
 
       <h2 className="text-2xl font-bold text-[#1B2A41] mb-3">Briefing do seu evento</h2>
       <p className="text-gray-500 text-base leading-relaxed mb-6">
-        Em alguns minutos coletamos as informações para prepararmos uma proposta personalizada para você.
+        Vamos montar a sua proposta. No final, você gera o resumo e envia para a gente
+        pelo WhatsApp — e ainda leva uma <strong className="text-[#1B2A41]">carta-convite pronta</strong>.
       </p>
 
-      <div className="bg-white rounded-xl p-5 text-left shadow-sm text-sm text-gray-500 leading-relaxed space-y-1.5 mb-4">
-        <p>⏱ <strong className="text-[#1B2A41]">Leva cerca de 7 minutos</strong> — otimizado para o celular.</p>
-        <p>📄 Ao final, você gera o <strong className="text-[#1B2A41]">resumo em PDF</strong> e nos envia pelo WhatsApp.</p>
-      </div>
-
-      <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-5 text-left text-sm text-gray-600 leading-relaxed space-y-2">
-        <p className="font-semibold text-[#1B2A41]">🎁 Brinde gratuito ao final:</p>
-        <p>
-          💌 <strong className="text-[#1B2A41]">Carta-convite pronta</strong> (PDF ou Word) com o seu
-          cardápio, para enviar aos convidados.
-        </p>
-      </div>
-
-      <p className="text-[11px] text-gray-500 leading-relaxed mt-4 px-2">
-        🔒 Suas respostas ficam salvas apenas neste aparelho (para você continuar de onde parou) e são
-        apagadas automaticamente após 7 dias. Nada é enviado sem o seu comando.
+      <p className="text-[11px] text-gray-400 leading-relaxed px-4">
+        🔒 Suas respostas ficam só neste aparelho e são apagadas após 7 dias. Nada é enviado sem o seu comando.
       </p>
     </div>
   );

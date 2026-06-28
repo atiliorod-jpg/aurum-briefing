@@ -17,12 +17,13 @@ import CoffeeBreakStep from "@/components/steps/CoffeeBreakStep";
 import CartaStep from "@/components/steps/CartaStep";
 import SugestaoStep from "@/components/steps/SugestaoStep";
 import TachoDistribuicao from "@/components/steps/TachoDistribuicao";
+import EstruturaStep from "@/components/steps/EstruturaStep";
 import HarmonizadoStep from "@/components/steps/HarmonizadoStep";
 import TemaJantarStep from "@/components/steps/TemaJantarStep";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 import {
   ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS,
-  FEIJOADA_OPTIONS, BEBIDAS_KITS,
+  FEIJOADA_OPTIONS,
   ENTRADAS_BUFFET_OPTIONS, PRINCIPAIS_BUFFET_OPTIONS, SOBREMESAS_BUFFET_OPTIONS,
   SOBREMESAS_REGIONAIS_OPTIONS,
 } from "@/lib/menu";
@@ -79,15 +80,16 @@ function resolveFluxo(state: FormState): StepName[] {
   if (hasHarmonizado) menu.push("harmonizado");
   if (hasTematico) menu.push("temaJantar");
 
-  // Bebidas só é dispensado quando o ÚNICO estilo é Coffee Break (já inclui bebidas)
-  const includeBebidas = e.length === 0 || e.some((x) => x !== "Coffee Break");
-  const fim: StepName[] = [
-    "estrutura", "mesas", ...(includeBebidas ? ["bebidas" as StepName] : []),
-    "contato", "carta", "final",
-  ];
+  // Estrutura combina cozinha + louças + bebidas numa única tela. O bloco de
+  // bebidas é ocultado quando o ÚNICO estilo é Coffee Break (já inclui bebidas).
+  const fim: StepName[] = ["estrutura", "contato", "carta", "final"];
 
   return [...inicio, ...menu, ...fim];
 }
+
+// Coffee Break já inclui bebidas — quando é o único estilo, dispensamos o bloco de bebidas.
+const ehCoffeeOnly = (state: FormState): boolean =>
+  state.estilo.length > 0 && state.estilo.every((x) => x === "Coffee Break");
 
 function canAdvance(step: StepName, state: FormState): boolean {
   switch (step) {
@@ -120,9 +122,8 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "coffeeBreak": return !!state.coffeeBreak;
     case "harmonizado": return true; // opcional — sob consulta
     case "temaJantar": return !!state.temaJantar;
-    case "estrutura": return !!state.cozinha;
-    case "mesas": return !!state.mesas;
-    case "bebidas": return !!state.bebidas;
+    case "estrutura":
+      return !!state.cozinha && !!state.mesas && (ehCoffeeOnly(state) || !!state.bebidas);
     case "contato":
       return state.nome.trim().length > 0
         && isPhoneComplete(state.whatsapp)
@@ -155,9 +156,10 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "sobremesas": return 'Selecione uma opção (ou "Sem sobremesa") para continuar.';
     case "feijoada": return "Escolha o formato da feijoada.";
     case "temaJantar": return "Escolha a culinária temática para continuar.";
-    case "estrutura": return "Selecione uma opção para continuar.";
-    case "mesas": return "Selecione uma opção para continuar.";
-    case "bebidas": return "Selecione uma opção para continuar.";
+    case "estrutura":
+      if (!state.cozinha) return "Diga se o local tem cozinha equipada.";
+      if (!state.mesas) return "Escolha como ficam as louças e talheres.";
+      return "Escolha como ficam as bebidas.";
     case "contato":
       if (state.email.trim() !== "" && !isEmailValid(state.email)) return "O e-mail informado parece inválido.";
       return "Preencha o nome e um WhatsApp completo (com DDD).";
@@ -335,7 +337,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoEntradas: v })}
           exclusiveValues={["Sem entradas", "Sugestão do chef"]}
           priceNote
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -352,7 +354,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoPrincipais: v })}
           exclusiveValues={["Sugestão do chef"]}
           priceNote
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -369,7 +371,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoEntradasBuffet: v })}
           exclusiveValues={["Sem entradas buffet"]}
           priceNote
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -386,7 +388,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoPrincipaisBuffet: v })}
           exclusiveValues={["Sugestão do chef buffet"]}
           priceNote
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -403,7 +405,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoSobremesasBuffet: v })}
           exclusiveValues={["Sem sobremesa buffet"]}
           priceNote
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -420,7 +422,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoSobremesasRegionais: v })}
           exclusiveValues={["Sem sobremesa"]}
           priceNote
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -441,7 +443,7 @@ export default function BriefingWizard() {
             footer={
               <div className="space-y-4">
                 <TachoDistribuicao state={state} onChange={patch} />
-                <EstimativaCard state={state} />
+                <EstimativaCard state={state} colapsavel />
               </div>
             }
           />
@@ -461,7 +463,7 @@ export default function BriefingWizard() {
           onSuggestionChange={v => patch({ sugestaoSobremesas: v })}
           exclusiveValues={["Sem sobremesa", "Sugestão do chef"]}
           priceNote
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -473,7 +475,7 @@ export default function BriefingWizard() {
           options={FEIJOADA_OPTIONS}
           selected={state.feijoada}
           onChange={v => patch({ feijoada: v })}
-          footer={<EstimativaCard state={state} />}
+          footer={<EstimativaCard state={state} colapsavel />}
         />
       );
 
@@ -483,91 +485,7 @@ export default function BriefingWizard() {
       case "temaJantar": return <TemaJantarStep state={state} onChange={patch} />;
 
       case "estrutura": return (
-        <SingleSelectStep
-          stepNumber="ESTRUTURA"
-          title="Estrutura no local."
-          hint="O local conta com cozinha equipada para a produção? Isso define o que a Aurum precisa levar."
-          options={[
-            { value: "Sim, completa", label: "Sim, cozinha completa", desc: "Fogão/cooktop, forno, geladeira, pia e bancadas prontos para uso." },
-            { value: "Parcial", label: "Parcialmente equipada", desc: "Tem alguns itens (ex.: só bancada e pia), mas faltam equipamentos." },
-            { value: "Não tem", label: "Sem cozinha — a Aurum leva tudo", desc: "Levamos fogões, bancadas, refrigeração e apoio. A estrutura é dimensionada e orçada à parte, conforme o local." },
-            { value: "Não sei", label: "Não tenho certeza", desc: "Sem problema — confirmamos juntos os detalhes antes do evento." },
-          ]}
-          selected={state.cozinha}
-          onChange={v => patch({ cozinha: v })}
-          footer={
-            (state.cozinha === "Não tem" || state.cozinha === "Parcial") ? (
-              <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-4 text-xs text-gray-600 leading-relaxed">
-                ℹ️ Quando o local não tem cozinha completa, a montagem da estrutura é
-                avaliada caso a caso (espaço, acesso, energia e água) e entra na
-                proposta final — não está incluída na estimativa parcial.
-              </div>
-            ) : undefined
-          }
-        />
-      );
-
-      case "mesas": return (
-        <SingleSelectStep
-          stepNumber=""
-          title="Louças e talheres."
-          hint="Como prefere conduzir este item?"
-          options={[
-            { value: "Local fornece", label: "O local fornece tudo" },
-            { value: "Eu providencio", label: "Vou providenciar" },
-            { value: "Incluir Aurum", label: "Incluir na proposta Aurum", desc: "Adicional básico a partir de R$ 10/pessoa (pode variar conforme os pratos)." },
-          ]}
-          selected={state.mesas}
-          onChange={v => patch({ mesas: v })}
-          footer={<EstimativaCard state={state} />}
-        />
-      );
-
-      case "bebidas": return (
-        <div className="space-y-4">
-          <SingleSelectStep
-            stepNumber=""
-            title="Bebidas."
-            hint="Como prefere conduzir as bebidas?"
-            options={[
-              { value: "Bar do local", label: "Bar do local" },
-              { value: "Compra separada", label: "Fico responsável pela compra" },
-              { value: "Incluir Aurum", label: "Incluir na proposta Aurum" },
-            ]}
-            selected={state.bebidas}
-            onChange={v => patch({ bebidas: v, bebidasKit: null })}
-          />
-          {state.bebidas === "Incluir Aurum" && (
-            <div className="mt-4">
-              <p className="text-sm font-semibold text-[#1B2A41] mb-3">Escolha o kit de bebidas:</p>
-              <div className="space-y-2">
-                {BEBIDAS_KITS.map((kit) => (
-                  <button
-                    key={kit.value}
-                    type="button"
-                    onClick={() => patch({ bebidasKit: kit.value })}
-                    className={`w-full text-left border-2 rounded-xl px-4 py-3 transition-all ${
-                      state.bebidasKit === kit.value
-                        ? "border-[#C9A24B] bg-[#FBF7EE]"
-                        : "border-gray-200 bg-white hover:border-[#C9A24B]/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-[#1B2A41] text-sm">{kit.label}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{kit.desc}</p>
-                      </div>
-                      <span className="text-sm font-bold text-[#C9A24B] ml-3 flex-shrink-0">
-                        R$ {kit.preco}/pessoa
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <EstimativaCard state={state} />
-            </div>
-          )}
-        </div>
+        <EstruturaStep state={state} onChange={patch} mostrarBebidas={!ehCoffeeOnly(state)} />
       );
 
       case "contato": return <ContatoStep state={state} onChange={patch} />;

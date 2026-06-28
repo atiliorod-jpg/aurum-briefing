@@ -9,7 +9,7 @@ import {
   ADICIONAL_LOUCAS, MINIMO_FATURAVEL_PESSOAS,
   FORMULA_INICIO_DESCONTO, FORMULA_TAXA_DESCONTO, FORMULA_CAP_DESCONTO,
   CUSTO_OP_POR_BLOCO, CUSTO_OP_BLOCO_QTDE,
-  LOGISTICA_CONSUMO_KM_L, LOGISTICA_COMBUSTIVEL_RL, LOGISTICA_MIN_KM,
+  LOGISTICA_CONSUMO_KM_L, LOGISTICA_COMBUSTIVEL_RL, LOGISTICA_MIN_KM, LOGISTICA_ARREDONDA,
 } from "./config";
 
 export { MINIMO_FATURAVEL_PESSOAS } from "./config";
@@ -82,9 +82,12 @@ export function calcCustoOperacional(pessoas: number): number {
 }
 
 // Custo de logística por distância em linha reta (estimativa aproximada).
+// O valor final é sempre arredondado PARA CIMA em múltiplos de LOGISTICA_ARREDONDA
+// (ex.: 73 → 75) — nunca deixa valor quebrado.
 export function calcCustoLogistica(distanciaKm: number | null): number {
   if (!distanciaKm || distanciaKm < LOGISTICA_MIN_KM) return 0;
-  return (distanciaKm * 2) / LOGISTICA_CONSUMO_KM_L * LOGISTICA_COMBUSTIVEL_RL;
+  const bruto = (distanciaKm * 2) / LOGISTICA_CONSUMO_KM_L * LOGISTICA_COMBUSTIVEL_RL;
+  return Math.ceil(bruto / LOGISTICA_ARREDONDA) * LOGISTICA_ARREDONDA;
 }
 
 export function estimar(state: FormState): Estimativa {
@@ -184,7 +187,7 @@ export function estimar(state: FormState): Estimativa {
   const foodTotal = porPessoa * pessoasFaturaveis + tachoSubtotal;
   const mult = pessoas > 0 ? multiplicadorPessoas(pessoas) : 1;
   const custoOperacional = pessoas > 0 ? calcCustoOperacional(pessoas) : 0;
-  const custoLogistica = Math.round(calcCustoLogistica(state.distanciaKm));
+  const custoLogistica = calcCustoLogistica(state.distanciaKm);
   const total = Math.round(foodTotal * mult) + custoOperacional + custoLogistica;
 
   return {

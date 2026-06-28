@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { track } from "@vercel/analytics";
 import { FormState } from "@/lib/types";
-import { buildWhatsAppMessage, buildWhatsAppLinkText, formatDate } from "@/lib/utils";
+import { buildWhatsAppMessage, buildWhatsAppLinkText, formatDate, enderecoLimpo } from "@/lib/utils";
 import { downloadBlob } from "@/lib/download";
 import { resolveInvitation } from "@/lib/invitation";
 import { AURUM_WHATSAPP } from "@/lib/config";
@@ -190,7 +190,7 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
   const eventoRows: Row[] = [
     { label: "Tipo", value: state.tipo === "Outro" ? state.tipoOutro : state.tipo || "" },
     { label: "Data", value: `${formatDate(state.data)}${state.horaInicio ? " • " + state.horaInicio : ""}` },
-    { label: "Local", value: state.endereco },
+    { label: "Local", value: enderecoLimpo(state.endereco) },
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
   ];
   const bebidasValue = kitBebidas
@@ -215,135 +215,127 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
         <span className="text-[#1B2A41] text-4xl font-bold">✓</span>
       </div>
       <h2 className="text-2xl font-bold text-[#1B2A41] mb-2">Briefing pronto!</h2>
-      <p className="text-gray-500 text-sm mb-4">
-        Confira o resumo abaixo, <strong className="text-[#1B2A41]">copie</strong> ou
-        <strong className="text-[#1B2A41]"> baixe o PDF</strong> e envie para a nossa equipe.
-        Assim retornamos com a sua proposta.
+      <p className="text-gray-500 text-sm mb-5">
+        Envie para a nossa equipe e retornamos com a sua proposta.
       </p>
 
-      <div className="bg-white rounded-2xl p-5 text-left shadow-sm mb-3 space-y-4">
-        {secoes.map((sec) => {
-          const visiveis = sec.rows.filter((r) => r.value);
-          if (visiveis.length === 0) return null;
-          return (
-            <div key={sec.titulo}>
-              <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2 flex items-center gap-1.5">
-                <span aria-hidden>{sec.icon}</span> {sec.titulo}
-              </h3>
-              <div className="space-y-1.5 border-l-2 border-[#C9A24B]/25 pl-3">
-                {visiveis.map(({ label, value }) => (
-                  <div key={label} className="text-sm leading-snug">
-                    <strong className="text-[#1B2A41]">{label}:</strong>{" "}
-                    <span className="text-gray-500">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mb-3">
-        <EstimativaCard state={state} />
-      </div>
-
-      {onEdit && (
-        <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2">Precisa corrigir algo? Toque para editar sem recomeçar:</p>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {([
-              ["Evento", "tipo"],
-              ["Data e local", "quando"],
-              ["Convidados", "convidados"],
-              ["Cardápio", "estilo"],
-              ["Estrutura", "estrutura"],
-              ["Contato", "contato"],
-              ["Carta-convite", "carta"],
-            ] as [string, StepName][]).map(([label, step]) => (
-              <button
-                key={step}
-                onClick={() => onEdit(step)}
-                className="text-xs font-medium text-[#1B2A41] border border-gray-200 rounded-full px-3 py-1.5 active:scale-[0.97] transition-all hover:border-[#C9A24B]"
-              >
-                ✏️ {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {feedback && (
-        <div className={`text-sm rounded-xl px-4 py-3 mb-3 text-left ${
+        <div className={`text-sm rounded-xl px-4 py-3 mb-4 text-left ${
           feedback.kind === "ok" ? "bg-[#FBF7EE] text-[#1B2A41] border border-[#C9A24B]" : "bg-red-50 text-red-700 border border-red-200"
         }`}>
           {feedback.msg}
         </div>
       )}
 
-      <div className="flex flex-col gap-3">
-        {/* 1) Enviar PDF pelo WhatsApp — ação principal (anexa o PDF no celular) */}
-        <button onClick={handleSharePDF} disabled={!!busy}
-          className="bg-[#1d9e4f] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all disabled:opacity-50">
-          {busy === "share" ? "Preparando o PDF…" : "📲  Enviar briefing em PDF pelo WhatsApp"}
-        </button>
-        <p className="text-xs text-gray-500 -mt-1 text-center">
-          No celular, abre o WhatsApp já com o <strong>PDF anexado</strong> — é só escolher a Aurum e enviar.
-        </p>
+      {/* Ação principal — enviar pelo WhatsApp (anexa o PDF no celular) */}
+      <button onClick={handleSharePDF} disabled={!!busy}
+        className="w-full bg-[#1d9e4f] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all disabled:opacity-50">
+        {busy === "share" ? "Preparando o PDF…" : "📲  Enviar pelo WhatsApp"}
+      </button>
+      <p className="text-xs text-gray-500 mt-1.5 mb-4 text-center">
+        No celular, abre o WhatsApp já com o <strong>PDF anexado</strong> — é só escolher a Aurum e enviar.
+      </p>
 
-        {/* 2) Copiar resumo (texto) */}
-        <button onClick={handleCopy}
-          className="bg-[#1B2A41] text-white py-4 rounded-xl font-semibold text-base shadow-md active:scale-[0.98] transition-all">
-          {copied ? "✓  Copiado! Agora cole e envie para a Aurum" : "📋  Copiar resumo em texto"}
+      {/* Ações secundárias discretas */}
+      <div className="flex items-center justify-center gap-4 mb-5 text-sm">
+        <button onClick={handleDownloadPDF} disabled={!!busy} className="text-[#1B2A41] font-semibold underline disabled:opacity-50">
+          {busy === "pdf" ? "Gerando…" : "📄 Baixar PDF"}
         </button>
-
-        {/* 3) Baixar briefing em PDF */}
-        <button onClick={handleDownloadPDF} disabled={!!busy}
-          className="border-2 border-[#1B2A41] text-[#1B2A41] py-4 rounded-xl font-semibold text-base active:scale-[0.97] transition-all disabled:opacity-50">
-          {busy === "pdf" ? "Gerando…" : "📄  Só baixar o PDF"}
+        <span className="text-gray-300">•</span>
+        <button onClick={handleCopy} className="text-[#1B2A41] font-semibold underline">
+          {copied ? "✓ Copiado" : "📋 Copiar texto"}
         </button>
+      </div>
 
-        {/* ── Convite para os convidados (card em destaque) ── */}
-        <div className="mt-1 rounded-2xl border-2 border-[#C9A24B] bg-[#FBF7EE] p-4 text-left shadow-md">
-          <p className="text-base font-bold text-[#1B2A41] mb-0.5">🎁 Leve o convite dos seus convidados</p>
-          <p className="text-xs text-gray-600 mb-3">
-            A carta-convite com o seu cardápio, pronta para você enviar a quem vai convidar.
-          </p>
-          {cartaCompleta ? (
-            <>
-              <button onClick={handleInvitationPDF} disabled={!!busy}
-                className="w-full bg-[#C9A24B] text-[#1B2A41] py-4 rounded-xl font-bold text-base shadow active:scale-[0.98] transition-all disabled:opacity-50">
-                {busy === "convitepdf" ? "Gerando convite…" : "✨  Baixar convite pronto (PDF)"}
-              </button>
-              <button onClick={handleDownloadLetter} disabled={!!busy}
-                className="w-full mt-2 border-2 border-[#C9A24B] text-[#1B2A41] py-3 rounded-xl font-semibold text-sm active:scale-[0.97] transition-all disabled:opacity-50">
-                {busy === "docx" ? "Gerando…" : "📝  Ou baixar em Word (editável)"}
-              </button>
-              <p className="text-xs text-gray-500 italic mt-2">
-                Carta completa com os dados que você preencheu — pronta para enviar.
-              </p>
-            </>
-          ) : (
-            <>
-              <button onClick={handleDownloadLetter} disabled={!!busy}
-                className="w-full bg-[#C9A24B] text-[#1B2A41] py-4 rounded-xl font-bold text-base shadow active:scale-[0.98] transition-all disabled:opacity-50">
-                {busy === "docx" ? "Gerando…" : "📝  Baixar carta-convite (Word)"}
-              </button>
-              <p className="text-xs text-gray-600 mt-2">
-                Alguns campos ficarão em branco para você preencher. 💡 Para receber o
-                <strong> convite pronto em PDF</strong>, toque em <strong>“✏️ Carta-convite”</strong> acima
-                e preencha os 3 dados.
-              </p>
-            </>
+      {/* Resumo recolhido por padrão */}
+      <details className="bg-white rounded-2xl shadow-sm mb-5 text-left group">
+        <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between">
+          <span className="text-sm font-bold text-[#1B2A41]">Ver resumo do briefing</span>
+          <span className="text-[#9A7B2E] text-xs font-semibold group-open:hidden">abrir ▸</span>
+          <span className="text-[#9A7B2E] text-xs font-semibold hidden group-open:inline">fechar ▾</span>
+        </summary>
+        <div className="px-5 pb-5 space-y-4">
+          {secoes.map((sec) => {
+            const visiveis = sec.rows.filter((r) => r.value);
+            if (visiveis.length === 0) return null;
+            return (
+              <div key={sec.titulo}>
+                <h3 className="text-xs font-bold text-[#C9A24B] tracking-widest uppercase mb-2 flex items-center gap-1.5">
+                  <span aria-hidden>{sec.icon}</span> {sec.titulo}
+                </h3>
+                <div className="space-y-1.5 border-l-2 border-[#C9A24B]/25 pl-3">
+                  {visiveis.map(({ label, value }) => (
+                    <div key={label} className="text-sm leading-snug">
+                      <strong className="text-[#1B2A41]">{label}:</strong>{" "}
+                      <span className="text-gray-500">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          <EstimativaCard state={state} />
+
+          {onEdit && (
+            <div>
+              <p className="text-xs text-gray-500 mb-2">Precisa corrigir algo? Toque para editar sem recomeçar:</p>
+              <div className="flex flex-wrap gap-2">
+                {([
+                  ["Evento", "tipo"],
+                  ["Data e local", "quando"],
+                  ["Convidados", "convidados"],
+                  ["Cardápio", "estilo"],
+                  ["Estrutura", "estrutura"],
+                  ["Contato", "contato"],
+                  ["Carta-convite", "carta"],
+                ] as [string, StepName][]).map(([label, step]) => (
+                  <button
+                    key={step}
+                    onClick={() => onEdit(step)}
+                    className="text-xs font-medium text-[#1B2A41] border border-gray-200 rounded-full px-3 py-1.5 active:scale-[0.97] transition-all hover:border-[#C9A24B]"
+                  >
+                    ✏️ {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
+      </details>
 
-        <button onClick={handleWhatsApp}
-          className="text-[#1d9e4f] text-sm font-semibold underline py-2 mt-1">
-          Ou enviar pelo WhatsApp
-        </button>
-
-        <button onClick={onRestart} className="text-gray-500 text-sm underline py-1">Preencher novamente</button>
+      {/* Carta-convite dos convidados (enxuta) */}
+      <div className="rounded-2xl border-2 border-[#C9A24B] bg-[#FBF7EE] p-4 text-left shadow-sm mb-4">
+        <p className="text-base font-bold text-[#1B2A41] mb-0.5">🎁 Carta-convite dos convidados</p>
+        <p className="text-xs text-gray-600 mb-3">
+          Pronta com o seu cardápio, para você enviar a quem vai convidar.
+        </p>
+        {cartaCompleta ? (
+          <>
+            <button onClick={handleInvitationPDF} disabled={!!busy}
+              className="w-full bg-[#C9A24B] text-[#1B2A41] py-4 rounded-xl font-bold text-base shadow active:scale-[0.98] transition-all disabled:opacity-50">
+              {busy === "convitepdf" ? "Gerando convite…" : "✨  Baixar convite pronto (PDF)"}
+            </button>
+            <button onClick={handleDownloadLetter} disabled={!!busy}
+              className="w-full mt-2 text-[#1B2A41] py-2 rounded-xl font-semibold text-sm underline active:scale-[0.97] transition-all disabled:opacity-50">
+              {busy === "docx" ? "Gerando…" : "Ou baixar em Word (editável)"}
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={handleDownloadLetter} disabled={!!busy}
+              className="w-full bg-[#C9A24B] text-[#1B2A41] py-4 rounded-xl font-bold text-base shadow active:scale-[0.98] transition-all disabled:opacity-50">
+              {busy === "docx" ? "Gerando…" : "📝  Baixar carta-convite (Word)"}
+            </button>
+            <p className="text-xs text-gray-600 mt-2">
+              💡 Para receber o <strong>convite pronto em PDF</strong>, toque em
+              <strong> “✏️ Carta-convite”</strong> no resumo acima e preencha os 3 dados.
+            </p>
+          </>
+        )}
       </div>
+
+      <button onClick={onRestart} className="text-gray-500 text-sm underline py-1">Preencher novamente</button>
     </div>
   );
 }

@@ -139,8 +139,6 @@ export type StepName =
   | "harmonizado"
   | "temaJantar"
   | "estrutura"
-  | "mesas"
-  | "bebidas"
   | "contato"
   | "carta"
   | "final";

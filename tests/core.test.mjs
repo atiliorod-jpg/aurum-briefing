@@ -106,8 +106,9 @@ test("90 pax → R$600 (3 blocos)", () => assert.equal(calcCustoOperacional(90),
 console.log("calcCustoLogistica:");
 test("null → R$0", () => assert.equal(calcCustoLogistica(null), 0));
 test("3 km → R$0 (abaixo do mínimo de 5 km)", () => assert.equal(calcCustoLogistica(3), 0));
-test("10 km → R$13 (10×2/10×6.50)", () => assert.equal(calcCustoLogistica(10), 13));
-test("20 km → R$26 (20×2/10×6.50)", () => assert.equal(calcCustoLogistica(20), 26));
+test("10 km → R$20 (10×2/7×7, arredondado p/ cima em 5)", () => assert.equal(calcCustoLogistica(10), 20));
+test("20 km → R$40 (20×2/7×7, arredondado p/ cima em 5)", () => assert.equal(calcCustoLogistica(20), 40));
+test("8 km → R$20 (bruto 16, arredonda p/ cima p/ 20)", () => assert.equal(calcCustoLogistica(8), 20));
 
 console.log("orçamento:");
 test("formatBRL", () => assert.equal(formatBRL(2250).replace(/[\s  ]/g, " "), "R$ 2.250,00"));

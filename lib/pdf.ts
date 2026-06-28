@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import { FormState } from "./types";
-import { formatDate } from "./utils";
+import { formatDate, enderecoLimpo } from "./utils";
 import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS, BEBIDAS_KITS } from "./menu";
 import { estimar, formatBRL, precoDe, pessoasDoTacho } from "./orcamento";
 
@@ -151,7 +151,7 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   addRow("Data", `${formatDate(state.data)}${horario ? "  •  " + horario : ""}`);
   if (state.obsHorario?.trim()) addRow("Obs. horário", state.obsHorario);
 
-  addRow("Local", state.endereco);
+  addRow("Local", enderecoLimpo(state.endereco));
   const criancas = state.criancas && state.criancas !== "0" ? ` + ${state.criancas} crianças` : "";
   addRow("Convidados", `${state.adultos} adultos${criancas}`);
   if (state.restricoes?.trim()) addRow("Restrições", state.restricoes);
@@ -298,7 +298,7 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     }
 
     if (est.custoLogistica > 0 && state.distanciaKm != null) {
-      addRow("Deslocamento até o local", formatBRL(est.custoLogistica));
+      addRow("Logística", formatBRL(est.custoLogistica));
     }
 
     addRow("Total estimado", formatBRL(est.total));

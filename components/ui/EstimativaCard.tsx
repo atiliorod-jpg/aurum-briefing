@@ -2,7 +2,7 @@
 import { FormState } from "@/lib/types";
 import { estimar, formatBRL, precoDe, pessoasDoTacho } from "@/lib/orcamento";
 
-export default function EstimativaCard({ state }: { state: FormState }) {
+export default function EstimativaCard({ state, colapsavel = false }: { state: FormState; colapsavel?: boolean }) {
   const e = estimar(state);
   if (e.foodTotal <= 0 && e.custoOperacional <= 0 && e.custoLogistica <= 0) return null;
   if (e.pessoas <= 0) return null;
@@ -18,10 +18,8 @@ export default function EstimativaCard({ state }: { state: FormState }) {
       }).filter((l) => l.subtotal > 0)
     : [];
 
-  return (
-    <div className="bg-[#FBF7EE] border border-[#C9A24B]/50 rounded-xl p-4 text-left">
-      <p className="text-xs font-bold text-[#9A7B2E] uppercase tracking-wider mb-2">Estimativa parcial</p>
-
+  const linhas = (
+    <>
       {cardapioTotal > 0 && (
         <p className="text-sm text-[#1B2A41] leading-relaxed">
           <strong>Cardápio:</strong> {formatBRL(e.porPessoa)} × {e.pessoasFaturaveis} ={" "}
@@ -69,7 +67,7 @@ export default function EstimativaCard({ state }: { state: FormState }) {
       {/* Logística */}
       {e.custoLogistica > 0 && state.distanciaKm != null && (
         <p className="text-sm text-[#1B2A41] leading-relaxed">
-          <strong>Deslocamento até o local:</strong> {formatBRL(e.custoLogistica)}
+          <strong>Logística:</strong> {formatBRL(e.custoLogistica)}
         </p>
       )}
 
@@ -91,6 +89,30 @@ export default function EstimativaCard({ state }: { state: FormState }) {
       <p className="text-[11px] text-gray-400 mt-1 italic">
         Valor de referência. Não é a proposta final — a Aurum confirma o orçamento.
       </p>
+    </>
+  );
+
+  // Versão recolhível (telas de cardápio): mostra só o total; abre para ver a quebra.
+  if (colapsavel) {
+    return (
+      <details className="bg-[#FBF7EE] border border-[#C9A24B]/50 rounded-xl text-left group">
+        <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between gap-3">
+          <span className="text-xs font-bold text-[#9A7B2E] uppercase tracking-wider">Estimativa parcial</span>
+          <span className="text-sm font-bold text-[#1B2A41] flex items-center gap-1.5">
+            {formatBRL(e.total)}
+            <span className="text-[10px] font-semibold text-[#9A7B2E] group-open:hidden">ver ▸</span>
+            <span className="text-[10px] font-semibold text-[#9A7B2E] hidden group-open:inline">fechar ▾</span>
+          </span>
+        </summary>
+        <div className="px-4 pb-4">{linhas}</div>
+      </details>
+    );
+  }
+
+  return (
+    <div className="bg-[#FBF7EE] border border-[#C9A24B]/50 rounded-xl p-4 text-left">
+      <p className="text-xs font-bold text-[#9A7B2E] uppercase tracking-wider mb-2">Estimativa parcial</p>
+      {linhas}
     </div>
   );
 }

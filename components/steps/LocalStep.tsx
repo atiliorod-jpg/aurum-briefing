@@ -90,8 +90,8 @@ export default function LocalStep({ state, onChange }: Props) {
       <div className="inline-block bg-[#C9A24B] text-[#1B2A41] text-xs font-bold tracking-widest px-3 py-1 rounded mb-3">LOCAL</div>
       <h1 className="text-xl font-bold text-[#1B2A41] mb-1">Onde acontece?</h1>
       <p className="text-gray-500 text-sm mb-5">
-        Digite o CEP para preencher o endereço automaticamente. Ele também define o
-        <strong> custo de deslocamento</strong> da equipe até o local.
+        Digite o CEP para preencher o endereço — ele também define a
+        <strong> logística</strong> da equipe até o local.
       </p>
 
       <div className="mb-4">
@@ -127,8 +127,7 @@ export default function LocalStep({ state, onChange }: Props) {
         </label>
         {state.distanciaKm != null && state.distanciaKm >= 5 && (
           <p className="text-xs text-[#9A7B2E] mt-1">
-            Local a ~{state.distanciaKm} km da base da Aurum — isso entra na estimativa como
-            custo de deslocamento da equipe.
+            Local a ~{state.distanciaKm} km da base — entra na estimativa como logística.
           </p>
         )}
       </div>

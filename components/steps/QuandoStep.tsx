@@ -68,8 +68,8 @@ export default function QuandoStep({ state, onChange }: Props) {
         </div>
       </div>
       <p className="text-xs text-gray-500 italic mb-5">
-        Duração padrão: <strong className="not-italic text-[#1B2A41]">4 horas de serviço</strong> — o término é calculado automaticamente.
-        Precisa de mais tempo? Informe nas <strong className="not-italic text-[#1B2A41]">observações</strong> abaixo.
+        Duração padrão de <strong className="not-italic text-[#1B2A41]">4 horas</strong> — o término é automático.
+        Precisa de mais? Conte nas observações.
       </p>
       <div>
         <label htmlFor="ev-obshorario" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">Observações sobre o horário <span className="font-normal text-gray-500">(opcional)</span></label>
