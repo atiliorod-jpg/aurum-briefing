@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { formatDate } from "./utils";
-import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS } from "./menu";
+import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS, BEBIDAS_KITS } from "./menu";
 import { estimar, formatBRL, precoDe, pessoasDoTacho } from "./orcamento";
 
 // Quebra "item a; item b." em itens limpos (mesma lógica da tela de coffee break)
@@ -207,11 +207,38 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     if (state.cardapioEvitar?.trim()) addRow("Evitar", state.cardapioEvitar);
   }
 
+  // Jantar Harmonizado
+  if (state.estilo.includes("Jantar Harmonizado")) {
+    addSection("Jantar Harmonizado — Menu Degustação");
+    if (state.harmonizadoCursos) addRow("Formato", state.harmonizadoCursos);
+    if (state.harmonizadoVinhos) addRow("Harmonização", state.harmonizadoVinhos);
+    if (state.harmonizadoObs?.trim()) addRow("Observações", state.harmonizadoObs);
+    addRow("Valor", "Sob consulta — a Aurum apresentará a proposta após o primeiro contato.");
+  }
+
+  // Jantar Temático
+  if (state.estilo.includes("Jantar Temático")) {
+    addSection("Jantar Temático");
+    if (state.temaJantar) addRow("Culinária", state.temaJantar);
+    if (state.temaJantarProbs?.length) addRow("Pratos de interesse", state.temaJantarProbs.join(", "));
+    if (state.temaJantarNaoPodeFaltar?.trim()) addRow("Não pode faltar", state.temaJantarNaoPodeFaltar);
+    if (state.temaJantarEvitar?.trim()) addRow("Evitar / substituir", state.temaJantarEvitar);
+    addRow("Valor", "Sob consulta — a Aurum apresentará a proposta após o primeiro contato.");
+  }
+
   // ── Estrutura ─────────────────────────────────────────────────────────────
   addSection("Estrutura");
   if (state.cozinha) addRow("Cozinha no local", state.cozinha);
   if (state.mesas) addRow("Louças e talheres", state.mesas);
-  if (!isCoffeeOnly && state.bebidas) addRow("Bebidas", state.bebidas);
+  if (!isCoffeeOnly && state.bebidas) {
+    if (state.bebidas === "Incluir Aurum" && state.bebidasKit) {
+      const kit = BEBIDAS_KITS.find((k) => k.value === state.bebidasKit);
+      const kitDesc = kit ? ` — ${kit.label}: ${kit.desc} (${formatBRL(kit.preco)}/pessoa)` : "";
+      addRow("Bebidas", `Incluir Aurum${kitDesc}`);
+    } else {
+      addRow("Bebidas", state.bebidas);
+    }
+  }
 
   // ── Contato ───────────────────────────────────────────────────────────────
   addSection("Contato");
@@ -226,14 +253,13 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (est.total > 0 && est.pessoas > 0) {
     addSection("Estimativa parcial");
 
-    const cardapioPorPessoa = est.porPessoa; // já inclui louças (quando incluso) e tacho-único
-    const cardapioTotal = cardapioPorPessoa * est.pessoas;
+    const cardapioTotal = est.porPessoa * est.pessoas;
 
     if (cardapioTotal > 0) {
-      addRow("Cardápio", `${formatBRL(cardapioPorPessoa)} por pessoa × ${est.pessoas} = ${formatBRL(cardapioTotal)}`);
+      addRow("Cardápio", `${formatBRL(est.porPessoa)}/pessoa × ${est.pessoas} = ${formatBRL(cardapioTotal)}`);
     }
 
-    // 2 tachos: cada tacho aparece em linha própria com sua quantidade de convidados
+    // 2 tachos: cada tacho em linha própria com sua distribuição de convidados
     if (state.tacho.length === 2) {
       for (const v of state.tacho) {
         const p = precoDe(v);
@@ -243,10 +269,30 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
       }
     }
 
+    // Subtotal cardápio (antes do ajuste de headcount)
+    if (est.multiplicador !== 1 && est.foodTotal > 0) {
+      addRow("Subtotal cardápio", formatBRL(est.foodTotal));
+      const pct = Math.round((est.multiplicador - 1) * 100);
+      const ajuste = Math.round(est.foodTotal * est.multiplicador) - est.foodTotal;
+      addRow(
+        `Ajuste headcount (${est.pessoas} pax)`,
+        `${pct > 0 ? "+" : ""}${pct}% = ${pct > 0 ? "+" : ""}${formatBRL(Math.abs(ajuste))}`,
+      );
+    }
+
+    if (est.custoOperacional > 0) {
+      const blocos = Math.floor(est.pessoas / 30);
+      addRow("Equipe adicional", `${formatBRL(est.custoOperacional)} (${blocos} bloco${blocos > 1 ? "s" : ""} de 30 pax)`);
+    }
+
+    if (est.custoLogistica > 0 && state.distanciaKm != null) {
+      addRow("Logística", `${formatBRL(est.custoLogistica)} (~${state.distanciaKm} km, ida e volta)`);
+    }
+
     addRow("Total estimado", formatBRL(est.total));
 
-    if (est.temItemSemPreco) addRow("Observação", "Há itens selecionados ainda sem valor — o total pode aumentar.");
-    if (est.incluiLoucas) addRow("Obs.", "Inclui adicional básico de louças e talheres (R$ 10/pessoa) — pode variar conforme os pratos.");
+    if (est.temItemSemPreco) addRow("Atenção", "Há itens sem valor cadastrado — o total pode aumentar.");
+    if (est.incluiLoucas) addRow("Louças", "Inclui adicional básico de louças e talheres (R$ 10/pessoa) — pode variar conforme os pratos.");
     addRow("", "Valor de referência. Não é a proposta final — a Aurum confirma o orçamento.");
   }
 

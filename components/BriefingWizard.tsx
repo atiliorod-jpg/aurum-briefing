@@ -17,38 +17,44 @@ import CoffeeBreakStep from "@/components/steps/CoffeeBreakStep";
 import CartaStep from "@/components/steps/CartaStep";
 import SugestaoStep from "@/components/steps/SugestaoStep";
 import TachoDistribuicao from "@/components/steps/TachoDistribuicao";
+import HarmonizadoStep from "@/components/steps/HarmonizadoStep";
+import TemaJantarStep from "@/components/steps/TemaJantarStep";
 import EstimativaCard from "@/components/ui/EstimativaCard";
 import {
-  ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS, FEIJOADA_OPTIONS,
+  ESTILO_OPTIONS, ENTRADAS_OPTIONS, PRINCIPAIS_OPTIONS, TACHO_OPTIONS, SOBREMESAS_OPTIONS,
+  FEIJOADA_OPTIONS, BEBIDAS_KITS,
 } from "@/lib/menu";
 import { mostrarPrecoCardapio } from "@/lib/orcamento";
 
 // ── Lógica de fluxo ─────────────────────────────────────────────────────────
-// Estilos cujo cardápio é escolhido item a item (entradas/principais/sobremesas)
+// Estilos cujo cardápio é escolhido item a item (entradas/principais/sobremesas).
+// Jantar Harmonizado e Jantar Temático têm steps próprios — não usam o picker.
 const ESTILOS_PICKER = [
   "Serviço à americana (buffet)", "Volante", "Serviço franco-americano (empratado)",
-  "Jantar Harmonizado", "Jantar Temático",
 ];
 
 function resolveFluxo(state: FormState): StepName[] {
   const e = state.estilo;
-  const hasPicker = e.some((x) => ESTILOS_PICKER.includes(x));
-  const hasTacho = e.includes("Tacho / Paellera");
-  const hasFeijoada = e.includes("Feijoada Completa");
-  const hasCoffee = e.includes("Coffee Break");
-  const hasSugestao = e.includes("Sugestão da Aurum");
+  const hasPicker      = e.some((x) => ESTILOS_PICKER.includes(x));
+  const hasTacho       = e.includes("Tacho / Paellera");
+  const hasFeijoada    = e.includes("Feijoada Completa");
+  const hasCoffee      = e.includes("Coffee Break");
+  const hasSugestao    = e.includes("Sugestão da Aurum");
+  const hasHarmonizado = e.includes("Jantar Harmonizado");
+  const hasTematico    = e.includes("Jantar Temático");
 
   const inicio: StepName[] = ["welcome", "tipo", "quando", "local", "convidados", "estilo"];
 
-  // Cada estilo adiciona suas etapas de cardápio (compatível com combinações)
   const menu: StepName[] = [];
   if (hasPicker || hasTacho) menu.push("entradas");
   if (hasPicker) menu.push("principais");
-  if (hasTacho) menu.push("tacho");                 // tacho aparece sempre que for escolhido
+  if (hasTacho) menu.push("tacho");
   if (hasFeijoada) menu.push("feijoada");
   if (hasCoffee) menu.push("coffeeBreak");
   if (hasPicker || hasTacho || hasFeijoada) menu.push("sobremesas");
-  if (hasSugestao) menu.push("sugestao");           // direcionamento de cardápio sob medida
+  if (hasSugestao) menu.push("sugestao");
+  if (hasHarmonizado) menu.push("harmonizado");
+  if (hasTematico) menu.push("temaJantar");
 
   // Bebidas só é dispensado quando o ÚNICO estilo é Coffee Break (já inclui bebidas)
   const includeBebidas = e.length === 0 || e.some((x) => x !== "Coffee Break");
@@ -79,9 +85,11 @@ function canAdvance(step: StepName, state: FormState): boolean {
       return true;
     }
     case "sobremesas": return state.sobremesas.length > 0;
-    case "sugestao": return true; // direcionamento opcional
+    case "sugestao": return true;
     case "feijoada": return !!state.feijoada;
     case "coffeeBreak": return !!state.coffeeBreak;
+    case "harmonizado": return true; // opcional — sob consulta
+    case "temaJantar": return !!state.temaJantar;
     case "estrutura": return !!state.cozinha;
     case "mesas": return !!state.mesas;
     case "bebidas": return !!state.bebidas;
@@ -89,12 +97,11 @@ function canAdvance(step: StepName, state: FormState): boolean {
       return state.nome.trim().length > 0
         && isPhoneComplete(state.whatsapp)
         && (state.email.trim() === "" || isEmailValid(state.email));
-    case "carta": return true; // opcional
+    case "carta": return true;
     default: return true;
   }
 }
 
-// Mensagem do que falta preencher (mostrada quando "Próximo" está bloqueado)
 function requiredHint(step: StepName, state: FormState): string | null {
   if (canAdvance(step, state)) return null;
   switch (step) {
@@ -103,13 +110,14 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "local": return "Informe o endereço do evento para continuar.";
     case "convidados": return "Informe ao menos 1 adulto para continuar.";
     case "estilo": return "Escolha ao menos um estilo de serviço.";
-    case "entradas": return "Selecione uma opção (ou “Sem entradas”) para continuar.";
+    case "entradas": return 'Selecione uma opção (ou "Sem entradas") para continuar.';
     case "principais": return "Selecione ao menos um prato principal.";
     case "tacho":
       if (state.tacho.length === 0) return "Selecione ao menos um prato de tacho/paellera.";
       return "Distribua todos os convidados entre os dois tachos (a soma precisa bater).";
-    case "sobremesas": return "Selecione uma opção (ou “Sem sobremesa”) para continuar.";
+    case "sobremesas": return 'Selecione uma opção (ou "Sem sobremesa") para continuar.';
     case "feijoada": return "Escolha o formato da feijoada.";
+    case "temaJantar": return "Escolha a culinária temática para continuar.";
     case "estrutura": return "Selecione uma opção para continuar.";
     case "mesas": return "Selecione uma opção para continuar.";
     case "bebidas": return "Selecione uma opção para continuar.";
@@ -120,9 +128,6 @@ function requiredHint(step: StepName, state: FormState): string | null {
   }
 }
 
-// Distribui o total de convidados entre os tachos selecionados, preservando o que o
-// cliente já informou quando possível. Com 1 tacho, todos os convidados vão para ele.
-// Com 2, divide ao meio (ou mantém o que já estava, se a soma já bate).
 function balancearTacho(
   tacho: string[],
   total: number,
@@ -130,35 +135,31 @@ function balancearTacho(
 ): Record<string, string> {
   if (tacho.length === 0) return {};
   if (tacho.length === 1) return { [tacho[0]]: String(total) };
-
   const [a, b] = tacho;
   const va = Number(atual[a]);
   const vb = Number(atual[b]);
   const ambosValidos = Number.isFinite(va) && Number.isFinite(vb) && va >= 0 && vb >= 0;
   if (ambosValidos && va + vb === total) return { [a]: String(va), [b]: String(vb) };
-  // Se um dos valores anteriores ainda cabe no novo total, preserva e ajusta o outro
   if (Number.isFinite(va) && va >= 0 && va <= total) return { [a]: String(va), [b]: String(total - va) };
   const metade = Math.floor(total / 2);
   return { [a]: String(metade), [b]: String(total - metade) };
 }
 
 const STORAGE_KEY = "aurum-briefing-v1";
-const STORAGE_TTL = 7 * 24 * 60 * 60 * 1000; // dados expiram em 7 dias (privacidade)
+const STORAGE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 export default function BriefingWizard() {
   const [state, setState] = useState<FormState>(initialState);
   const [idx, setIdx] = useState(0);
-  const [reviewMode, setReviewMode] = useState(false); // entrou para editar a partir do resumo
+  const [reviewMode, setReviewMode] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [direcao, setDirecao] = useState<"fwd" | "back">("fwd"); // direção da transição
+  const [direcao, setDirecao] = useState<"fwd" | "back">("fwd");
 
-  // Restaura o briefing salvo (continuar de onde parou) — só no cliente, após montar
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw) as { state?: Partial<FormState>; idx?: number; savedAt?: number };
-        // Descarta dados antigos (expiração de privacidade)
         if (saved.savedAt && Date.now() - saved.savedAt > STORAGE_TTL) {
           localStorage.removeItem(STORAGE_KEY);
         } else if (saved.state) {
@@ -169,27 +170,19 @@ export default function BriefingWizard() {
           setIdx(safeIdx);
         }
       }
-    } catch {
-      // ignora dados corrompidos
-    }
+    } catch { /* ignora dados corrompidos */ }
     setHydrated(true);
   }, []);
 
-  // Salva automaticamente a cada mudança (depois de hidratar, para não sobrescrever com vazio)
   useEffect(() => {
     if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ state, idx, savedAt: Date.now() }));
-    } catch {
-      // ignora (modo privado / cota cheia)
-    }
+    } catch { /* ignora */ }
   }, [state, idx, hydrated]);
 
   const patch = useCallback((p: Partial<FormState>) => setState(s => ({ ...s, ...p })), []);
 
-  // Ao alterar convidados, se cair para 40 ou menos, reduz o tacho para no máximo 1
-  // (a 2ª opção de tacho só vale para eventos com mais de 40 convidados).
-  // Também re-equilibra a distribuição entre os dois tachos quando o total muda.
   const patchConvidados = useCallback((p: Partial<FormState>) => {
     setState((s) => {
       const next = { ...s, ...p };
@@ -200,8 +193,6 @@ export default function BriefingWizard() {
     });
   }, []);
 
-  // Mantém tachoPessoas em dia com a seleção atual e re-equilibra ao ganhar/perder
-  // um tacho. Preserva o que o cliente já distribuiu sempre que possível.
   const setTacho = useCallback((tacho: string[]) => {
     setState((s) => {
       const total = (Number(s.adultos) || 0) + (Number(s.criancas) || 0);
@@ -209,8 +200,6 @@ export default function BriefingWizard() {
     });
   }, []);
 
-  // Ao mudar o estilo de serviço, limpa os dados de cardápio de estilos que deixaram
-  // de estar selecionados (evita "fantasmas" no resumo, ex: cardápio sob medida antigo).
   const setEstilo = useCallback((estilo: string[]) => {
     setState((s) => {
       const next: FormState = { ...s, estilo };
@@ -220,6 +209,8 @@ export default function BriefingWizard() {
       if (!has("Tacho / Paellera")) { next.tacho = []; next.tachoPessoas = {}; }
       if (!has("Feijoada Completa")) next.feijoada = null;
       if (!has("Coffee Break")) { next.coffeeBreak = null; next.coffeeBreakObs = ""; }
+      if (!has("Jantar Harmonizado")) { next.harmonizadoCursos = null; next.harmonizadoVinhos = null; next.harmonizadoObs = ""; }
+      if (!has("Jantar Temático")) { next.temaJantar = null; next.temaJantarProbs = []; next.temaJantarNaoPodeFaltar = ""; next.temaJantarEvitar = ""; }
       if (!hasPicker) { next.principais = []; next.sugestaoPrincipais = ""; }
       if (!hasPicker && !has("Tacho / Paellera")) { next.entradas = []; next.sugestaoEntradas = ""; }
       if (!hasPicker && !has("Tacho / Paellera") && !has("Feijoada Completa")) { next.sobremesas = []; next.sugestaoSobremesas = ""; }
@@ -241,21 +232,17 @@ export default function BriefingWizard() {
     setState(initialState); setIdx(0); setReviewMode(false);
   };
 
-  // Pula direto para uma etapa (usado pelos botões "editar" no resumo)
   const goToStep = (step: StepName) => {
     const i = fluxo.indexOf(step);
     if (i >= 0) { setDirecao("back"); setIdx(i); setReviewMode(true); }
   };
-  // Volta ao resumo final após editar
   const goToResumo = () => {
     const i = fluxo.indexOf("final");
     if (i >= 0) { setDirecao("fwd"); setIdx(i); }
     setReviewMode(false);
   };
 
-  // No serviço empratado, os preços do cardápio valem e o limite é 2 por etapa
   const empratado = mostrarPrecoCardapio(state);
-  // Mostra o preço nos cartões só quando ele se aplica (empratado)
   const comPreco = (opts: typeof ENTRADAS_OPTIONS, mostrar: boolean) =>
     mostrar ? opts : opts.map((o) => ({ ...o, preco: undefined }));
 
@@ -368,8 +355,9 @@ export default function BriefingWizard() {
       );
 
       case "coffeeBreak": return <CoffeeBreakStep state={state} onChange={patch} />;
-
       case "sugestao": return <SugestaoStep state={state} onChange={patch} />;
+      case "harmonizado": return <HarmonizadoStep state={state} onChange={patch} />;
+      case "temaJantar": return <TemaJantarStep state={state} onChange={patch} />;
 
       case "estrutura": return (
         <SingleSelectStep
@@ -404,18 +392,50 @@ export default function BriefingWizard() {
       );
 
       case "bebidas": return (
-        <SingleSelectStep
-          stepNumber=""
-          title="Bebidas."
-          hint="Como prefere conduzir as bebidas?"
-          options={[
-            { value: "Bar do local", label: "Bar do local" },
-            { value: "Compra separada", label: "Fico responsável pela compra" },
-            { value: "Incluir Aurum", label: "Incluir na proposta Aurum" },
-          ]}
-          selected={state.bebidas}
-          onChange={v => patch({ bebidas: v })}
-        />
+        <div className="space-y-4">
+          <SingleSelectStep
+            stepNumber=""
+            title="Bebidas."
+            hint="Como prefere conduzir as bebidas?"
+            options={[
+              { value: "Bar do local", label: "Bar do local" },
+              { value: "Compra separada", label: "Fico responsável pela compra" },
+              { value: "Incluir Aurum", label: "Incluir na proposta Aurum" },
+            ]}
+            selected={state.bebidas}
+            onChange={v => patch({ bebidas: v, bebidasKit: null })}
+          />
+          {state.bebidas === "Incluir Aurum" && (
+            <div className="mt-4">
+              <p className="text-sm font-semibold text-[#1B2A41] mb-3">Escolha o kit de bebidas:</p>
+              <div className="space-y-2">
+                {BEBIDAS_KITS.map((kit) => (
+                  <button
+                    key={kit.value}
+                    type="button"
+                    onClick={() => patch({ bebidasKit: kit.value })}
+                    className={`w-full text-left border-2 rounded-xl px-4 py-3 transition-all ${
+                      state.bebidasKit === kit.value
+                        ? "border-[#C9A24B] bg-[#FBF7EE]"
+                        : "border-gray-200 bg-white hover:border-[#C9A24B]/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-[#1B2A41] text-sm">{kit.label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{kit.desc}</p>
+                      </div>
+                      <span className="text-sm font-bold text-[#C9A24B] ml-3 flex-shrink-0">
+                        R$ {kit.preco}/pax
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <EstimativaCard state={state} />
+            </div>
+          )}
+        </div>
       );
 
       case "contato": return <ContatoStep state={state} onChange={patch} />;

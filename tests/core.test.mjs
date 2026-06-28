@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { formatDate, formatPhone, isPhoneComplete, isEmailValid, shiftHour, sugestaoRSVP, buildWhatsAppMessage, buildWhatsAppLinkText } from "../lib/utils.ts";
 import { resolveInvitation, getConector, getTipoFrase, getCardapioName } from "../lib/invitation.ts";
-import { estimar, formatBRL } from "../lib/orcamento.ts";
+import { estimar, formatBRL, multiplicadorPessoas, calcCustoOperacional, calcCustoLogistica } from "../lib/orcamento.ts";
 
 let passed = 0;
 function test(name, fn) {
@@ -13,12 +13,16 @@ function test(name, fn) {
 
 const base = {
   tipo: "Aniversário", tipoOutro: "", data: "2026-12-12", horaInicio: "19:00", horaFim: "23:00",
-  obsHorario: "", endereco: "Rua 51", adultos: "50", criancas: "0", restricoes: "",
+  obsHorario: "", cep: "", endereco: "Rua 51", distanciaKm: null,
+  adultos: "50", criancas: "0", restricoes: "",
   estilo: ["Serviço à americana (buffet)"], entradas: [], sugestaoEntradas: "", principais: [],
   sugestaoPrincipais: "", tacho: [], tachoPessoas: {}, sobremesas: [], sugestaoSobremesas: "",
   cardapioPerfil: [], cardapioNaoPodeFaltar: "", cardapioEvitar: "",
-  feijoada: null, coffeeBreak: null, coffeeBreakObs: "", cozinha: "Sim, completa",
-  mesas: "Local fornece", bebidas: "Bar do local", faixa: null,
+  feijoada: null, coffeeBreak: null, coffeeBreakObs: "",
+  harmonizadoCursos: null, harmonizadoVinhos: null, harmonizadoObs: "",
+  temaJantar: null, temaJantarProbs: [], temaJantarNaoPodeFaltar: "", temaJantarEvitar: "",
+  cozinha: "Sim, completa", mesas: "Local fornece", bebidas: "Bar do local",
+  bebidasKit: null, faixa: null,
   nome: "João", whatsapp: "(81)99818-4489", email: "", prazo: "", obs: "",
   cartaHomenageado: "", cartaDataLimite: "", cartaAssinatura: "",
 };
@@ -62,7 +66,6 @@ test("mensagem contém seções", () => {
   assert.ok(m.includes("Louças e talheres"));
 });
 test("link curto: evento normal usa versão completa", () => {
-  // sem textos longos, o link é igual à mensagem completa
   assert.equal(buildWhatsAppLinkText(base), buildWhatsAppMessage(base));
 });
 test("link curto: briefing enorme compacta e mantém restrições", () => {
@@ -80,62 +83,127 @@ test("link curto: briefing enorme compacta e mantém restrições", () => {
   assert.ok(link.includes("completas no resumo"), "deve avisar que o resto está no PDF/Word");
 });
 
+console.log("multiplicadorPessoas:");
+test("base (25 pax) → ×1.00", () => assert.equal(multiplicadorPessoas(25), 1.0));
+test("10 pax → ×1.45 (acréscimo +45%)", () => assert.equal(multiplicadorPessoas(10), 1.45));
+test("5 pax → ×1.50 (cap máximo)", () => assert.equal(multiplicadorPessoas(5), 1.50));
+test("30 pax → ×1.00 (sem desconto antes de 70)", () => assert.equal(multiplicadorPessoas(30), 1.0));
+test("70 pax → ×1.00 (limiar do desconto)", () => assert.equal(multiplicadorPessoas(70), 1.0));
+test("100 pax → ×0.85 (−15%)", () => assert.equal(multiplicadorPessoas(100), 0.85));
+test("120 pax → ×0.80 (cap mínimo)", () => assert.equal(multiplicadorPessoas(120), 0.80));
+
+console.log("calcCustoOperacional:");
+test("25 pax → R$0 (menos de 30)", () => assert.equal(calcCustoOperacional(25), 0));
+test("30 pax → R$200 (1 bloco)", () => assert.equal(calcCustoOperacional(30), 200));
+test("59 pax → R$200 (ainda 1 bloco)", () => assert.equal(calcCustoOperacional(59), 200));
+test("60 pax → R$400 (2 blocos)", () => assert.equal(calcCustoOperacional(60), 400));
+test("90 pax → R$600 (3 blocos)", () => assert.equal(calcCustoOperacional(90), 600));
+
+console.log("calcCustoLogistica:");
+test("null → R$0", () => assert.equal(calcCustoLogistica(null), 0));
+test("3 km → R$0 (abaixo do mínimo de 5 km)", () => assert.equal(calcCustoLogistica(3), 0));
+test("10 km → R$13 (10×2/10×6.50)", () => assert.equal(calcCustoLogistica(10), 13));
+test("20 km → R$26 (20×2/10×6.50)", () => assert.equal(calcCustoLogistica(20), 26));
+
 console.log("orçamento:");
-test("formatBRL", () => assert.equal(formatBRL(2250).replace(/ /g, " "), "R$ 2.250,00"));
-test("estimar tacho × pessoas", () => {
+test("formatBRL", () => assert.equal(formatBRL(2250).replace(/[\s  ]/g, " "), "R$ 2.250,00"));
+
+test("estimar tacho × pessoas (50 pax, mult×1.0 + R$200 operacional)", () => {
+  // 50 pax, Galinhada R$45: foodTotal=2250, mult=1.0, op=200, total=2450
   const e = estimar({ ...base, adultos: "50", criancas: "0", mesas: "Local fornece", tacho: ["Galinhada"] });
   assert.equal(e.porPessoa, 45);
   assert.equal(e.pessoas, 50);
-  assert.equal(e.total, 2250);
+  assert.equal(e.multiplicador, 1.0);
+  assert.equal(e.custoOperacional, 200);
+  assert.equal(e.total, 2450);
 });
-test("estimar cardápio completo no empratado (entrada+principal+sobremesa)", () => {
+
+test("estimar cardápio completo no empratado (10 pax, mult×1.45)", () => {
+  // 10 pax, 50+75+30=155/pax: foodTotal=1550, mult=1.45, op=0, total=2248
   const e = estimar({ ...base, adultos: "10", mesas: "Local fornece",
     estilo: ["Serviço franco-americano (empratado)"],
     entradas: ["Salada Parmese"], principais: ["Lasanha com Fonduta de Queijo"], sobremesas: ["Panna Cotta"] });
   assert.equal(e.porPessoa, 50 + 75 + 30); // 155
-  assert.equal(e.total, 1550);
+  assert.equal(e.multiplicador, 1.45);
+  assert.equal(e.custoOperacional, 0);
+  assert.equal(e.total, Math.round(1550 * 1.45)); // 2248
   assert.ok(!e.temItemSemPreco);
 });
+
 test("sem empratado, cardápio não é precificado ainda", () => {
   const e = estimar({ ...base, adultos: "10", mesas: "Local fornece",
     estilo: ["Serviço à americana (buffet)"],
     entradas: ["Salada Parmese"], principais: ["Lasanha com Fonduta de Queijo"] });
-  assert.equal(e.porPessoa, 0); // buffet ainda sem preço
+  assert.equal(e.porPessoa, 0);
 });
-test("estimar feijoada premium", () => {
+
+test("estimar feijoada premium (30 pax, mult×1.0 + R$200 operacional)", () => {
+  // 30 pax, R$110/pax: foodTotal=3300, mult=1.0, op=200, total=3500
   const e = estimar({ ...base, adultos: "30", mesas: "Local fornece", feijoada: "Premium" });
   assert.equal(e.porPessoa, 110);
-  assert.equal(e.total, 3300);
+  assert.equal(e.multiplicador, 1.0);
+  assert.equal(e.custoOperacional, 200);
+  assert.equal(e.total, 3500);
 });
-test("estimar soma adicional de louças (Incluir Aurum)", () => {
+
+test("estimar soma adicional de louças (20 pax, mult×1.15)", () => {
+  // 20 pax, Galinhada R$45 + louças R$10 = 55/pax: foodTotal=1100, mult=1.15, total=1265
   const e = estimar({ ...base, adultos: "20", mesas: "Incluir Aurum", tacho: ["Galinhada"] });
-  assert.equal(e.porPessoa, 45 + 10); // prato + louças
+  assert.equal(e.porPessoa, 45 + 10);
   assert.ok(e.incluiLoucas);
-  assert.equal(e.total, 1100);
+  assert.equal(e.multiplicador, 1.15);
+  assert.equal(e.total, Math.round(1100 * 1.15)); // 1265
 });
-test("estimar 2 tachos com distribuicao por convidados", () => {
-  // 70 convidados, Galinhada (R$45) para 30 + Arroz de Costela (R$55) para 40
-  // Total esperado: 45×30 + 55×40 = 1350 + 2200 = 3550
+
+test("estimar 2 tachos com distribuicao por convidados (70 pax, mult×1.0 + R$400 operacional)", () => {
+  // 70 pax, Galinhada(30)×45 + Arroz(40)×55 = 1350+2200 = 3550 tacho, op=400, total=3950
   const e = estimar({
     ...base, adultos: "70", criancas: "0", mesas: "Local fornece",
     tacho: ["Galinhada", "Arroz de Costela Caldoso"],
     tachoPessoas: { "Galinhada": "30", "Arroz de Costela Caldoso": "40" },
   });
   assert.equal(e.pessoas, 70);
-  assert.equal(e.total, 3550);
-  assert.equal(e.porPessoa, 0); // tacho dividido não entra em porPessoa
+  assert.equal(e.multiplicador, 1.0);
+  assert.equal(e.custoOperacional, 400);
+  assert.equal(e.total, 3950);
+  assert.equal(e.porPessoa, 0);
 });
-test("estimar 2 tachos + loucas (cardapio + soma por tacho)", () => {
-  // 70 convidados, mesma divisão acima, agora com louças (R$10/pessoa = 700)
-  // Cardápio: 10×70 = 700 ; tacho = 3550 ; total = 4250
+
+test("estimar 2 tachos + loucas (70 pax)", () => {
+  // foodTotal = louças×70 + tacho3550 = 700+3550=4250, mult=1.0, op=400, total=4650
   const e = estimar({
     ...base, adultos: "70", criancas: "0", mesas: "Incluir Aurum",
     tacho: ["Galinhada", "Arroz de Costela Caldoso"],
     tachoPessoas: { "Galinhada": "30", "Arroz de Costela Caldoso": "40" },
   });
-  assert.equal(e.total, 700 + 3550); // 4250
-  assert.equal(e.porPessoa, 10); // só louças
+  assert.equal(e.total, 4650);
+  assert.equal(e.porPessoa, 10);
   assert.ok(e.incluiLoucas);
+});
+
+test("estimar Coffee Break Simples + 10 pax (mult×1.45)", () => {
+  // porPessoa=55, foodTotal=550, mult=1.45, op=0, total=798
+  const e = estimar({ ...base, adultos: "10", coffeeBreak: "Coffee Break Simples",
+    estilo: ["Coffee Break"], mesas: "Local fornece" });
+  assert.equal(e.porPessoa, 55);
+  assert.equal(e.multiplicador, 1.45);
+  assert.equal(e.total, Math.round(550 * 1.45)); // 798
+});
+
+test("estimar kit de bebidas espumante + 25 pax (mult×1.0)", () => {
+  // porPessoa=28, foodTotal=700, mult=1.0, op=0, total=700
+  const e = estimar({ ...base, adultos: "25", bebidas: "Incluir Aurum", bebidasKit: "espumante" });
+  assert.equal(e.porPessoa, 28);
+  assert.equal(e.multiplicador, 1.0);
+  assert.equal(e.total, 700);
+});
+
+test("estimar desconto grande grupo (100 pax, mult×0.85)", () => {
+  // Galinhada R$45 × 100 pax, foodTotal=4500, mult=0.85, op=600, total=4425
+  const e = estimar({ ...base, adultos: "100", tacho: ["Galinhada"] });
+  assert.equal(e.multiplicador, 0.85);
+  assert.equal(e.custoOperacional, 600);
+  assert.equal(e.total, Math.round(4500 * 0.85) + 600); // 3825+600=4425
 });
 
 console.log(`\n${passed} testes passaram.`);

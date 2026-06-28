@@ -4,11 +4,13 @@ import { estimar, formatBRL, precoDe, pessoasDoTacho } from "@/lib/orcamento";
 
 export default function EstimativaCard({ state }: { state: FormState }) {
   const e = estimar(state);
-  if (e.total <= 0 || e.pessoas <= 0) return null;
+  if (e.foodTotal <= 0 && e.custoOperacional <= 0 && e.custoLogistica <= 0) return null;
+  if (e.pessoas <= 0) return null;
 
   const cardapioTotal = e.porPessoa * e.pessoas;
+  const ajuste = Math.round(e.foodTotal * e.multiplicador) - e.foodTotal;
+  const pct = Math.round((e.multiplicador - 1) * 100);
 
-  // Linhas individuais por tacho aparecem só quando há 2 tachos (cada um com sua qtd).
   const tachoLinhas = state.tacho.length === 2
     ? state.tacho.map((v) => {
         const preco = precoDe(v) ?? 0;
@@ -19,7 +21,7 @@ export default function EstimativaCard({ state }: { state: FormState }) {
 
   return (
     <div className="bg-[#FBF7EE] border border-[#C9A24B]/50 rounded-xl p-4 text-left">
-      <p className="text-xs font-bold text-[#9A7B2E] uppercase tracking-wider mb-2">💰 Estimativa parcial</p>
+      <p className="text-xs font-bold text-[#9A7B2E] uppercase tracking-wider mb-2">Estimativa parcial</p>
 
       {cardapioTotal > 0 && (
         <p className="text-sm text-[#1B2A41] leading-relaxed">
@@ -30,14 +32,39 @@ export default function EstimativaCard({ state }: { state: FormState }) {
 
       {tachoLinhas.map((l) => (
         <p key={l.nome} className="text-sm text-[#1B2A41] leading-relaxed">
-          <strong>Tacho ({l.nome}):</strong> {formatBRL(l.preco)} × {l.pessoas} ={" "}
-          <strong>{formatBRL(l.subtotal)}</strong>
+          <strong>Tacho ({l.nome.length > 20 ? l.nome.slice(0, 20) + "…" : l.nome}):</strong>{" "}
+          {formatBRL(l.preco)} × {l.pessoas} = <strong>{formatBRL(l.subtotal)}</strong>
         </p>
       ))}
 
-      {tachoLinhas.length > 0 && cardapioTotal > 0 && (
-        <p className="text-[11px] text-gray-500 mt-0.5">
-          Soma do cardápio + tacho{tachoLinhas.length > 1 ? "s" : ""}
+      {/* Subtotal antes do multiplicador */}
+      {e.foodTotal > 0 && e.multiplicador !== 1 && (
+        <p className="text-sm text-[#1B2A41] mt-1">
+          <strong>Subtotal cardápio:</strong> {formatBRL(e.foodTotal)}
+        </p>
+      )}
+
+      {/* Ajuste de headcount */}
+      {e.multiplicador !== 1 && e.foodTotal > 0 && (
+        <p className={`text-sm leading-relaxed ${pct > 0 ? "text-amber-700" : "text-green-700"}`}>
+          <strong>Ajuste {e.pessoas} pax:</strong>{" "}
+          {pct > 0 ? "+" : ""}{pct}% = {pct > 0 ? "+" : ""}{formatBRL(Math.abs(ajuste))}
+        </p>
+      )}
+
+      {/* Custo operacional */}
+      {e.custoOperacional > 0 && (
+        <p className="text-sm text-[#1B2A41] leading-relaxed">
+          <strong>Equipe adicional:</strong> {formatBRL(e.custoOperacional)}{" "}
+          <span className="text-xs text-gray-500">({Math.floor(e.pessoas / 30)} bloco{Math.floor(e.pessoas / 30) > 1 ? "s" : ""} de 30 pax)</span>
+        </p>
+      )}
+
+      {/* Logística */}
+      {e.custoLogistica > 0 && state.distanciaKm != null && (
+        <p className="text-sm text-[#1B2A41] leading-relaxed">
+          <strong>Logística:</strong> {formatBRL(e.custoLogistica)}{" "}
+          <span className="text-xs text-gray-500">(~{state.distanciaKm} km ida e volta)</span>
         </p>
       )}
 
@@ -48,17 +75,16 @@ export default function EstimativaCard({ state }: { state: FormState }) {
 
       {e.incluiLoucas && (
         <p className="text-xs text-gray-500 mt-1.5">
-          Inclui um <strong>adicional básico de louças e talheres</strong> (a partir de R$ 10/pessoa) — pode
-          variar conforme os pratos escolhidos.
+          Inclui <strong>adicional de louças e talheres</strong> (a partir de R$ 10/pessoa).
         </p>
       )}
       {e.temItemSemPreco && (
         <p className="text-xs text-gray-500 mt-1.5">
-          Há itens selecionados ainda sem valor cadastrado — o total pode aumentar.
+          Há itens sem valor cadastrado — o total pode aumentar.
         </p>
       )}
       <p className="text-[11px] text-gray-400 mt-1 italic">
-        Valor de referência dos pratos já precificados. Não é a proposta final — a Aurum confirma o orçamento.
+        Valor de referência. Não é a proposta final — a Aurum confirma o orçamento.
       </p>
     </div>
   );

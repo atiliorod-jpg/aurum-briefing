@@ -1,8 +1,32 @@
 "use client";
 import { useState } from "react";
 import { FormState } from "@/lib/types";
+import { AURUM_LAT, AURUM_LNG } from "@/lib/config";
 
 interface Props { state: FormState; onChange: (patch: Partial<FormState>) => void; }
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function fetchCoordenadas(cep: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?postalcode=${cep}&country=Brazil&format=json&limit=1`,
+      { headers: { "User-Agent": "AurumBriefingForm/1.0 aurumbuffet.eventos@gmail.com" } },
+    );
+    const data = await res.json();
+    if (!data[0]) return null;
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  } catch {
+    return null;
+  }
+}
 
 export default function LocalStep({ state, onChange }: Props) {
   const cep = state.cep;
@@ -20,13 +44,25 @@ export default function LocalStep({ state, onChange }: Props) {
     try {
       setBuscando(true);
       setErroCep(false);
-      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await res.json();
-      if (data.erro) { setErroCep(true); return; }
-      // Monta o endereço com o que veio do CEP, deixando número/apto para o cliente
-      const partes = [data.logradouro, data.bairro, `${data.localidade}/${data.uf}`].filter(Boolean);
-      const base = partes.join(", ");
-      onChange({ endereco: base ? `${base}, ` : state.endereco });
+
+      // Lookups em paralelo: endereço (ViaCEP) + coordenadas (Nominatim)
+      const [viaCepRes, coords] = await Promise.all([
+        fetch(`https://viacep.com.br/ws/${digits}/json/`).then((r) => r.json()),
+        fetchCoordenadas(digits),
+      ]);
+
+      if (viaCepRes.erro) {
+        setErroCep(true);
+      } else {
+        const partes = [viaCepRes.logradouro, viaCepRes.bairro, `${viaCepRes.localidade}/${viaCepRes.uf}`].filter(Boolean);
+        const base = partes.join(", ");
+        onChange({ endereco: base ? `${base}, ` : state.endereco });
+      }
+
+      if (coords) {
+        const dist = haversineKm(AURUM_LAT, AURUM_LNG, coords.lat, coords.lng);
+        onChange({ distanciaKm: Math.round(dist * 10) / 10 });
+      }
     } catch {
       setErroCep(true);
     } finally {
@@ -58,6 +94,11 @@ export default function LocalStep({ state, onChange }: Props) {
           {buscando && <span className="self-center text-sm text-gray-400">buscando…</span>}
         </div>
         {erroCep && <p className="text-xs text-red-500 mt-1">CEP não encontrado — preencha o endereço manualmente abaixo.</p>}
+        {state.distanciaKm != null && state.distanciaKm >= 5 && (
+          <p className="text-xs text-[#9A7B2E] mt-1">
+            Distância estimada da Aurum: ~{state.distanciaKm} km (em linha reta)
+          </p>
+        )}
       </div>
 
       <label htmlFor="ev-endereco" className="block text-sm font-semibold text-[#1B2A41] mb-1.5">

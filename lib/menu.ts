@@ -11,7 +11,9 @@ export interface MenuOption {
   value: string;
   label: string;
   desc?: string;
-  preco?: number; // valor por pessoa (R$) — usado na estimativa/pré-orçamento
+  preco?: number;       // valor por pessoa no empratado (R$)
+  precoBuffet?: number; // valor por pessoa no buffet (quando definido)
+  precoVolante?: number; // valor por pessoa no volante (quando definido)
 }
 
 // ── Feijoada ────────────────────────────────────────────────────────────────
@@ -20,7 +22,7 @@ export const FEIJOADA_OPTIONS: MenuOption[] = [
   { value: "Premium", label: "Feijoada Premium", desc: "Cada proteína apresentada em travessa individual. Apresentação refinada que valoriza cada ingrediente e permite ao convidado montar o seu prato.", preco: 110 },
 ];
 
-// ── Coffee Break (bebidas / salgados / doces de cada nível) ─────────────────
+// ── Coffee Break ─────────────────────────────────────────────────────────────
 export const COFFEE_DETAILS: Record<string, { hint: string; bebidas: string; salgados: string; doces: string }> = {
   "Coffee Break Simples": {
     hint: "Ideal para reuniões rápidas, treinamentos curtos e momentos de pausa com uma seleção prática, leve e bem apresentada.",
@@ -42,6 +44,69 @@ export const COFFEE_DETAILS: Record<string, { hint: string; bebidas: string; sal
   },
 };
 
+// Preços por pessoa confirmados pelo cliente
+export const COFFEE_PRECOS: Record<string, number> = {
+  "Coffee Break Simples":     55,
+  "Coffee Break Tradicional": 65,
+  "Coffee Break Premium":     75,
+};
+
+// ── Bebidas em kits ──────────────────────────────────────────────────────────
+export interface BebidasKit { value: string; label: string; desc: string; preco: number; }
+export const BEBIDAS_KITS: BebidasKit[] = [
+  { value: "hidratacao",    label: "Kit Hidratação",    desc: "Água mineral (com e sem gás)",                            preco: 4  },
+  { value: "refresco",      label: "Kit Refresco",      desc: "Água + refrigerante (Coca-Cola, Guaraná, Soda)",          preco: 8  },
+  { value: "natural",       label: "Kit Natural",       desc: "Água + suco de polpa (1 sabor)",                          preco: 10 },
+  { value: "familia",       label: "Kit Família",       desc: "Água + suco (2 sabores) + refrigerante",                  preco: 15 },
+  { value: "chopp",         label: "Kit Chopp",         desc: "Chopp artesanal + água mineral",                          preco: 20 },
+  { value: "vinho_mesa",    label: "Kit Vinho Mesa",    desc: "Vinho nacional (tinto ou branco) + água",                 preco: 22 },
+  { value: "espumante",     label: "Kit Espumante",     desc: "Espumante Brut + água mineral (com e sem gás)",           preco: 28 },
+  { value: "vinho_premium", label: "Kit Vinho Premium", desc: "Vinho importado selecionado + água mineral",              preco: 35 },
+  { value: "bar_light",     label: "Kit Bar Light",     desc: "Vodka ou gin + mixers + água + gelo",                     preco: 40 },
+  { value: "bar_completo",  label: "Kit Bar Completo",  desc: "Destilados variados + cervejas + mixers + água + gelo",  preco: 55 },
+];
+
+// ── Jantar Temático — 9 culinárias temáticas ─────────────────────────────────
+export interface TemaJantar { value: string; label: string; bandeira: string; classicos: string[]; }
+export const TEMAS_JANTAR: TemaJantar[] = [
+  { value: "Francesa", label: "Culinária Francesa", bandeira: "🇫🇷",
+    classicos: ["Soupe à l'oignon au gratin", "Coq au Vin", "Boeuf Bourguignon",
+                "Peixe meunière", "Crêpes Suzette", "Tarte Tatin", "Crème Brûlée"] },
+  { value: "Italiana", label: "Culinária Italiana", bandeira: "🇮🇹",
+    classicos: ["Bruschetta al pomodoro", "Risotto ai Funghi Porcini",
+                "Pappardelle al Ragù", "Saltimbocca alla Romana",
+                "Piccata di Vitello", "Tiramisù", "Panna Cotta"] },
+  { value: "Argentina", label: "Culinária Argentina", bandeira: "🇦🇷",
+    classicos: ["Empanadas (carne/frango/queijo)", "Costela bovina na brasa (Asado)",
+                "Chorizo parrillero", "Provoleta grelhada com ervas",
+                "Mollejas grelhadas", "Chimichurri", "Alfajores com dulce de leche"] },
+  { value: "Espanhola", label: "Culinária Espanhola", bandeira: "🇪🇸",
+    classicos: ["Tapas sortidas (croquetas, patatas bravas, pan con tomate)",
+                "Paella de frutos do mar", "Gazpacho andaluz",
+                "Jamón serrano / Ibérico", "Tortilla española",
+                "Churros com chocolate", "Crema Catalana"] },
+  { value: "Alemã", label: "Culinária Alemã", bandeira: "🇩🇪",
+    classicos: ["Bretzel artesanal", "Charcuterie alemã (embutidos selecionados)",
+                "Joelho de porco (Eisbein)", "Bratwurst e Weisswurst",
+                "Chucrute (Sauerkraut)", "Strudel de maçã", "Bolo Floresta Negra"] },
+  { value: "Indiana", label: "Culinária Indiana", bandeira: "🇮🇳",
+    classicos: ["Samosa frita (carne ou legumes)", "Chicken Tikka Masala",
+                "Butter Chicken", "Dal Makhani", "Naan artesanal",
+                "Arroz Biryani", "Gulab Jamun"] },
+  { value: "Mexicana", label: "Culinária Mexicana", bandeira: "🇲🇽",
+    classicos: ["Guacamole com tortillas", "Tacos variados (carne, frango, peixe)",
+                "Enchiladas com molho mole", "Fajitas com pico de gallo",
+                "Quesadillas", "Churros com caramelo", "Tres Leches"] },
+  { value: "Tailandesa", label: "Culinária Tailandesa", bandeira: "🇹🇭",
+    classicos: ["Tom Kha Gai (sopa cremosa de coco)", "Tom Yum de frutos do mar",
+                "Pad Thai", "Green Curry", "Red Curry",
+                "Spring Rolls fritos", "Mango Sticky Rice"] },
+  { value: "Árabe", label: "Culinária Árabe", bandeira: "🇱🇧",
+    classicos: ["Homus com pão pita artesanal", "Fattoush / Tabule",
+                "Kafta grelhada", "Kebab de cordeiro ou frango",
+                "Couscous marroquino", "Baklava", "Knafeh"] },
+];
+
 // ── Estilos de serviço ──────────────────────────────────────────────────────
 export const ESTILO_OPTIONS: MenuOption[] = [
   { value: "Serviço à americana (buffet)", label: "Serviço à americana (buffet)", desc: "Pratos dispostos em mesa para servir-se à vontade." },
@@ -51,7 +116,7 @@ export const ESTILO_OPTIONS: MenuOption[] = [
   { value: "Feijoada Completa", label: "Feijoada Completa", desc: "Experiência gastronômica completa com todos os acompanhamentos clássicos." },
   { value: "Coffee Break", label: "Coffee Break", desc: "Cardápio dedicado para reuniões, treinamentos, recepções e momentos de pausa." },
   { value: "Jantar Harmonizado", label: "Jantar Harmonizado", desc: "Menu degustação com harmonização de vinhos e bebidas." },
-  { value: "Jantar Temático", label: "Jantar Temático", desc: "Cardápio e ambientação criados em torno de um tema." },
+  { value: "Jantar Temático", label: "Jantar Temático", desc: "Cardápio e ambientação criados em torno de um tema culinário." },
   { value: "Sugestão da Aurum", label: "Sugestão da Aurum", desc: "Deixamos o cardápio a nosso cargo, conforme o perfil do evento." },
 ];
 

@@ -7,6 +7,7 @@ export interface FormState {
   obsHorario: string;
   cep: string;
   endereco: string;
+  distanciaKm: number | null; // preenchido automaticamente pelo LocalStep via Nominatim
   adultos: string;
   criancas: string;
   restricoes: string;
@@ -16,27 +17,34 @@ export interface FormState {
   principais: string[];
   sugestaoPrincipais: string;
   tacho: string[];
-  // Quando há 2 tachos, distribui os convidados entre eles. Chave = value do tacho.
   tachoPessoas: Record<string, string>;
   sobremesas: string[];
   sugestaoSobremesas: string;
-  // Direcionamento para cardápio sob medida (estilo "Sugestão da Aurum")
   cardapioPerfil: string[];
   cardapioNaoPodeFaltar: string;
   cardapioEvitar: string;
   feijoada: string | null;
   coffeeBreak: string | null;
   coffeeBreakObs: string;
+  // Jantar Harmonizado (menu degustação — sob consulta)
+  harmonizadoCursos: string | null;
+  harmonizadoVinhos: string | null;
+  harmonizadoObs: string;
+  // Jantar Temático
+  temaJantar: string | null;
+  temaJantarProbs: string[];
+  temaJantarNaoPodeFaltar: string;
+  temaJantarEvitar: string;
   cozinha: string | null;
   mesas: string | null;
   bebidas: string | null;
+  bebidasKit: string | null; // kit escolhido quando bebidas === "Incluir Aurum"
   faixa: string | null;
   nome: string;
   whatsapp: string;
   email: string;
   prazo: string;
   obs: string;
-  // Campos opcionais para deixar a carta-convite 100% pronta (gera PDF)
   cartaHomenageado: string;
   cartaDataLimite: string;
   cartaAssinatura: string;
@@ -51,6 +59,7 @@ export const initialState: FormState = {
   obsHorario: "",
   cep: "",
   endereco: "",
+  distanciaKm: null,
   adultos: "",
   criancas: "",
   restricoes: "",
@@ -69,9 +78,17 @@ export const initialState: FormState = {
   feijoada: null,
   coffeeBreak: null,
   coffeeBreakObs: "",
+  harmonizadoCursos: null,
+  harmonizadoVinhos: null,
+  harmonizadoObs: "",
+  temaJantar: null,
+  temaJantarProbs: [],
+  temaJantarNaoPodeFaltar: "",
+  temaJantarEvitar: "",
   cozinha: null,
   mesas: null,
   bebidas: null,
+  bebidasKit: null,
   faixa: null,
   nome: "",
   whatsapp: "",
@@ -97,6 +114,8 @@ export type StepName =
   | "sugestao"
   | "feijoada"
   | "coffeeBreak"
+  | "harmonizado"
+  | "temaJantar"
   | "estrutura"
   | "mesas"
   | "bebidas"
@@ -124,8 +143,7 @@ export const FLUXO_FEIJOADA: StepName[] = [
   "estrutura","mesas","bebidas","contato","final",
 ];
 
-// Coffee Break: escolhido em "estilo de serviço". Sem entradas/principais/tacho/sobremesas
-// e sem passo de bebidas (o coffee break já inclui as bebidas).
+// Coffee Break: sem entradas/principais/tacho/sobremesas e sem bebidas
 export const FLUXO_COFFEE: StepName[] = [
   "welcome","tipo","quando","local","convidados","faixa",
   "estilo","coffeeBreak",
