@@ -36,8 +36,8 @@ export default function ConvidadosStep({ state, onChange }: Props) {
         className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base text-[#1B2A41] bg-white focus:outline-none focus:border-[#C9A24B] resize-none" />
 
       <div className="bg-[#FBF7EE] border border-[#C9A24B]/40 rounded-xl p-4 text-xs text-gray-600 leading-relaxed mt-3">
-        ℹ️ Grupos com menos de <strong>20 convidados</strong> são calculados pelo mínimo de 20 pessoas
-        (custos fixos da operação) — a estimativa já mostra isso.
+        ℹ️ Em grupos com menos de <strong>20 convidados</strong>, o cardápio e as bebidas são
+        calculados pelo mínimo de 20 pessoas (custos fixos da operação) — a estimativa já mostra isso.
       </div>
     </div>
   );

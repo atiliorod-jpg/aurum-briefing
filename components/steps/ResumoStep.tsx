@@ -182,25 +182,33 @@ export default function ResumoStep({ state, onRestart, onEdit }: Props) {
     ...(state.sobremesasRegionais?.length ? [{ label: "Sobremesas regionais", value: state.sobremesasRegionais.join(", ") }] : []),
     ...(state.sugestaoSobremesasRegionais ? [{ label: "Sugestão sobremesa", value: state.sugestaoSobremesasRegionais }] : []),
     ...(state.cardapioPerfil.length ? [{ label: "Cardápio sob medida", value: state.cardapioPerfil.join(", ") }] : []),
+    ...(state.harmonizadoCursos ? [{ label: "Harmonizado", value: state.harmonizadoCursos }] : []),
+    ...(state.harmonizadoVinhos ? [{ label: "Vinhos", value: state.harmonizadoVinhos }] : []),
+    ...(state.harmonizadoObs ? [{ label: "Obs. harmonizado", value: state.harmonizadoObs }] : []),
     ...(state.temaJantar ? [{ label: "Jantar temático", value: state.temaJantar }] : []),
     ...(state.temaJantarProbs?.length ? [{ label: "Pratos de interesse", value: state.temaJantarProbs.join(", ") }] : []),
   ];
 
   type Row = { label: string; value: string };
+  const horarioResumo = state.horaInicio
+    ? ` • ${state.horaInicio}${state.horaFim ? ` às ${state.horaFim}` : ""}`
+    : "";
   const eventoRows: Row[] = [
     { label: "Tipo", value: state.tipo === "Outro" ? state.tipoOutro : state.tipo || "" },
-    { label: "Data", value: `${formatDate(state.data)}${state.horaInicio ? " • " + state.horaInicio : ""}` },
+    { label: "Data", value: `${formatDate(state.data)}${horarioResumo}` },
     { label: "Local", value: enderecoLimpo(state.endereco) },
     { label: "Convidados", value: `${state.adultos} adultos${state.criancas ? " + " + state.criancas + " crianças" : ""}` },
+    ...(state.restricoes?.trim() ? [{ label: "Restrições alimentares", value: state.restricoes }] : []),
   ];
   const bebidasValue = bebidasSelecionadas
     ? `Incluir Aurum — ${bebidasSelecionadas}`
     : state.bebidas || "";
   const estruturaRows: Row[] = [
-    { label: "Cozinha", value: state.cozinha || "" },
+    { label: "Cozinha", value: (state.cozinha || "") + (state.cozinhaDesc?.trim() ? ` — ${state.cozinhaDesc}` : "") },
     ...(isCoffeeOnly ? [] : [{ label: "Bebidas", value: bebidasValue }]),
     { label: "Louças e talheres", value: state.mesas || "" },
     { label: "Contato", value: `${state.nome} • ${state.whatsapp}${state.email ? " • " + state.email : ""}` },
+    ...(state.obs?.trim() ? [{ label: "Observações", value: state.obs }] : []),
   ];
 
   const secoes: Array<{ icon: string; titulo: string; rows: Row[] }> = [

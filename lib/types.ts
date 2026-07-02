@@ -50,13 +50,11 @@ export interface FormState {
   cozinhaDesc: string;       // descrição da estrutura quando cozinha === "Parcial"
   mesas: string | null;
   bebidas: string | null;
-  bebidasKit: string | null; // mantido para compatibilidade — não usado na UI
   bebidasItens: string[];    // itens individuais selecionados quando bebidas === "Incluir Aurum"
   entradasPessoas: Record<string, string>; // distribuição de convidados por entrada (empratado c/ 2 entradas)
   nome: string;
   whatsapp: string;
   email: string;
-  prazo: string;
   obs: string;
   cartaHomenageado: string;
   cartaDataLimite: string;
@@ -111,13 +109,11 @@ export const initialState: FormState = {
   cozinhaDesc: "",
   mesas: null,
   bebidas: null,
-  bebidasKit: null,
   bebidasItens: [],
   entradasPessoas: {},
   nome: "",
   whatsapp: "",
   email: "",
-  prazo: "",
   obs: "",
   cartaHomenageado: "",
   cartaDataLimite: "",

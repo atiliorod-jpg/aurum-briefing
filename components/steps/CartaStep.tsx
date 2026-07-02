@@ -55,7 +55,7 @@ export default function CartaStep({ state, onChange }: Props) {
         <div className="lg:flex-1">
           {field(h.label, h.desc, "cartaHomenageado", h.placeholder)}
 
-          {/* Data limite (RSVP) com sugestão automática (50% do tempo até o evento) */}
+          {/* Data limite (RSVP) com sugestão automática (40% do tempo até o evento) */}
           <div className="mb-4">
             <label className="block text-sm font-semibold text-[#1B2A41] mb-0.5">Até quando confirmar presença?</label>
             <p className="text-xs text-gray-500 mb-1.5">Prazo para os convidados avisarem se vão. Aparece no final do convite.</p>
@@ -92,6 +92,12 @@ export default function CartaStep({ state, onChange }: Props) {
             Os trechos em <span className="text-[#C9A24B] font-semibold">dourado</span> ainda
             estão em branco. Preencha para completá-los.
           </p>
+          {state.horaInicio && (
+            <p className="text-[11px] text-gray-500 mt-1.5 text-center leading-snug">
+              📌 O convite chama os convidados <strong>1 hora antes</strong> do início do
+              serviço ({state.horaInicio}) — por isso o horário exibido é diferente.
+            </p>
+          )}
         </div>
       </div>
     </div>

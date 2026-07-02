@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import { FormState } from "./types";
 import { formatDate, enderecoLimpo } from "./utils";
 import { getDescricao, getFeijoadaLabel, COFFEE_DETAILS, BEBIDAS_ITEMS } from "./menu";
-import { estimar, formatBRL, precoDe, pessoasDoTacho } from "./orcamento";
+import { estimar, formatBRL, precoDe, pessoasDoTacho, entradasPessoasCobranca } from "./orcamento";
 
 // Quebra "item a; item b." em itens limpos (mesma lógica da tela de coffee break)
 function splitItens(texto: string): string[] {
@@ -264,15 +264,17 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
   if (est.total > 0 && est.pessoas > 0) {
     addSection("Estimativa parcial");
 
-    // Entradas distribuídas (empratado c/ 2 opções)
+    // Entradas distribuídas (empratado c/ 2 opções) — distribuição de COBRANÇA
+    // (escalada para o mínimo faturável em grupos pequenos)
     const EXCL_E = new Set(["Sem entradas", "Sugestão do chef"]);
     const entradasReais = state.entradas.filter((v) => !EXCL_E.has(v));
     const multiEntrada = state.estilo.includes("Serviço franco-americano (empratado)") && entradasReais.length >= 2;
     if (multiEntrada && est.entradasSubtotal > 0) {
+      const cobranca = entradasPessoasCobranca(state);
       for (const v of entradasReais) {
         const p = precoDe(v);
         if (p == null) continue;
-        const n = Number(state.entradasPessoas?.[v]) || 0;
+        const n = cobranca[v] ?? 0;
         addRow(`Entrada (${v})`, `${formatBRL(p)} × ${n} = ${formatBRL(p * n)}`);
       }
     }
@@ -288,7 +290,7 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     if (est.aplicouMinimo) {
       addRow(
         "Grupo pequeno",
-        `Evento com ${est.pessoas} convidados — cardápio calculado pelo mínimo de ${est.pessoasFaturaveis} pessoas (custos fixos da operação). O valor por convidado fica mais alto em eventos menores.`,
+        `Evento com ${est.pessoas} convidados — cardápio e bebidas calculados pelo mínimo de ${est.pessoasFaturaveis} pessoas (custos fixos da operação). O valor por convidado fica mais alto em eventos menores.`,
       );
     }
 
@@ -320,7 +322,7 @@ export async function generateBriefingPDF(state: FormState): Promise<Blob> {
     }
 
     if (est.custoLogistica > 0 && state.distanciaKm != null) {
-      addRow("Logística", formatBRL(est.custoLogistica));
+      addRow("Logística", `${formatBRL(est.custoLogistica)} (~${state.distanciaKm} km da base Aurum)`);
     }
 
     addRow("Total estimado", formatBRL(est.total));

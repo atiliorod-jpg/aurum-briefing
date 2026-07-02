@@ -1,5 +1,5 @@
 import { FormState } from "./types";
-import { formatDate, formatPhone, shiftHour } from "./utils";
+import { formatDate, formatPhone, shiftHour, enderecoLimpo } from "./utils";
 
 // Artigo (o/a) para um texto de evento livre, pela primeira palavra
 function artigoEvento(text: string): "o" | "a" {
@@ -93,8 +93,7 @@ export function getCardapioName(state: FormState): string {
   if (e.includes("Serviço franco-americano (empratado)")) return "Menu Aurum Experience";
   if (e.includes("Serviço à americana (buffet)") || e.includes("Volante")) return "Cardápio Aurum Especial";
   if (e.includes("Tacho / Paellera")) {
-    const pratos = state.tacho.filter((t) => t !== "Sem tacho");
-    return pratos.length ? `Tacho/Paella de ${pratos.join(", ")}` : "Tacho/Paella";
+    return state.tacho.length ? `Tacho/Paella de ${state.tacho.join(", ")}` : "Tacho/Paella";
   }
   if (e.includes("Sugestão da Aurum")) return "Cardápio Autoral Aurum";
   return "[NOME DO CARDÁPIO]";
@@ -119,7 +118,7 @@ export function resolveInvitation(state: FormState): InvitationContent {
   const nome = state.cartaHomenageado?.trim() || getNomePlaceholder(state.tipo);
   const data = state.data ? formatDate(state.data) : "[DATA DO EVENTO]";
   const horario = state.horaInicio ? shiftHour(state.horaInicio, -1) : "[HORÁRIO DO EVENTO]";
-  const local = state.endereco?.trim() || "[ENDEREÇO COMPLETO]";
+  const local = enderecoLimpo(state.endereco) || "[ENDEREÇO COMPLETO]";
   const cardapio = getCardapioName(state);
   const dataLimite = state.cartaDataLimite?.trim() || "[DATA LIMITE PARA CONFIRMAÇÃO]";
   const contato = state.whatsapp?.trim() ? formatPhone(state.whatsapp) : "[CONTATO PARA RSVP]";

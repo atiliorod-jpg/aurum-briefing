@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { formatDate, formatPhone, isPhoneComplete, isEmailValid, shiftHour, sugestaoRSVP, buildWhatsAppMessage, buildWhatsAppLinkText } from "../lib/utils.ts";
 import { resolveInvitation, getConector, getTipoFrase, getCardapioName } from "../lib/invitation.ts";
-import { estimar, formatBRL, multiplicadorPessoas, calcCustoOperacional, calcCustoLogistica } from "../lib/orcamento.ts";
+import { estimar, formatBRL, multiplicadorPessoas, calcCustoOperacional, calcCustoLogistica, entradasPessoasCobranca } from "../lib/orcamento.ts";
 
 let passed = 0;
 function test(name, fn) {
@@ -26,8 +26,8 @@ const base = {
   sobremesasBuffet: [], sugestaoSobremesasBuffet: "",
   sobremesasRegionais: [], sugestaoSobremesasRegionais: "",
   cozinha: "Sim, completa", cozinhaDesc: "", mesas: "Local fornece", bebidas: "Bar do local",
-  bebidasKit: null, bebidasItens: [], entradasPessoas: {},
-  nome: "João", whatsapp: "(81)99818-4489", email: "", prazo: "", obs: "",
+  bebidasItens: [], entradasPessoas: {},
+  nome: "João", whatsapp: "(81)99818-4489", email: "", obs: "",
   cartaHomenageado: "", cartaDataLimite: "", cartaAssinatura: "",
 };
 
@@ -202,7 +202,7 @@ test("estimar Coffee Break Simples + 10 pax (faturado como 20)", () => {
 
 test("estimar bebidas individuais (água R$3 + suco R$5 = R$8) + 25 pax", () => {
   // custoBebidas = (3+5) * 25 = 200; foodTotal=0, total=200
-  const e = estimar({ ...base, adultos: "25", bebidas: "Incluir Aurum", bebidasItens: ["agua", "suco"], bebidasKit: null });
+  const e = estimar({ ...base, adultos: "25", bebidas: "Incluir Aurum", bebidasItens: ["agua", "suco"] });
   assert.equal(e.custoBebidas, 200);
   assert.equal(e.porPessoa, 0);
   assert.equal(e.multiplicador, 1.0);
@@ -259,6 +259,61 @@ test("estimar sobremesas regionais com feijoada (30 pax, mult×1.00)", () => {
   assert.equal(e.multiplicador, 1.0);
   assert.equal(e.custoOperacional, 200);
   assert.equal(e.total, Math.round(4020 * 1.0) + 200); // 4220
+});
+
+test('"Sem sobremesa regional" não entra no cálculo', () => {
+  const e = estimar({ ...base, adultos: "30", mesas: "Local fornece",
+    estilo: ["Feijoada Completa"], feijoada: "Tradicional",
+    sobremesasRegionais: ["Sem sobremesa regional"] });
+  assert.equal(e.porPessoa, 80); // só a feijoada
+  assert.ok(!e.temItemSemPreco);
+});
+
+console.log("entradas distribuídas + mínimo faturável:");
+test("distribuição de cobrança escala para o mínimo (10 pax 5/5 → 10/10)", () => {
+  const c = entradasPessoasCobranca({ ...base, adultos: "10",
+    estilo: ["Serviço franco-americano (empratado)"],
+    entradas: ["Carpaccio de Polvo", "Caponata de Polvo"],
+    entradasPessoas: { "Carpaccio de Polvo": "5", "Caponata de Polvo": "5" } });
+  assert.equal(c["Carpaccio de Polvo"], 10);
+  assert.equal(c["Caponata de Polvo"], 10);
+});
+
+test("distribuição de cobrança soma exatamente o mínimo (7 pax 4/3 → 11/9)", () => {
+  const c = entradasPessoasCobranca({ ...base, adultos: "7",
+    estilo: ["Serviço franco-americano (empratado)"],
+    entradas: ["Carpaccio de Polvo", "Caponata de Polvo"],
+    entradasPessoas: { "Carpaccio de Polvo": "4", "Caponata de Polvo": "3" } });
+  assert.equal(c["Carpaccio de Polvo"] + c["Caponata de Polvo"], 20);
+  assert.equal(c["Carpaccio de Polvo"], 11); // 4×20/7=11,43 → 11
+  assert.equal(c["Caponata de Polvo"], 9);   // 3×20/7=8,57 → 9 (maior resto)
+});
+
+test("distribuição de cobrança = real quando grupo ≥ 20 (30 pax 15/15)", () => {
+  const c = entradasPessoasCobranca({ ...base, adultos: "30",
+    estilo: ["Serviço franco-americano (empratado)"],
+    entradas: ["Carpaccio de Polvo", "Caponata de Polvo"],
+    entradasPessoas: { "Carpaccio de Polvo": "15", "Caponata de Polvo": "15" } });
+  assert.equal(c["Carpaccio de Polvo"], 15);
+  assert.equal(c["Caponata de Polvo"], 15);
+});
+
+test("2 entradas em grupo pequeno respeitam o mínimo faturável (sem furo de preço)", () => {
+  // 10 pax, Carpaccio R$80 (5) + Caponata R$70 (5) → cobrado 80×10 + 70×10 = 1500
+  // (antes do fix: 80×5 + 70×5 = 750 — metade do preço de 1 entrada sozinha)
+  const e = estimar({ ...base, adultos: "10", mesas: "Local fornece",
+    estilo: ["Serviço franco-americano (empratado)"],
+    entradas: ["Carpaccio de Polvo", "Caponata de Polvo"],
+    entradasPessoas: { "Carpaccio de Polvo": "5", "Caponata de Polvo": "5" } });
+  assert.equal(e.entradasSubtotal, 80 * 10 + 70 * 10); // 1500
+  assert.ok(e.aplicouMinimo);
+  assert.equal(e.total, 1500);
+  // Coerência: 1 entrada sozinha (80×20=1600) não pode ser mais cara que 2 distribuídas + margem
+  const umaEntrada = estimar({ ...base, adultos: "10", mesas: "Local fornece",
+    estilo: ["Serviço franco-americano (empratado)"],
+    entradas: ["Carpaccio de Polvo"] });
+  assert.equal(umaEntrada.total, 80 * 20); // 1600
+  assert.ok(e.total >= umaEntrada.total * 0.9, "2 entradas não podem custar menos que ~1 entrada");
 });
 
 console.log(`\n${passed} testes passaram.`);

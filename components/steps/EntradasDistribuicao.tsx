@@ -76,11 +76,14 @@ export default function EntradasDistribuicao({ state, onChange }: Props) {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <button type="button"
-                onClick={() => set(v, String(Math.max(minPorPrato, n - 1)))}
-                className="w-8 h-8 rounded-full border-2 border-gray-200 text-[#1B2A41] font-bold text-lg flex items-center justify-center active:scale-95 transition-all">−</button>
+                onClick={() => set(v, String(n - 1))}
+                disabled={n <= minPorPrato}
+                aria-label={`Diminuir convidados de ${v}`}
+                className="w-8 h-8 rounded-full border-2 border-gray-200 text-[#1B2A41] font-bold text-lg flex items-center justify-center active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed">−</button>
               <span className="w-8 text-center font-bold text-[#1B2A41] text-sm">{n}</span>
               <button type="button"
                 onClick={() => set(v, String(n + 1))}
+                aria-label={`Aumentar convidados de ${v}`}
                 className="w-8 h-8 rounded-full border-2 border-[#C9A24B] text-[#1B2A41] font-bold text-lg flex items-center justify-center active:scale-95 transition-all">+</button>
             </div>
           </div>

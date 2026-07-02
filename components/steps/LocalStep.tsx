@@ -117,7 +117,11 @@ export default function LocalStep({ state, onChange }: Props) {
           <input
             type="checkbox"
             checked={state.cepDesconhecido}
-            onChange={e => onChange({ cepDesconhecido: e.target.checked })}
+            onChange={e => onChange({
+              cepDesconhecido: e.target.checked,
+              // Sem CEP confiável, a logística sai da estimativa (a Aurum confirma depois)
+              ...(e.target.checked ? { distanciaKm: null } : {}),
+            })}
             className="w-4 h-4 accent-[#C9A24B]"
           />
           <span className="text-xs text-gray-600">

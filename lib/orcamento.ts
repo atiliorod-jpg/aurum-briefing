@@ -32,8 +32,9 @@ export function precoDe(value: string): number | undefined {
 
 // Itens "neutros" que não entram no cálculo
 const IGNORAR = new Set([
-  "Sem entradas", "Sem sobremesa", "Sem tacho", "Sugestão do chef",
+  "Sem entradas", "Sem sobremesa", "Sugestão do chef",
   "Sem entradas buffet", "Sugestão do chef buffet", "Sem sobremesa buffet",
+  "Sem sobremesa regional",
 ]);
 
 export interface Estimativa {
@@ -85,7 +86,8 @@ export function calcCustoOperacional(pessoas: number): number {
 }
 
 // Custo de logística por distância em linha reta (estimativa aproximada).
-// Inclui 50% de adicional sobre o transporte (desgaste, seguro e outros custos do veículo).
+// Inclui o adicional percentual LOGISTICA_ADICIONAL_PCTG sobre o transporte
+// (desgaste, seguro e outros custos do veículo — hoje 35%, ajustável em config.ts).
 // O valor final é sempre arredondado PARA CIMA em múltiplos de LOGISTICA_ARREDONDA
 // (ex.: 73 → 75) — nunca deixa valor quebrado.
 export function calcCustoLogistica(distanciaKm: number | null): number {
@@ -96,6 +98,32 @@ export function calcCustoLogistica(distanciaKm: number | null): number {
 }
 
 const EXCLUSIVAS_ENTRADAS = new Set(["Sem entradas", "Sugestão do chef"]);
+
+// Distribuição de convidados por entrada usada na COBRANÇA. É a distribuição
+// informada pelo cliente — mas, quando o grupo é menor que o mínimo faturável,
+// ela é escalada proporcionalmente para o mínimo (mesma regra do restante do
+// cardápio; sem isso, escolher 2 entradas sairia mais barato que escolher 1).
+// O arredondamento por maior resto garante inteiros somando o mínimo exato.
+export function entradasPessoasCobranca(state: FormState): Record<string, number> {
+  const pessoas = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
+  const entradasReais = state.entradas.filter((v) => !EXCLUSIVAS_ENTRADAS.has(v));
+  const reais: Record<string, number> = {};
+  for (const v of entradasReais) reais[v] = Number(state.entradasPessoas?.[v]) || 0;
+  if (pessoas <= 0 || pessoas >= MINIMO_FATURAVEL_PESSOAS) return reais;
+
+  const fator = MINIMO_FATURAVEL_PESSOAS / pessoas;
+  const itens = entradasReais.map((v) => {
+    const exato = reais[v] * fator;
+    return { v, n: Math.floor(exato), resto: exato - Math.floor(exato) };
+  });
+  let falta = MINIMO_FATURAVEL_PESSOAS - itens.reduce((s, i) => s + i.n, 0);
+  itens.sort((a, b) => b.resto - a.resto);
+  for (const i of itens) { if (falta <= 0) break; i.n += 1; falta -= 1; }
+
+  const out: Record<string, number> = {};
+  for (const i of itens) out[i.v] = i.n;
+  return out;
+}
 
 export function estimar(state: FormState): Estimativa {
   const pessoas = (Number(state.adultos) || 0) + (Number(state.criancas) || 0);
@@ -143,11 +171,11 @@ export function estimar(state: FormState): Estimativa {
   const multiEntradaEmpratado = empratado && entradasReais.length >= 2;
 
   if (multiEntradaEmpratado) {
+    const cobranca = entradasPessoasCobranca(state);
     for (const v of entradasReais) {
       const p = precoDe(v);
       if (p != null) {
-        const n = Number(state.entradasPessoas?.[v]) || 0;
-        entradasSubtotal += p * n;
+        entradasSubtotal += p * (cobranca[v] ?? 0);
         itens.push({ nome: v, preco: p });
       } else {
         temItemSemPreco = true;

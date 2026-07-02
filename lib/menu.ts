@@ -11,9 +11,7 @@ export interface MenuOption {
   value: string;
   label: string;
   desc?: string;
-  preco?: number;       // valor por pessoa no empratado (R$)
-  precoBuffet?: number; // valor por pessoa no buffet (quando definido)
-  precoVolante?: number; // valor por pessoa no volante (quando definido)
+  preco?: number; // valor por pessoa (R$)
 }
 
 // ── Feijoada ────────────────────────────────────────────────────────────────
@@ -63,21 +61,6 @@ export const BEBIDAS_ITEMS: BebidasItem[] = [
   { value: "vinho",      label: "Vinho nacional",   desc: "tinto ou branco",                 preco: 14 },
   { value: "espumante",  label: "Espumante",        desc: "Brut, garrafa compartilhada",     preco: 18 },
   { value: "destilados", label: "Destilados",       desc: "vodka ou gin + mixers + gelo",    preco: 25 },
-];
-
-// ── Bebidas em kits (mantido — não usado na UI, apenas para compatibilidade) ──
-export interface BebidasKit { value: string; label: string; desc: string; preco: number; }
-export const BEBIDAS_KITS: BebidasKit[] = [
-  { value: "hidratacao",    label: "Kit Hidratação",    desc: "Água mineral (com e sem gás)",                            preco: 4  },
-  { value: "refresco",      label: "Kit Refresco",      desc: "Água + refrigerante (Coca-Cola, Guaraná, Soda)",          preco: 8  },
-  { value: "natural",       label: "Kit Natural",       desc: "Água + suco de polpa (1 sabor)",                          preco: 10 },
-  { value: "familia",       label: "Kit Família",       desc: "Água + suco (2 sabores) + refrigerante",                  preco: 15 },
-  { value: "chopp",         label: "Kit Chopp",         desc: "Chopp artesanal + água mineral",                          preco: 20 },
-  { value: "vinho_mesa",    label: "Kit Vinho Mesa",    desc: "Vinho nacional (tinto ou branco) + água",                 preco: 22 },
-  { value: "espumante",     label: "Kit Espumante",     desc: "Espumante Brut + água mineral (com e sem gás)",           preco: 28 },
-  { value: "vinho_premium", label: "Kit Vinho Premium", desc: "Vinho importado selecionado + água mineral",              preco: 35 },
-  { value: "bar_light",     label: "Kit Bar Light",     desc: "Vodka ou gin + mixers + água + gelo",                     preco: 40 },
-  { value: "bar_completo",  label: "Kit Bar Completo",  desc: "Destilados variados + cervejas + mixers + água + gelo",  preco: 55 },
 ];
 
 // ── Jantar Temático — 9 culinárias temáticas ─────────────────────────────────
@@ -263,7 +246,7 @@ export const SOBREMESAS_REGIONAIS_OPTIONS: MenuOption[] = [
   { value: "Cocada Assada",                          label: "Cocada Assada",                          desc: "Cocada dourada no forno com coco fresco ralado e leite condensado.",                        preco: 20 },
   { value: "Doce de Banana com Queijo Coalho",       label: "Doce de Banana com Queijo Coalho",       desc: "Fatias de banana caramelizada com queijo coalho grelhado e mel.",                           preco: 22 },
   { value: "Pudim de Tapioca com Coco",              label: "Pudim de Tapioca com Coco",              desc: "Pudim delicado de tapioca com leite de coco e calda de caramelo.",                          preco: 25 },
-  { value: "Sem sobremesa",                           label: "Sem sobremesa",                          desc: "" },
+  { value: "Sem sobremesa regional",                  label: "Sem sobremesa",                          desc: "" },
 ];
 
 // Busca a descrição de uma preparação pelo seu "value" (em qualquer categoria).

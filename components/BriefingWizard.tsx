@@ -137,8 +137,12 @@ function canAdvance(step: StepName, state: FormState): boolean {
     case "coffeeBreak": return !!state.coffeeBreak;
     case "harmonizado": return true; // opcional — sob consulta
     case "temaJantar": return !!state.temaJantar;
-    case "estrutura":
-      return !!state.cozinha && !!state.mesas && (ehCoffeeOnly(state) || !!state.bebidas);
+    case "estrutura": {
+      const bebidasOk = ehCoffeeOnly(state)
+        || (!!state.bebidas
+          && (state.bebidas !== "Incluir Aurum" || (state.bebidasItens?.length ?? 0) > 0));
+      return !!state.cozinha && !!state.mesas && bebidasOk;
+    }
     case "contato":
       return state.nome.trim().length > 0
         && isPhoneComplete(state.whatsapp)
@@ -176,7 +180,7 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "entradasBuffet": return 'Selecione uma opção (ou "Sem entradas") para continuar.';
     case "principaisBuffet": return "Selecione ao menos um prato principal.";
     case "sobremesasBuffet": return 'Selecione uma opção (ou "Sem sobremesa") para continuar.';
-    case "sobremesasRegionais": return "Selecione uma sobremesa para continuar.";
+    case "sobremesasRegionais": return 'Selecione uma opção (ou "Sem sobremesa") para continuar.';
     case "tacho":
       if (state.tacho.length === 0) return "Selecione ao menos um prato de tacho/paellera.";
       return "Distribua todos os convidados entre os dois tachos (a soma precisa bater).";
@@ -186,7 +190,8 @@ function requiredHint(step: StepName, state: FormState): string | null {
     case "estrutura":
       if (!state.cozinha) return "Diga se o local tem cozinha equipada.";
       if (!state.mesas) return "Escolha como ficam as louças e talheres.";
-      return "Escolha como ficam as bebidas.";
+      if (!state.bebidas) return "Escolha como ficam as bebidas.";
+      return "Selecione ao menos um item de bebida para incluir na proposta.";
     case "contato":
       if (state.email.trim() !== "" && !isEmailValid(state.email)) return "O e-mail informado parece inválido.";
       return "Preencha o nome e um WhatsApp completo (com DDD).";
@@ -291,6 +296,11 @@ export default function BriefingWizard() {
       if (!hasBuffetVolante) {
         next.entradasBuffet = []; next.sugestaoEntradasBuffet = "";
         next.principaisBuffet = []; next.sugestaoPrincipaisBuffet = "";
+      }
+      // Sobremesas de buffet: o passo só existe quando há Buffet/Volante SEM Empratado
+      // (o Empratado tem prioridade e mostra as sobremesas europeias). Limpa nos dois
+      // casos para não deixar itens cobrados sem tela para editá-los.
+      if (!hasBuffetVolante || hasEmpratado) {
         next.sobremesasBuffet = []; next.sugestaoSobremesasBuffet = "";
       }
 
@@ -298,6 +308,11 @@ export default function BriefingWizard() {
       if (hasEmpratado || hasBuffetVolante || (!hasTacho && !hasFeijoada)) {
         next.sobremesasRegionais = []; next.sugestaoSobremesasRegionais = "";
       }
+
+      // Coffee Break sozinho já inclui bebidas: o bloco de bebidas fica oculto na
+      // Estrutura — limpa a seleção para não cobrar itens invisíveis na estimativa.
+      const coffeeOnly = estilo.length > 0 && estilo.every((x) => x === "Coffee Break");
+      if (coffeeOnly) { next.bebidas = null; next.bebidasItens = []; }
 
       return next;
     });
@@ -463,7 +478,7 @@ export default function BriefingWizard() {
           onChange={v => patch({ sobremesasRegionais: v })}
           suggestion={state.sugestaoSobremesasRegionais}
           onSuggestionChange={v => patch({ sugestaoSobremesasRegionais: v })}
-          exclusiveValues={["Sem sobremesa"]}
+          exclusiveValues={["Sem sobremesa regional"]}
           priceNote
           footer={<EstimativaCard state={state} colapsavel />}
         />

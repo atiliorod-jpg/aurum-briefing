@@ -1,6 +1,6 @@
 "use client";
 import { FormState } from "@/lib/types";
-import { estimar, formatBRL, precoDe, pessoasDoTacho } from "@/lib/orcamento";
+import { estimar, formatBRL, precoDe, pessoasDoTacho, entradasPessoasCobranca } from "@/lib/orcamento";
 
 export default function EstimativaCard({ state, colapsavel = false }: { state: FormState; colapsavel?: boolean }) {
   const e = estimar(state);
@@ -18,25 +18,22 @@ export default function EstimativaCard({ state, colapsavel = false }: { state: F
       }).filter((l) => l.subtotal > 0)
     : [];
 
-  // Nomes dos itens agrupados por categoria
-  const EXCL = new Set(["Sem entradas", "Sugestão do chef", "Sem sobremesa", "Sem tacho",
-    "Sem entradas buffet", "Sugestão do chef buffet", "Sem sobremesa buffet"]);
-  const nomesFiltrados = (lista: string[]) => lista.filter((v) => !EXCL.has(v));
-
   // Itens de cardápio selecionados (para exibir abaixo da linha de preço)
   const itensCardapio = e.itens.filter((i) => i.nome !== "Louças e talheres (básico)");
 
   const linhas = (
     <>
-      {/* Entradas distribuídas (multi-entrada empratado) */}
+      {/* Entradas distribuídas (multi-entrada empratado) — usa a distribuição de
+          COBRANÇA (escalada para o mínimo faturável em grupos pequenos) */}
       {e.entradasSubtotal > 0 && (() => {
         const EXCL_E = new Set(["Sem entradas", "Sugestão do chef"]);
         const entradasReais = state.entradas.filter((v) => !EXCL_E.has(v));
+        const cobranca = entradasPessoasCobranca(state);
         return (
           <>
             {entradasReais.map((v) => {
               const p = precoDe(v) ?? 0;
-              const n = Number(state.entradasPessoas?.[v]) || 0;
+              const n = cobranca[v] ?? 0;
               if (!p || !n) return null;
               return (
                 <p key={v} className="text-sm text-[#1B2A41] leading-relaxed">
@@ -67,9 +64,9 @@ export default function EstimativaCard({ state, colapsavel = false }: { state: F
       {/* Faturamento mínimo (grupos pequenos) */}
       {e.aplicouMinimo && (
         <p className="text-xs text-amber-700 leading-relaxed mt-0.5">
-          Grupo de <strong>{e.pessoas}</strong> convidados: o cardápio é calculado pelo
-          mínimo de <strong>{e.pessoasFaturaveis} pessoas</strong> (custos fixos da
-          operação). O valor por convidado fica mais alto em eventos menores.
+          Grupo de <strong>{e.pessoas}</strong> convidados: cardápio e bebidas são
+          calculados pelo mínimo de <strong>{e.pessoasFaturaveis} pessoas</strong> (custos
+          fixos da operação). O valor por convidado fica mais alto em eventos menores.
         </p>
       )}
 
@@ -119,7 +116,7 @@ export default function EstimativaCard({ state, colapsavel = false }: { state: F
       {/* Logística */}
       {e.custoLogistica > 0 && state.distanciaKm != null && (
         <p className="text-sm text-[#1B2A41] leading-relaxed">
-          <strong>Logística:</strong> {formatBRL(e.custoLogistica)}
+          <strong>Logística (~{state.distanciaKm} km):</strong> {formatBRL(e.custoLogistica)}
         </p>
       )}
 
